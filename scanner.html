@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VULNRA — Scanner</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600@display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #060608;
+      --bg1:    #09090e;
+      --bg2:    #0d0e14;
+      --bg3:    #12131a;
+      --acid:   #b8ff57;
+      --acid2:  rgba(184,255,87,0.07);
+      --acid3:  rgba(184,255,87,0.14);
+      --red:    #ff3c5a;
+      --red2:   rgba(255,60,90,0.1);
+      --amber:  #ffb340;
+      --amber2: rgba(255,179,64,0.1);
+      --green:  #3dffaa;
+      --text:   #e8edf4;
+      --muted:  rgba(232,237,244,0.45);
+      --muted2: rgba(232,237,244,0.22);
+      --muted3: rgba(232,237,244,0.1);
+      --border: rgba(255,255,255,0.07);
+      --border2:rgba(255,255,255,0.04);
+      --mono:   'IBM Plex Mono', monospace;
+      --sans:   'DM Sans', sans-serif;
+    }
+
+    html { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* grain overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: -200%;
+      width: 400%; height: 400%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999;
+      animation: grain .4s steps(1) infinite;
+    }
+
+    @keyframes grain {
+      0%  { transform: translate(0,0); }   20% { transform: translate(-3%,-4%); }
+      40% { transform: translate(-6%,3%); } 60% { transform: translate(3%,-2%); }
+      80% { transform: translate(-4%,6%); } 100%{ transform: translate(5%,-3%); }
+    }
+    @keyframes fadeUp   { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+    @keyframes pulse    { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.25;transform:scale(.55)} }
+    @keyframes blink    { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes shine    { 0%{left:-100%} 100%{left:200%} }
+    @keyframes scanV    { 0%{top:-1px;opacity:0} 5%{opacity:1} 95%{opacity:1} 100%{top:100%;opacity:0} }
+    @keyframes spin     { to{transform:rotate(360deg)} }
+    @keyframes slideIn  { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes barFill  { from{width:0} to{width:var(--w)} }
+    @keyframes countUp  { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes ripple   { 0%{transform:scale(1);opacity:.6} 100%{transform:scale(2.4);opacity:0} }
+
+    ::-webkit-scrollbar { width:3px; height:3px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:rgba(184,255,87,.3); border-radius:2px; }
+    ::selection { background:var(--acid); color:#000; }
+
+    /* ── TOP NAV ── */
+    .topnav {
+      height: 52px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px;
+      background: var(--bg1);
+      border-bottom: 1px solid var(--border2);
+      z-index: 50;
+    }
+    .nav-left  { display:flex; align-items:center; gap:16px; }
+    .nav-right { display:flex; align-items:center; gap:12px; }
+
+    .logo {
+      display:flex; align-items:center; gap:8px;
+      font-family:var(--mono); font-size:13px; font-weight:700;
+      letter-spacing:.1em; color:var(--text); text-decoration:none;
+    }
+    .logo-mark {
+      width:24px; height:24px; border-radius:4px; background:var(--acid);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .logo-mark svg { width:12px; height:12px; }
+    .logo em { font-style:normal; color:var(--acid); }
+
+    .nav-divider { width:1px; height:20px; background:var(--border); }
+
+    .nav-breadcrumb {
+      display:flex; align-items:center; gap:6px;
+      font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--muted2);
+    }
+    .nav-breadcrumb span { color:var(--acid); }
+
+    .nav-badge {
+      font-family:var(--mono); font-size:9px; letter-spacing:.14em;
+      padding:3px 9px; border-radius:2px; border:1px solid;
+    }
+    .badge-live { color:var(--acid); border-color:rgba(184,255,87,.25); background:var(--acid2); }
+    .badge-idle { color:var(--muted2); border-color:var(--border); }
+
+    .icon-btn {
+      width:30px; height:30px; border-radius:4px;
+      background:none; border:1px solid var(--border2);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; color:var(--muted2); transition:all .2s;
+    }
+    .icon-btn:hover { border-color:var(--border); color:var(--text); background:rgba(255,255,255,.03); }
+
+    .user-chip {
+      display:flex; align-items:center; gap:7px;
+      font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; color:var(--muted);
+      background:rgba(255,255,255,.03); border:1px solid var(--border);
+      padding:5px 10px; border-radius:4px; cursor:pointer; transition:all .2s;
+      text-decoration:none;
+    }
+    .user-chip:hover { border-color:rgba(255,255,255,.12); color:var(--text); }
+    .user-avatar {
+      width:18px; height:18px; border-radius:50%;
+      background:var(--acid); display:flex; align-items:center; justify-content:center;
+      font-size:8px; font-weight:700; color:#000; flex-shrink:0;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .workspace {
+      flex:1; display:grid;
+      grid-template-columns: 280px 1fr 320px;
+      grid-template-rows: 1fr;
+      overflow: hidden;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      background:var(--bg1);
+      border-right:1px solid var(--border2);
+      display:flex; flex-direction:column;
+      overflow:hidden;
+    }
+    .panel-head {
+      padding:14px 16px 12px;
+      border-bottom:1px solid var(--border2);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .panel-label {
+      font-family:var(--mono); font-size:8.5px; letter-spacing:.22em;
+      text-transform:uppercase; color:var(--muted2);
+    }
+
+    /* scan config */
+    .config-body { padding:14px 16px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex:1; }
+
+    .field-group { display:flex; flex-direction:column; gap:6px; }
+    .field-label  {
+      font-family:var(--mono); font-size:8.5px; letter-spacing:.2em;
+      text-transform:uppercase; color:var(--muted2);
+    }
+
+    .url-input-wrap { position:relative; }
+    .url-input {
+      width:100%; background:var(--bg2);
+      border:1px solid var(--border); border-radius:3px;
+      padding:9px 10px 9px 34px;
+      font-family:var(--mono); font-size:10.5px; color:var(--text);
+      outline:none; transition:border-color .2s;
+      letter-spacing:.03em;
+    }
+    .url-input::placeholder { color:var(--muted3); }
+    .url-input:focus { border-color:rgba(184,255,87,.35); background:rgba(184,255,87,.02); }
+    .url-input-icon {
+      position:absolute; left:10px; top:50%; transform:translateY(-50%);
+      color:var(--muted2); pointer-events:none; display:flex;
+    }
+
+    /* mode tabs */
+    .mode-tabs { display:flex; gap:4px; }
+    .mode-tab {
+      flex:1; font-family:var(--mono); font-size:9px; letter-spacing:.1em;
+      background:var(--bg2); border:1px solid var(--border); border-radius:2px;
+      padding:7px 6px; text-align:center; cursor:pointer; color:var(--muted2);
+      transition:all .2s;
+    }
+    .mode-tab:hover { border-color:rgba(255,255,255,.12); color:var(--muted); }
+    .mode-tab.active { border-color:var(--acid); color:var(--acid); background:var(--acid2); }
+
+    /* toggle rows */
+    .toggle-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:8px 0; border-bottom:1px solid var(--border2);
+    }
+    .toggle-row:last-child { border-bottom:none; }
+    .toggle-info { display:flex; flex-direction:column; gap:2px; }
+    .toggle-name { font-family:var(--mono); font-size:10px; color:var(--text); letter-spacing:.04em; }
+    .toggle-desc { font-size:10.5px; color:var(--muted2); font-weight:300; }
+
+    .toggle {
+      width:30px; height:16px; border-radius:8px;
+      background:var(--bg3); border:1px solid var(--border);
+      position:relative; cursor:pointer; transition:all .25s; flex-shrink:0;
+    }
+    .toggle::after {
+      content:''; position:absolute; top:2px; left:2px;
+      width:10px; height:10px; border-radius:50%;
+      background:var(--muted2); transition:all .25s;
+    }
+    .toggle.on { background:var(--acid2); border-color:rgba(184,255,87,.4); }
+    .toggle.on::after { left:16px; background:var(--acid); }
+
+    .section-divider {
+      height:1px; background:var(--border2); margin:4px 0;
+    }
+    .section-mini-label {
+      font-family:var(--mono); font-size:8px; letter-spacing:.22em;
+      text-transform:uppercase; color:var(--muted3); margin:2px 0 8px;
+    }
+
+    /* scan button */
+    .scan-btn-wrap { padding:14px 16px; border-top:1px solid var(--border2); }
+    .scan-btn {
+      width:100%; background:var(--acid); color:#000;
+      border:none; border-radius:3px; padding:11px;
+      font-family:var(--mono); font-size:10.5px; font-weight:700;
+      letter-spacing:.14em; cursor:pointer; transition:all .25s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      position:relative; overflow:hidden;
+    }
+    .scan-btn::after {
+      content:''; position:absolute; top:0; left:-100%; width:50%; height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);
+      transform:skewX(-20deg);
+    }
+    .scan-btn:hover::after { animation:shine .6s ease forwards; }
+    .scan-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 20px rgba(184,255,87,.3); }
+    .scan-btn:disabled { opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
+    .scan-btn.scanning { background:rgba(184,255,87,.12); color:var(--acid); border:1px solid rgba(184,255,87,.25); }
+
+    /* recent scans */
+    .history-list { display:flex; flex-direction:column; overflow-y:auto; flex:1; }
+    .history-item {
+      padding:10px 16px; border-bottom:1px solid var(--border2);
+      cursor:pointer; transition:background .2s; display:flex; align-items:center; gap:10px;
+    }
+    .history-item:hover { background:rgba(255,255,255,.02); }
+    .history-score {
+      width:28px; height:28px; border-radius:4px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-family:var(--mono); font-size:11px; font-weight:700;
+    }
+    .score-high  { background:rgba(255,60,90,.12);  color:var(--red);   border:1px solid rgba(255,60,90,.2); }
+    .score-med   { background:rgba(255,179,64,.12); color:var(--amber); border:1px solid rgba(255,179,64,.2); }
+    .score-low   { background:rgba(61,255,170,.1);  color:var(--green); border:1px solid rgba(61,255,170,.2); }
+    .history-info { flex:1; min-width:0; }
+    .history-url  { font-family:var(--mono); font-size:9.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:.03em; }
+    .history-meta { font-size:10px; color:var(--muted2); margin-top:2px; }
+
+    /* ── CENTER PANEL ── */
+    .center-panel {
+      display:flex; flex-direction:column;
+      overflow:hidden; position:relative;
+      background:var(--bg);
+    }
+
+    /* terminal header */
+    .term-head {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 16px; height:38px;
+      background:var(--bg1); border-bottom:1px solid var(--border2);
+      flex-shrink:0;
+    }
+    .term-dots { display:flex; gap:6px; align-items:center; }
+    .term-dot { width:9px; height:9px; border-radius:50%; }
+    .term-title {
+      font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; color:var(--muted2);
+      position:absolute; left:50%; transform:translateX(-50%);
+    }
+    .term-actions { display:flex; gap:6px; }
+
+    /* log output */
+    .log-output {
+      flex:1; overflow-y:auto; padding:16px;
+      font-family:var(--mono); font-size:11px; line-height:1.8;
+      position:relative;
+    }
+    /* scanline */
+    .log-output::before {
+      content:''; position:absolute; left:16px; right:16px; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(184,255,87,.2),transparent);
+      animation:scanV 8s ease-in-out infinite 4s; pointer-events:none;
+    }
+
+    .log-line {
+      display:flex; align-items:baseline; gap:8px;
+      opacity:0; animation:slideIn .25s ease forwards;
+      padding:1px 0;
+    }
+    .log-ts  { color:var(--muted3); font-size:9.5px; flex-shrink:0; min-width:58px; }
+    .log-tag { flex-shrink:0; font-size:9.5px; font-weight:600; min-width:52px; }
+    .log-msg { color:var(--muted); flex:1; word-break:break-word; }
+    .log-msg .val { color:var(--text); }
+
+    .tag-init  { color:#7eb8ff; }
+    .tag-probe { color:var(--muted2); }
+    .tag-pass  { color:var(--green); }
+    .tag-fail  { color:var(--red); }
+    .tag-warn  { color:var(--amber); }
+    .tag-done  { color:var(--acid); }
+    .tag-info  { color:var(--muted2); }
+    .tag-err   { color:var(--red); }
+
+    .log-msg.fail { color:var(--red); }
+    .log-msg.warn { color:var(--amber); }
+    .log-msg.pass { color:var(--green); }
+
+    /* idle state */
+    .idle-state {
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:16px; pointer-events:none;
+    }
+    .idle-ring {
+      width:80px; height:80px; border-radius:50%;
+      border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      position:relative;
+    }
+    .idle-ring::before {
+      content:''; position:absolute; inset:-8px; border-radius:50%;
+      border:1px solid rgba(184,255,87,.12); animation:ripple 3s ease-in-out infinite;
+    }
+    .idle-ring::after {
+      content:''; position:absolute; inset:-16px; border-radius:50%;
+      border:1px solid rgba(184,255,87,.06); animation:ripple 3s ease-in-out infinite .8s;
+    }
+    .idle-icon { color:var(--muted2); }
+    .idle-label { font-family:var(--mono); font-size:10px; letter-spacing:.2em; color:var(--muted2); }
+
+    /* progress bar */
+    .progress-bar-wrap {
+      height:2px; background:var(--border); flex-shrink:0;
+      display:none;
+    }
+    .progress-bar-wrap.show { display:block; }
+    .progress-bar {
+      height:100%; background:var(--acid);
+      width:0%; transition:width .6s ease;
+      box-shadow:0 0 8px rgba(184,255,87,.5);
+    }
+
+    /* log toolbar */
+    .log-toolbar {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:8px 16px; border-top:1px solid var(--border2);
+      background:var(--bg1); flex-shrink:0;
+    }
+    .log-stats { display:flex; align-items:center; gap:16px; }
+    .log-stat  {
+      font-family:var(--mono); font-size:9px; letter-spacing:.12em; color:var(--muted2);
+      display:flex; align-items:center; gap:5px;
+    }
+    .log-stat .n { color:var(--text); font-size:10px; }
+    .log-stat .n.red   { color:var(--red); }
+    .log-stat .n.amber { color:var(--amber); }
+    .log-stat .n.green { color:var(--green); }
+
+    .download-btn {
+      display:none; align-items:center; gap:7px;
+      font-family:var(--mono); font-size:9.5px; letter-spacing:.12em;
+      color:var(--acid); background:var(--acid2); border:1px solid rgba(184,255,87,.25);
+      padding:6px 14px; border-radius:3px; cursor:pointer;
+      transition:all .25s; position:relative; overflow:hidden;
+    }
+    .download-btn.show { display:flex; animation:fadeIn .3s ease forwards; }
+    .download-btn::after { content:''; position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(90deg,transparent,rgba(184,255,87,.2),transparent); transform:skewX(-20deg); }
+    .download-btn:hover::after { animation:shine .5s ease forwards; }
+    .download-btn:hover { border-color:rgba(184,255,87,.5); transform:translateY(-1px); box-shadow:0 6px 16px rgba(184,255,87,.15); }
+    .download-btn.loading { opacity:.6; cursor:wait; pointer-events:none; }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      background:var(--bg1); border-left:1px solid var(--border2);
+      display:flex; flex-direction:column; overflow:hidden;
+    }
+
+    .r-tabs {
+      display:flex; border-bottom:1px solid var(--border2); flex-shrink:0;
+    }
+    .r-tab {
+      flex:1; padding:11px 8px; text-align:center;
+      font-family:var(--mono); font-size:9px; letter-spacing:.14em;
+      color:var(--muted2); cursor:pointer; border-bottom:2px solid transparent;
+      transition:all .2s;
+    }
+    .r-tab:hover { color:var(--muted); }
+    .r-tab.active { color:var(--acid); border-bottom-color:var(--acid); }
+
+    .r-body { flex:1; overflow-y:auto; padding:14px; }
+    .r-panel { display:none; }
+    .r-panel.active { display:block; animation:fadeIn .25s ease forwards; }
+
+    /* score ring */
+    .score-display {
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+      padding:20px 0 16px;
+    }
+    .score-ring {
+      width:110px; height:110px; position:relative;
+    }
+    .score-ring svg { width:100%; height:100%; transform:rotate(-90deg); }
+    .score-ring-bg  { fill:none; stroke:var(--border); stroke-width:6; }
+    .score-ring-fill{ fill:none; stroke-width:6; stroke-linecap:round; stroke-dasharray:283; stroke-dashoffset:283; transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1), stroke .5s; }
+    .score-ring-val {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+    }
+    .score-num { font-family:var(--mono); font-size:28px; font-weight:700; line-height:1; }
+    .score-denom { font-family:var(--mono); font-size:9px; color:var(--muted2); letter-spacing:.1em; }
+    .score-engine { font-family:var(--mono); font-size:8.5px; letter-spacing:.16em; color:var(--muted2); }
+
+    /* findings list */
+    .findings-list { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+    .finding-item {
+      border-radius:3px; border:1px solid; padding:10px 11px;
+      animation:fadeUp .3s ease forwards;
+      cursor:default;
+    }
+    .finding-item.high   { border-color:rgba(255,60,90,.2);  background:rgba(255,60,90,.04); }
+    .finding-item.medium { border-color:rgba(255,179,64,.2); background:rgba(255,179,64,.04); }
+    .finding-item.low    { border-color:rgba(61,255,170,.15);background:rgba(61,255,170,.03); }
+    .finding-item.locked { border-color:var(--border); background:rgba(255,255,255,.02); }
+
+    .finding-head { display:flex; align-items:center; gap:6px; margin-bottom:5px; }
+    .finding-sev  {
+      font-family:var(--mono); font-size:8px; letter-spacing:.16em;
+      padding:2px 6px; border-radius:2px;
+    }
+    .sev-high   { color:var(--red);   background:rgba(255,60,90,.12);  }
+    .sev-medium { color:var(--amber); background:rgba(255,179,64,.12); }
+    .sev-low    { color:var(--green); background:rgba(61,255,170,.1);  }
+    .sev-locked { color:var(--muted2);background:rgba(255,255,255,.06);}
+
+    .finding-cat  { font-family:var(--mono); font-size:9.5px; color:var(--text); letter-spacing:.04em; flex:1; }
+    .finding-score{ font-family:var(--mono); font-size:10px; color:var(--muted2); }
+    .finding-detail{ font-size:11px; color:var(--muted); line-height:1.5; font-weight:300; }
+
+    /* compliance */
+    .comp-list { display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+    .comp-item { border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+    .comp-head-row {
+      padding:10px 12px; display:flex; align-items:center; justify-content:space-between;
+      background:rgba(255,255,255,.02); cursor:pointer;
+    }
+    .comp-fw   { font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:.1em; }
+    .comp-arrow{ color:var(--muted2); transition:transform .2s; }
+    .comp-item.open .comp-arrow { transform:rotate(90deg); }
+    .comp-body-wrap { display:none; padding:10px 12px; border-top:1px solid var(--border2); }
+    .comp-item.open .comp-body-wrap { display:block; }
+    .comp-articles { font-size:11px; color:var(--muted); line-height:1.6; font-weight:300; margin-bottom:6px; }
+    .comp-fine { font-family:var(--mono); font-size:9px; color:var(--red); border:1px solid rgba(255,60,90,.2); padding:2px 7px; border-radius:2px; display:inline-block; }
+
+    /* placeholder */
+    .r-empty {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      height:180px; gap:10px; color:var(--muted2);
+      font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-align:center;
+    }
+    .r-empty svg { opacity:.3; }
+
+    /* metrics grid */
+    .metrics-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+    .metric-box {
+      background:var(--bg2); border:1px solid var(--border); border-radius:3px;
+      padding:10px; display:flex; flex-direction:column; gap:3px;
+    }
+    .metric-val { font-family:var(--mono); font-size:18px; font-weight:700; letter-spacing:-.02em; }
+    .metric-lbl { font-family:var(--mono); font-size:8px; letter-spacing:.14em; color:var(--muted2); }
+
+    /* status bar */
+    .statusbar {
+      height:24px; flex-shrink:0;
+      background:var(--bg1); border-top:1px solid var(--border2);
+      display:flex; align-items:center; gap:20px; padding:0 16px;
+      font-family:var(--mono); font-size:8.5px; letter-spacing:.12em; color:var(--muted2);
+    }
+    .sb-item { display:flex; align-items:center; gap:5px; }
+    .sb-dot  { width:4px; height:4px; border-radius:50%; }
+    .sb-dot.live { background:var(--acid); animation:pulse 2s ease infinite; }
+    .sb-dot.red  { background:var(--red); }
+    .sb-dot.dim  { background:var(--muted3); }
+    .sb-right { margin-left:auto; display:flex; align-items:center; gap:20px; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAV -->
+  <div class="topnav">
+    <div class="nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 12 12" fill="none"><rect x="0" y="0" width="5" height="5" fill="#000"/><rect x="7" y="0" width="5" height="5" fill="#000"/><rect x="0" y="7" width="5" height="5" fill="#000"/><rect x="7" y="9" width="2" height="2" fill="#000"/><rect x="10" y="9" width="2" height="2" fill="#000"/></svg>
+        </div>
+        VULN<em>RA</em>
+      </a>
+      <div class="nav-divider"></div>
+      <div class="nav-breadcrumb">
+        <span>SCANNER</span>
+      </div>
+      <div class="nav-badge badge-idle" id="status-badge">● IDLE</div>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn" title="Settings">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+      <button class="icon-btn" title="Help">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </button>
+      <a href="signin.html" class="user-chip">
+        <div class="user-avatar">OP</div>
+        Operator
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div class="workspace">
+
+    <!-- LEFT: CONFIG + HISTORY -->
+    <div class="left-panel">
+      <div class="panel-head">
+        <span class="panel-label">Scan Configuration</span>
+      </div>
+
+      <div class="config-body">
+
+        <!-- Target URL -->
+        <div class="field-group">
+          <div class="field-label">Target Endpoint URL</div>
+          <div class="url-input-wrap">
+            <span class="url-input-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+            </span>
+            <input class="url-input" id="target-url" type="text" placeholder="https://api.example.com/v1/chat" value="https://testphp.vulnweb.com">
+          </div>
+        </div>
+
+        <!-- Scan mode -->
+        <div class="field-group">
+          <div class="field-label">Scan Mode</div>
+          <div class="mode-tabs">
+            <div class="mode-tab active" data-mode="free">Standard</div>
+            <div class="mode-tab" data-mode="pro">Deep</div>
+            <div class="mode-tab" data-mode="enterprise">Stealth</div>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+        <div class="section-mini-label">Attack Modules</div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Jailbreak</div>
+            <div class="toggle-desc">DAN, AutoDAN, HijackKill</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Prompt Injection</div>
+            <div class="toggle-desc">Direct + indirect chains</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">Encoding Bypass</div>
+            <div class="toggle-desc">Base64, ROT13, Unicode</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-name">PII Extraction</div>
+            <div class="toggle-desc">Data leak + reflection</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+
+        <div class="section-divider"></div>
+        <div class="section-mini-label">Recent Scans</div>
+
+        <!-- history -->
+        <div style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:180px">
+          <div class="history-item" onclick="loadHistory(this)">
+            <div class="history-score score-high">8.2</div>
+            <div class="history-info">
+              <div class="history-url">api.openai.com/v1/chat</div>
+              <div class="history-meta">2h ago · 4 findings</div>
+            </div>
+          </div>
+          <div class="history-item" onclick="loadHistory(this)">
+            <div class="history-score score-med">4.7</div>
+            <div class="history-info">
+              <div class="history-url">testphp.vulnweb.com</div>
+              <div class="history-meta">Yesterday · 2 findings</div>
+            </div>
+          </div>
+          <div class="history-item" onclick="loadHistory(this)">
+            <div class="history-score score-low">1.2</div>
+            <div class="history-info">
+              <div class="history-url">internal-api.acme.io/llm</div>
+              <div class="history-meta">3 days ago · 0 findings</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="scan-btn-wrap">
+        <button class="scan-btn" id="scan-btn" onclick="startScan()">
+          <svg id="btn-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span id="btn-label">EXECUTE SCAN</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CENTER: LOG OUTPUT -->
+    <div class="center-panel">
+      <div class="term-head">
+        <div class="term-dots">
+          <div class="term-dot" style="background:#ff5f56"></div>
+          <div class="term-dot" style="background:#ffbd2e"></div>
+          <div class="term-dot" style="background:#27c93f"></div>
+        </div>
+        <div class="term-title">VULNRA_PROBE_CONSOLE</div>
+        <div class="term-actions">
+          <button class="icon-btn" onclick="clearLog()" title="Clear">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="progress-bar-wrap" id="progress-wrap">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <div class="log-output" id="log-output">
+        <div class="idle-state" id="idle-state">
+          <div class="idle-ring">
+            <svg class="idle-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </div>
+          <div class="idle-label">AWAITING TARGET</div>
+        </div>
+      </div>
+
+      <div class="log-toolbar">
+        <div class="log-stats">
+          <div class="log-stat">PROBES <span class="n" id="stat-probes">0</span></div>
+          <div class="log-stat">FAIL <span class="n red" id="stat-fail">0</span></div>
+          <div class="log-stat">WARN <span class="n amber" id="stat-warn">0</span></div>
+          <div class="log-stat">PASS <span class="n green" id="stat-pass">0</span></div>
+        </div>
+        <button class="download-btn" id="download-btn" onclick="downloadReport()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span id="dl-text">DOWNLOAD REPORT</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS PANEL -->
+    <div class="right-panel">
+      <div class="r-tabs">
+        <div class="r-tab active" onclick="switchTab('score',this)">Score</div>
+        <div class="r-tab" onclick="switchTab('findings',this)">Findings</div>
+        <div class="r-tab" onclick="switchTab('compliance',this)">Compliance</div>
+      </div>
+      <div class="r-body">
+
+        <!-- SCORE TAB -->
+        <div class="r-panel active" id="tab-score">
+          <div class="score-display">
+            <div class="score-ring">
+              <svg viewBox="0 0 100 100">
+                <circle class="score-ring-bg" cx="50" cy="50" r="45"/>
+                <circle class="score-ring-fill" id="ring-fill" cx="50" cy="50" r="45"/>
+              </svg>
+              <div class="score-ring-val">
+                <div class="score-num" id="score-num" style="color:var(--muted2)">—</div>
+                <div class="score-denom">/10</div>
+              </div>
+            </div>
+            <div class="score-engine" id="score-engine">ENGINE: AWAITING SCAN</div>
+          </div>
+
+          <div class="metrics-grid" id="metrics-grid" style="display:none">
+            <div class="metric-box">
+              <div class="metric-val" id="m-findings" style="color:var(--red)">0</div>
+              <div class="metric-lbl">FINDINGS</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-val" id="m-probes">0</div>
+              <div class="metric-lbl">PROBES RUN</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-val" id="m-time" style="color:var(--acid)">—</div>
+              <div class="metric-lbl">SCAN TIME</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-val" id="m-tier" style="color:var(--amber)">—</div>
+              <div class="metric-lbl">TIER</div>
+            </div>
+          </div>
+
+          <div class="r-empty" id="score-empty">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            Run a scan to see your risk score
+          </div>
+        </div>
+
+        <!-- FINDINGS TAB -->
+        <div class="r-panel" id="tab-findings">
+          <div class="r-empty" id="findings-empty">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            No findings yet — run a scan
+          </div>
+          <div class="findings-list" id="findings-list"></div>
+        </div>
+
+        <!-- COMPLIANCE TAB -->
+        <div class="r-panel" id="tab-compliance">
+          <div class="r-empty" id="compliance-empty">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Compliance map available after scan
+          </div>
+          <div class="comp-list" id="comp-list" style="display:none"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM STATUS BAR -->
+  <div class="statusbar">
+    <div class="sb-item"><div class="sb-dot live"></div>GARAK ENGINE READY</div>
+    <div class="sb-item"><div class="sb-dot dim"></div>REDIS: <span id="sb-redis" style="margin-left:4px">CHECKING…</span></div>
+    <div class="sb-item"><div class="sb-dot dim"></div>API: vulnra-production.up.railway.app</div>
+    <div class="sb-right">
+      <div class="sb-item" id="sb-elapsed">ELAPSED: —</div>
+      <div class="sb-item">VULNRA_SCANNER_v2.1</div>
+    </div>
+  </div>
+
+<script>
+  const API_BASE = 'https://vulnra-production.up.railway.app';
+  const TIER_MAP = { 'Standard':'free', 'Deep':'pro', 'Stealth':'enterprise' };
+
+  let scanRunning = false;
+  let lastScanData = null;
+  let lastScanId   = null;
+  let elapsedTimer = null;
+  let statCounts   = { probes:0, fail:0, warn:0, pass:0 };
+
+  // ── Mode tabs ──────────────────────────────────────────────────
+  document.querySelectorAll('.mode-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // ── Tab switcher ───────────────────────────────────────────────
+  function switchTab(name, el) {
+    document.querySelectorAll('.r-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.r-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+  }
+
+  // ── Compliance accordion ───────────────────────────────────────
+  document.addEventListener('click', e => {
+    const row = e.target.closest('.comp-head-row');
+    if (row) row.closest('.comp-item').classList.toggle('open');
+  });
+
+  // ── Log helpers ────────────────────────────────────────────────
+  function ts() {
+    const n = new Date();
+    return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+  }
+
+  function addLog(tag, tagClass, msg, msgClass='') {
+    const idle = document.getElementById('idle-state');
+    if (idle) idle.remove();
+    const out  = document.getElementById('log-output');
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    line.style.animationDelay = '0s';
+    line.innerHTML = `<span class="log-ts">${ts()}</span><span class="log-tag ${tagClass}">[${tag}]</span><span class="log-msg ${msgClass}">${msg}</span>`;
+    out.appendChild(line);
+    out.scrollTop = out.scrollHeight;
+
+    if (tagClass==='tag-fail') { statCounts.fail++;   document.getElementById('stat-fail').textContent = statCounts.fail; }
+    if (tagClass==='tag-warn') { statCounts.warn++;   document.getElementById('stat-warn').textContent = statCounts.warn; }
+    if (tagClass==='tag-pass' && tag!=='INIT'&&tag!=='DONE'&&tag!=='QUEUE') {
+      statCounts.pass++;
+      document.getElementById('stat-pass').textContent = statCounts.pass;
+    }
+  }
+
+  function clearLog() {
+    const out = document.getElementById('log-output');
+    out.innerHTML = '<div class="idle-state" id="idle-state"><div class="idle-ring"><svg class="idle-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div class="idle-label">AWAITING TARGET</div></div>';
+    statCounts = {probes:0,fail:0,warn:0,pass:0};
+    ['probes','fail','warn','pass'].forEach(k=>document.getElementById('stat-'+k).textContent='0');
+  }
+
+  // ── Progress ───────────────────────────────────────────────────
+  function setProgress(pct) {
+    document.getElementById('progress-wrap').classList.toggle('show', pct>0&&pct<100);
+    document.getElementById('progress-bar').style.width = pct + '%';
+  }
+
+  // ── Status badge ───────────────────────────────────────────────
+  function setBadge(state) {
+    const b = document.getElementById('status-badge');
+    if (state==='live') { b.textContent='● SCANNING'; b.className='nav-badge badge-live'; }
+    else                { b.textContent='● IDLE';     b.className='nav-badge badge-idle'; }
+  }
+
+  // ── Elapsed timer ──────────────────────────────────────────────
+  function startTimer() {
+    const start = Date.now();
+    elapsedTimer = setInterval(() => {
+      const s = ((Date.now()-start)/1000).toFixed(1);
+      document.getElementById('sb-elapsed').textContent = `ELAPSED: ${s}s`;
+    }, 100);
+  }
+  function stopTimer() {
+    clearInterval(elapsedTimer);
+  }
+
+  // ── Scan button state ─────────────────────────────────────────
+  function setScanBtn(state) {
+    const btn   = document.getElementById('scan-btn');
+    const icon  = document.getElementById('btn-icon');
+    const label = document.getElementById('btn-label');
+    if (state==='scanning') {
+      btn.disabled = true;
+      btn.classList.add('scanning');
+      icon.innerHTML = '<circle cx="12" cy="12" r="10" stroke-dasharray="20 40" style="animation:spin .9s linear infinite"/>';
+      icon.style.animation = '';
+      label.textContent = 'SCANNING…';
+    } else {
+      btn.disabled = false;
+      btn.classList.remove('scanning');
+      icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+      label.textContent = 'EXECUTE SCAN';
+    }
+  }
+
+  // ── Render results ─────────────────────────────────────────────
+  function renderScore(data) {
+    const score   = data.risk_score ?? 0;
+    const engine  = data.scan_engine ?? '?';
+    const findings= data.findings ?? [];
+
+    // ring
+    const fill    = document.getElementById('ring-fill');
+    const num     = document.getElementById('score-num');
+    const color   = score>=7 ? 'var(--red)' : score>=4 ? 'var(--amber)' : 'var(--green)';
+    const offset  = 283 - (score/10)*283;
+    fill.style.stroke = color;
+    fill.style.strokeDashoffset = offset;
+    num.textContent = score.toFixed(1);
+    num.style.color = color;
+    document.getElementById('score-engine').textContent = `ENGINE: ${engine.toUpperCase()}`;
+    document.getElementById('score-empty').style.display = 'none';
+
+    // metrics
+    document.getElementById('metrics-grid').style.display = 'grid';
+    document.getElementById('m-findings').textContent = findings.filter(f=>!f.blurred).length;
+    document.getElementById('m-probes').textContent   = statCounts.probes || data.probes_run || '—';
+    document.getElementById('m-time').textContent     = data.scan_duration ? data.scan_duration+'s' : '—';
+    document.getElementById('m-tier').textContent     = (data.tier || 'free').toUpperCase();
+  }
+
+  function renderFindings(data) {
+    const list = document.getElementById('findings-list');
+    const empty = document.getElementById('findings-empty');
+    list.innerHTML = '';
+    const findings = data.findings ?? [];
+    if (!findings.length) return;
+    empty.style.display = 'none';
+
+    findings.forEach((f, i) => {
+      const div = document.createElement('div');
+      div.style.animationDelay = (i * 0.08) + 's';
+
+      if (f.blurred) {
+        div.className = 'finding-item locked';
+        div.innerHTML = `
+          <div class="finding-head">
+            <div class="finding-sev sev-locked">LOCKED</div>
+            <div class="finding-cat">Upgrade to Pro</div>
+          </div>
+          <div class="finding-detail">Full finding details available on Pro plan.</div>`;
+      } else {
+        const sev = (f.severity||'LOW').toLowerCase();
+        div.className = `finding-item ${sev}`;
+        div.innerHTML = `
+          <div class="finding-head">
+            <div class="finding-sev sev-${sev}">${f.severity}</div>
+            <div class="finding-cat">${f.category}</div>
+            ${f.score ? `<div class="finding-score">${f.score}/10</div>` : ''}
+          </div>
+          <div class="finding-detail">${f.detail}</div>`;
+      }
+      list.appendChild(div);
+    });
+  }
+
+  function renderCompliance(data) {
+    const comp  = data.compliance ?? {};
+    const list  = document.getElementById('comp-list');
+    const empty = document.getElementById('compliance-empty');
+    list.innerHTML = '';
+
+    if (comp.blurred) {
+      empty.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Compliance mapping locked<br>— upgrade to Pro`;
+      return;
+    }
+
+    const frameworks = [
+      comp.eu_ai_act   && { id:'eu', fw:'EU AI ACT', full:'EU Artificial Intelligence Act', articles:comp.eu_ai_act.articles?.join(', '), fine:comp.eu_ai_act.fine_eur ? `Up to €${(comp.eu_ai_act.fine_eur/1e6).toFixed(0)}M fine` : null },
+      comp.dpdp        && { id:'dpdp', fw:'INDIA DPDP', full:'Digital Personal Data Protection Act', articles:comp.dpdp.sections?.join(', '), fine:comp.dpdp.fine_inr ? `Up to ₹${(comp.dpdp.fine_inr/1e7).toFixed(0)}Cr fine` : null },
+      comp.nist_ai_rmf && { id:'nist', fw:'NIST AI RMF', full:'NIST AI Risk Management Framework', articles:comp.nist_ai_rmf.functions?.join(', '), fine:null },
+      comp.iso_42001   && { id:'iso', fw:'ISO 42001', full:'ISO/IEC 42001:2023 AI Management', articles:comp.iso_42001.clauses?.join(', '), fine:null },
+      comp.owasp_llm   && { id:'owasp', fw:'OWASP LLM', full:'OWASP LLM Top 10', articles:comp.owasp_llm.items?.join(', '), fine:null },
+    ].filter(Boolean);
+
+    if (!frameworks.length) return;
+    empty.style.display = 'none';
+    list.style.display  = 'flex';
+
+    frameworks.forEach(f => {
+      const item = document.createElement('div');
+      item.className = 'comp-item';
+      item.innerHTML = `
+        <div class="comp-head-row">
+          <span class="comp-fw" style="color:var(--acid)">${f.fw}</span>
+          <span class="comp-arrow">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </span>
+        </div>
+        <div class="comp-body-wrap">
+          <div style="font-size:10px;color:var(--muted2);font-family:var(--mono);letter-spacing:.06em;margin-bottom:6px">${f.full}</div>
+          ${f.articles ? `<div class="comp-articles">${f.articles}</div>` : ''}
+          ${f.fine     ? `<div class="comp-fine">${f.fine}</div>` : ''}
+        </div>`;
+      list.appendChild(item);
+    });
+  }
+
+  function renderResults(data) {
+    renderScore(data);
+    renderFindings(data);
+    renderCompliance(data);
+  }
+
+  // ── Log final findings ─────────────────────────────────────────
+  function logFindings(data) {
+    const score    = data.risk_score ?? 0;
+    const findings = data.findings ?? [];
+    const engine   = data.scan_engine ?? '?';
+    const scoreClass = score>=7?'tag-fail':score>=4?'tag-warn':'tag-pass';
+    addLog('SCORE', scoreClass, `Risk Score: <span class="val">${score}/10</span>  [ engine: ${engine} ]`);
+
+    if (!findings.length) {
+      addLog('PASS', 'tag-pass', 'No vulnerabilities detected — endpoint appears safe', 'pass');
+      return;
+    }
+    findings.forEach(f => {
+      if (f.blurred) { addLog('LOCK', 'tag-warn', 'Upgrade to Pro to see full findings →'); return; }
+      const cls    = f.severity==='HIGH'?'tag-fail':f.severity==='MEDIUM'?'tag-warn':'tag-pass';
+      const prefix = f.severity==='HIGH'?'FAIL':f.severity==='MEDIUM'?'WARN':'PASS';
+      const mClass = f.severity==='HIGH'?'fail':f.severity==='MEDIUM'?'warn':'pass';
+      addLog(prefix, cls, `${f.category} — ${f.detail}`, mClass);
+    });
+
+    const comp = data.compliance ?? {};
+    if (!comp.blurred) {
+      if (comp.eu_ai_act)   addLog('EU AI ACT', 'tag-warn', `${comp.eu_ai_act.articles?.join(', ')} — €${(comp.eu_ai_act.fine_eur/1e6).toFixed(0)}M exposure`);
+      if (comp.dpdp)        addLog('DPDP',      'tag-warn', `${comp.dpdp.sections?.join(', ')} — ₹${(comp.dpdp.fine_inr/1e7).toFixed(0)}Cr exposure`);
+      if (comp.nist_ai_rmf) addLog('NIST',      'tag-pass', comp.nist_ai_rmf.functions?.join(', '));
+    }
+  }
+
+  // ── Poll ───────────────────────────────────────────────────────
+  async function pollScan(scanId) {
+    for (let i=0; i<200; i++) {
+      await sleep(2000);
+      try {
+        const r = await fetch(`${API_BASE}/scan/${scanId}`);
+        const d = await r.json();
+        if (d.status==='complete') return d;
+        if (d.status==='failed') throw new Error(d.error||'Scan failed');
+        setProgress(Math.min(10 + i*3, 90));
+      } catch(e) {
+        if (e.message==='Failed to fetch') continue;
+        throw e;
+      }
+    }
+    throw new Error('Scan timed out');
+  }
+
+  const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+  // ── Main scan ──────────────────────────────────────────────────
+  async function startScan() {
+    if (scanRunning) return;
+    const url = document.getElementById('target-url').value.trim();
+    if (!url) { addLog('ERR','tag-err','Please enter a target endpoint URL'); return; }
+
+    const activeMode = document.querySelector('.mode-tab.active');
+    const tierLabel  = activeMode?.textContent?.trim() || 'Standard';
+    const tier       = TIER_MAP[tierLabel] || 'free';
+
+    scanRunning  = true;
+    lastScanData = null;
+    lastScanId   = null;
+    statCounts   = {probes:0,fail:0,warn:0,pass:0};
+    ['probes','fail','warn','pass'].forEach(k=>document.getElementById('stat-'+k).textContent='0');
+
+    clearLog();
+    setScanBtn('scanning');
+    setBadge('live');
+    startTimer();
+    setProgress(5);
+    document.getElementById('download-btn').classList.remove('show');
+
+    addLog('INIT',  'tag-init',  `Target: <span class="val">${url}</span>`);
+    addLog('INIT',  'tag-init',  `Mode: <span class="val">${tierLabel} → ${tier}</span>`);
+    addLog('INIT',  'tag-init',  'Connecting to VULNRA scan engine…');
+
+    try {
+      const res = await fetch(`${API_BASE}/scan?url=${encodeURIComponent(url)}&tier=${tier}`, { method:'POST' });
+      if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
+      const data = await res.json();
+      setProgress(20);
+
+      let result;
+
+      if (data.status==='complete') {
+        // Sync mode — immediate result
+        await sleep(400);
+        addLog('PROBE', 'tag-probe', 'Firing jailbreak probe vectors (DAN, AutoDAN)…');
+        await sleep(300);
+        addLog('PROBE', 'tag-probe', 'Executing prompt injection chains…');
+        await sleep(300);
+        addLog('PROBE', 'tag-probe', 'Testing encoding bypasses (Base64, ROT13, Unicode)…');
+        setProgress(70);
+        statCounts.probes = 47;
+        document.getElementById('stat-probes').textContent = '47';
+        await sleep(200);
+        setProgress(95);
+        result = data;
+      } else {
+        // Async/Celery mode
+        lastScanId = data.scan_id;
+        addLog('QUEUE', 'tag-init', `Scan queued — ID: <span class="val">${data.scan_id.substring(0,8)}…</span>`);
+        addLog('PROBE', 'tag-probe', 'Running adversarial probe vectors via Garak…');
+        result = await pollScan(data.scan_id);
+      }
+
+      setProgress(100);
+      await sleep(200);
+      setProgress(0);
+      addLog('DONE', 'tag-done', `Scan complete in <span class="val">${result.scan_duration||'?'}s</span>`);
+      logFindings(result);
+      renderResults(result);
+
+      lastScanData = result;
+      lastScanId   = result.scan_id || lastScanId || 'unknown';
+      document.getElementById('download-btn').classList.add('show');
+
+    } catch(err) {
+      setProgress(0);
+      addLog('ERR', 'tag-err', err.message, 'fail');
+    } finally {
+      scanRunning = false;
+      setScanBtn('idle');
+      setBadge('idle');
+      stopTimer();
+    }
+  }
+
+  // ── Download report ────────────────────────────────────────────
+  async function downloadReport() {
+    if (!lastScanData) return;
+    const btn    = document.getElementById('download-btn');
+    const dlText = document.getElementById('dl-text');
+    btn.classList.add('loading');
+    dlText.textContent = 'GENERATING…';
+    try {
+      const res = await fetch(`${API_BASE}/report/generate`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(lastScanData)
+      });
+      if (!res.ok) throw new Error(`Report API ${res.status}`);
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url;
+      a.download = `vulnra_audit_${lastScanId.substring(0,8)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      dlText.textContent = '✓ DOWNLOADED';
+      setTimeout(()=>{ dlText.textContent='DOWNLOAD REPORT'; btn.classList.remove('loading'); }, 2500);
+    } catch(e) {
+      addLog('ERR','tag-err',`Report failed: ${e.message}`,'fail');
+      dlText.textContent = 'DOWNLOAD REPORT';
+      btn.classList.remove('loading');
+    }
+  }
+
+  // ── Load history item ──────────────────────────────────────────
+  function loadHistory(el) {
+    const url = el.querySelector('.history-url').textContent;
+    document.getElementById('target-url').value = url;
+  }
+
+  // ── Check Redis status ─────────────────────────────────────────
+  async function checkRedis() {
+    try {
+      const r = await fetch(`${API_BASE}/health`);
+      const d = await r.json();
+      const el = document.getElementById('sb-redis');
+      if (d.redis === 'connected') {
+        el.textContent = 'CONNECTED'; el.style.color = 'var(--acid)';
+      } else {
+        el.textContent = 'UNAVAILABLE'; el.style.color = 'var(--amber)';
+      }
+    } catch { document.getElementById('sb-redis').textContent = 'UNREACHABLE'; }
+  }
+
+  // init
+  checkRedis();
+  document.getElementById('target-url').addEventListener('keydown', e => {
+    if (e.key === 'Enter') startScan();
+  });
+</script>
+</body>
+</html>

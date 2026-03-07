@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VULNRA — Create Account</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500@display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:    #060608;
+      --bg1:   #0a0b0f;
+      --bg2:   #0f1117;
+      --acid:  #b8ff57;
+      --acid2: rgba(184,255,87,0.07);
+      --red:   #ff3c5a;
+      --amber: #ffb340;
+      --text:  #e8edf4;
+      --muted: rgba(232,237,244,0.42);
+      --muted2:rgba(232,237,244,0.2);
+      --muted3:rgba(232,237,244,0.1);
+      --border:rgba(255,255,255,0.07);
+      --border2:rgba(255,255,255,0.04);
+      --mono:  'IBM Plex Mono', monospace;
+      --sans:  'DM Sans', sans-serif;
+    }
+
+    html { height: 100%; }
+    body {
+      background: var(--bg); color: var(--text); font-family: var(--sans);
+      min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden;
+    }
+    body::before {
+      content:''; position:fixed; inset:-200%; width:400%; height:400%;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events:none; z-index:9999; animation:grain .4s steps(1) infinite;
+    }
+    body::after {
+      content:''; position:fixed; inset:0;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.025) 2px,rgba(0,0,0,0.025) 4px);
+      pointer-events:none; z-index:9998;
+    }
+
+    @keyframes grain { 0%{transform:translate(0,0)} 20%{transform:translate(-3%,-4%)} 40%{transform:translate(-6%,3%)} 60%{transform:translate(3%,-2%)} 80%{transform:translate(-4%,6%)} 100%{transform:translate(5%,-3%)} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.6)} }
+    @keyframes shine { 0%{left:-100%} 100%{left:200%} }
+    @keyframes orb1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(60px,-50px) scale(1.1)} }
+    @keyframes orb2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-50px,60px) scale(.9)} }
+    @keyframes scanH { 0%{top:-2px;opacity:0} 5%{opacity:1} 95%{opacity:1} 100%{top:100%;opacity:0} }
+    @keyframes progressFill { from{width:0} to{width:var(--pw)} }
+    @keyframes checkPop { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    ::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-thumb{background:var(--acid)}
+    ::selection{background:var(--acid);color:#000}
+
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 48px; height:60px;
+      background:rgba(6,6,8,.9); backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border2);
+    }
+    nav::after {
+      content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(184,255,87,.25),transparent);
+    }
+    .nav-logo {
+      display:flex; align-items:center; gap:10px;
+      font-family:var(--mono); font-size:15px; font-weight:700;
+      letter-spacing:.1em; color:var(--text); text-decoration:none;
+    }
+    .nav-logo-mark {
+      width:28px; height:28px; border-radius:5px; background:var(--acid);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .nav-logo-mark svg{width:14px;height:14px}
+    .nav-logo em{font-style:normal;color:var(--acid)}
+    .nav-right{display:flex;align-items:center;gap:14px}
+    .nav-link{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted);text-decoration:none;transition:color .2s}
+    .nav-link:hover{color:var(--text)}
+    .btn-outline-sm{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--text);background:none;border:1px solid var(--border);padding:7px 16px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .2s}
+    .btn-outline-sm:hover{border-color:rgba(255,255,255,.2);transform:translateY(-1px)}
+
+    .page {
+      flex:1; display:flex; align-items:center; justify-content:center;
+      padding:100px 24px 80px; position:relative; overflow:hidden;
+    }
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+    .orb-1{width:500px;height:500px;background:rgba(184,255,87,.08);top:-15%;right:-10%;animation:orb1 12s ease-in-out infinite}
+    .orb-2{width:380px;height:380px;background:rgba(77,184,255,.06);bottom:-10%;left:-10%;animation:orb2 14s ease-in-out infinite}
+
+    .card {
+      width:100%; max-width:500px;
+      background:var(--bg1); border:1px solid var(--border);
+      border-radius:6px; position:relative; overflow:hidden; z-index:1;
+      opacity:0; animation:fadeUp .6s ease forwards .1s;
+    }
+    .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--acid),transparent);opacity:.4}
+    .card-scan{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(184,255,87,.3),transparent);animation:scanH 7s ease-in-out infinite 3s;pointer-events:none;z-index:2}
+
+    .corner{position:absolute;width:12px;height:12px;pointer-events:none;z-index:3}
+    .corner.tl{top:8px;left:8px;border-top:1px solid var(--acid);border-left:1px solid var(--acid);opacity:.35}
+    .corner.tr{top:8px;right:8px;border-top:1px solid var(--acid);border-right:1px solid var(--acid);opacity:.35}
+    .corner.bl{bottom:8px;left:8px;border-bottom:1px solid var(--acid);border-left:1px solid var(--acid);opacity:.35}
+    .corner.br{bottom:8px;right:8px;border-bottom:1px solid var(--acid);border-right:1px solid var(--acid);opacity:.35}
+
+    .card-head{padding:28px 32px 22px;border-bottom:1px solid var(--border2)}
+    .card-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.26em;color:var(--acid);display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .card-eyebrow .dot{width:5px;height:5px;border-radius:50%;background:var(--acid);animation:pulse 1.8s ease infinite}
+    .card-title{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--text);margin-bottom:5px}
+    .card-sub{font-size:13px;color:var(--muted);font-weight:300;line-height:1.5}
+
+    /* steps */
+    .steps{display:flex;align-items:center;gap:0;padding:16px 32px;border-bottom:1px solid var(--border2)}
+    .step{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--muted2);flex:1}
+    .step-num{width:22px;height:22px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;transition:all .3s}
+    .step.active .step-num{border-color:var(--acid);color:var(--acid);background:var(--acid2)}
+    .step.active{color:var(--text)}
+    .step.done .step-num{background:var(--acid);border-color:var(--acid);color:#000;animation:checkPop .3s ease}
+    .step.done .step-num::after{content:'✓';font-size:9px}
+    .step.done .step-num span{display:none}
+    .step-line{flex:1;height:1px;background:var(--border);margin:0 8px;transition:background .3s}
+    .step.done ~ .step-line, .step.active ~ .step-line { background: var(--acid); opacity:.3; }
+
+    .card-body{padding:26px 32px 28px;display:flex;flex-direction:column;gap:16px}
+
+    /* form page show/hide */
+    .form-page{display:none;flex-direction:column;gap:16px}
+    .form-page.active{display:flex;animation:fadeUp .35s ease forwards}
+
+    .field{display:flex;flex-direction:column;gap:7px}
+    .field label{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2)}
+    .field-wrap{position:relative;display:flex;align-items:center}
+    .field-wrap .field-icon{position:absolute;left:13px;color:var(--muted2);display:flex;align-items:center;pointer-events:none;transition:color .2s}
+    .field-wrap input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:3px;padding:11px 14px 11px 40px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;transition:border-color .2s,background .2s;letter-spacing:.04em}
+    .field-wrap input::placeholder{color:var(--muted3)}
+    .field-wrap input:focus{border-color:rgba(184,255,87,.4);background:rgba(184,255,87,.03)}
+    .field-wrap input:focus ~ .field-icon, .field-wrap input:focus + .field-icon{color:var(--acid)}
+    .field-line{position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--acid);transform:scaleX(0);transform-origin:left;transition:transform .3s ease;border-radius:0 0 3px 3px}
+    .field-wrap input:focus ~ .field-line{transform:scaleX(1)}
+    .toggle-pw{position:absolute;right:13px;color:var(--muted2);cursor:pointer;display:flex;align-items:center;transition:color .2s;background:none;border:none}
+    .toggle-pw:hover{color:var(--text)}
+
+    .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    /* password strength */
+    .pw-strength{margin-top:6px}
+    .pw-bar-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:5px}
+    .pw-bar-fill{height:100%;border-radius:2px;width:0;transition:width .4s ease,background .4s ease}
+    .pw-label{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--muted2)}
+
+    /* requirements */
+    .pw-reqs{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+    .pw-req{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;color:var(--muted2);transition:color .2s}
+    .pw-req.ok{color:var(--acid)}
+    .pw-req-dot{width:5px;height:5px;border-radius:50%;background:var(--border);border:1px solid var(--border);transition:all .2s;flex-shrink:0}
+    .pw-req.ok .pw-req-dot{background:var(--acid);border-color:var(--acid)}
+
+    /* plan picker */
+    .plan-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .plan-card{border:1px solid var(--border);border-radius:3px;padding:14px 12px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+    .plan-card:hover{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.02)}
+    .plan-card.selected{border-color:var(--acid);background:var(--acid2)}
+    .plan-card.selected::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--acid)}
+    .plan-name{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.14em;margin-bottom:4px}
+    .plan-price{font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+    .plan-price span{font-size:10px;font-weight:400;color:var(--muted)}
+    .plan-desc{font-size:10.5px;color:var(--muted);font-weight:300;line-height:1.45}
+    .plan-check{position:absolute;top:8px;right:8px;width:14px;height:14px;border-radius:50%;background:var(--acid);display:none;align-items:center;justify-content:center}
+    .plan-check::after{content:'✓';font-size:8px;font-family:var(--mono);color:#000;font-weight:700}
+    .plan-card.selected .plan-check{display:flex;animation:checkPop .3s ease}
+
+    /* oauth */
+    .oauth-section{display:flex;flex-direction:column;gap:9px}
+    .oauth-label{font-family:var(--mono);font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted2)}
+    .oauth-btn{
+      display:flex;align-items:center;gap:11px;
+      background:rgba(255,255,255,.03);border:1px solid var(--border);
+      border-radius:3px;padding:11px 14px;cursor:pointer;
+      font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--muted);
+      text-decoration:none;transition:all .25s;
+      position:relative;overflow:hidden;width:100%;
+    }
+    .oauth-btn::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);
+      opacity:0;transition:opacity .25s;
+    }
+    .oauth-btn::after{
+      content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);
+      transform:skewX(-20deg);
+    }
+    .oauth-btn:hover::after{animation:shine .55s ease forwards}
+    .oauth-btn:hover{border-color:rgba(255,255,255,.15);color:var(--text);transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+    .oauth-btn:hover::before{opacity:1}
+    .oauth-btn:active{transform:translateY(0)}
+    .oauth-icon{width:32px;height:32px;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .oauth-icon.google{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06)}
+    .oauth-icon.github{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06)}
+    .oauth-text{display:flex;flex-direction:column;gap:1px;flex:1}
+    .oauth-title{font-size:11px;font-weight:500;letter-spacing:.06em}
+    .oauth-sub{font-size:9px;letter-spacing:.1em;color:var(--muted2);font-weight:400}
+    .oauth-arrow{color:var(--muted2);transition:transform .2s;flex-shrink:0}
+    .oauth-btn:hover .oauth-arrow{transform:translateX(3px);color:var(--muted)}
+
+    .or-divider{display:flex;align-items:center;gap:12px;margin:2px 0}
+    .or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    .or-divider span{font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;color:var(--muted2);white-space:nowrap}
+
+    /* terms */
+    .terms-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+    .terms-row input[type=checkbox]{display:none}
+    .check-box{width:15px;height:15px;border:1px solid var(--border);border-radius:2px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;margin-top:1px}
+    .terms-row input:checked~.check-box{background:var(--acid);border-color:var(--acid)}
+    .terms-row input:checked~.check-box::after{content:'✓';font-size:8px;color:#000;font-family:var(--mono);font-weight:700}
+    .terms-text{font-size:11.5px;color:var(--muted);line-height:1.55;font-weight:300}
+    .terms-text a{color:var(--acid);text-decoration:none}
+    .terms-text a:hover{opacity:.75}
+
+    .error-msg{display:none;padding:10px 14px;background:rgba(255,60,90,.08);border:1px solid rgba(255,60,90,.2);border-radius:3px;font-family:var(--mono);font-size:10.5px;color:var(--red);letter-spacing:.04em;align-items:center;gap:8px}
+    .error-msg.show{display:flex;animation:fadeUp .3s ease forwards}
+
+    /* nav buttons */
+    .btn-row{display:flex;gap:10px}
+    .submit-btn{flex:1;background:var(--acid);color:#000;border:none;border-radius:3px;padding:13px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.14em;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px}
+    .submit-btn::after{content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg)}
+    .submit-btn:hover::after{animation:shine .6s ease forwards}
+    .submit-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(184,255,87,.3)}
+    .back-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:3px;padding:13px 18px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;cursor:pointer;transition:all .2s}
+    .back-btn:hover{border-color:rgba(255,255,255,.2);color:var(--text)}
+
+    .card-foot{padding:16px 32px 22px;border-top:1px solid var(--border2);text-align:center;font-family:var(--mono);font-size:10.5px;color:var(--muted2);letter-spacing:.06em}
+    .card-foot a{color:var(--acid);text-decoration:none}
+    .card-foot a:hover{opacity:.75}
+
+    .status-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg1);border-top:1px solid var(--border2);padding:7px 48px;display:flex;align-items:center;gap:24px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted2);z-index:100}
+    .status-item{display:flex;align-items:center;gap:6px}
+    .status-dot{width:5px;height:5px;border-radius:50%;background:var(--acid);animation:pulse 2s ease infinite}
+
+    @media(max-width:600px){
+      .field-grid{grid-template-columns:1fr}
+      .plan-grid{grid-template-columns:1fr}
+      nav{padding:0 20px}
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 14 14" fill="none">
+          <rect x="1" y="1" width="5" height="5" fill="#000"/>
+          <rect x="8" y="1" width="5" height="5" fill="#000"/>
+          <rect x="1" y="8" width="5" height="5" fill="#000"/>
+          <rect x="8" y="10" width="2" height="2" fill="#000"/>
+          <rect x="11" y="10" width="2" height="2" fill="#000"/>
+        </svg>
+      </div>
+      VULN<em>RA</em>
+    </a>
+    <div class="nav-right">
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted2)">Have an account?</span>
+      <a href="signin.html" class="btn-outline-sm">Sign in →</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="card">
+      <div class="card-scan"></div>
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+
+      <div class="card-head">
+        <div class="card-eyebrow"><span class="dot"></span>OPERATOR REGISTRATION</div>
+        <div class="card-title">Create account</div>
+        <div class="card-sub">Set up your VULNRA operator profile. Free tier — no card required.</div>
+      </div>
+
+      <!-- steps -->
+      <div class="steps">
+        <div class="step active" id="step-1">
+          <div class="step-num"><span>1</span></div>
+          Identity
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-2">
+          <div class="step-num"><span>2</span></div>
+          Security
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-3">
+          <div class="step-num"><span>3</span></div>
+          Plan
+        </div>
+      </div>
+
+      <div class="card-body">
+
+        <!-- error -->
+        <div class="error-msg" id="error-msg">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="error-text">Please fill in all required fields.</span>
+        </div>
+
+        <!-- PAGE 1: IDENTITY -->
+        <div class="form-page active" id="page-1">
+
+          <!-- OAuth quick signup -->
+          <div class="oauth-section">
+            <div class="oauth-label">Quick sign up</div>
+
+            <a href="#" class="oauth-btn" onclick="handleOAuth('google')">
+              <div class="oauth-icon google">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+              </div>
+              <div class="oauth-text">
+                <div class="oauth-title">Continue with Google</div>
+                <div class="oauth-sub">Uses your Google account</div>
+              </div>
+              <span class="oauth-arrow">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </span>
+            </a>
+
+            <a href="#" class="oauth-btn" onclick="handleOAuth('github')">
+              <div class="oauth-icon github">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--text)">
+                  <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                </svg>
+              </div>
+              <div class="oauth-text">
+                <div class="oauth-title">Continue with GitHub</div>
+                <div class="oauth-sub">Uses your GitHub account</div>
+              </div>
+              <span class="oauth-arrow">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </span>
+            </a>
+          </div>
+
+          <div class="or-divider"><span>OR REGISTER WITH EMAIL</span></div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label>First name</label>
+              <div class="field-wrap">
+                <span class="field-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+                <input type="text" id="fname" placeholder="Ada">
+                <div class="field-line"></div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Last name</label>
+              <div class="field-wrap">
+                <span class="field-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+                <input type="text" id="lname" placeholder="Lovelace">
+                <div class="field-line"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Email address</label>
+            <div class="field-wrap">
+              <span class="field-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg></span>
+              <input type="email" id="email" placeholder="operator@vulnra.ai">
+              <div class="field-line"></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Organisation <span style="color:var(--muted2);font-size:8px;letter-spacing:.1em">(OPTIONAL)</span></label>
+            <div class="field-wrap">
+              <span class="field-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></span>
+              <input type="text" id="org" placeholder="ACME Security Inc.">
+              <div class="field-line"></div>
+            </div>
+          </div>
+
+          <button class="submit-btn" onclick="nextStep(1)">
+            Continue
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <!-- PAGE 2: SECURITY -->
+        <div class="form-page" id="page-2">
+          <div class="field">
+            <label>Password</label>
+            <div class="field-wrap">
+              <span class="field-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+              <input type="password" id="password" placeholder="Min. 8 characters" oninput="checkPw(this.value)">
+              <button class="toggle-pw" type="button" onclick="togglePw('password',this)" tabindex="-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+              <div class="field-line"></div>
+            </div>
+            <div class="pw-strength">
+              <div class="pw-bar-track"><div class="pw-bar-fill" id="pw-bar"></div></div>
+              <span class="pw-label" id="pw-label">STRENGTH: —</span>
+            </div>
+            <div class="pw-reqs">
+              <div class="pw-req" id="req-len"><span class="pw-req-dot"></span>At least 8 characters</div>
+              <div class="pw-req" id="req-upper"><span class="pw-req-dot"></span>One uppercase letter</div>
+              <div class="pw-req" id="req-num"><span class="pw-req-dot"></span>One number</div>
+              <div class="pw-req" id="req-special"><span class="pw-req-dot"></span>One special character</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Confirm password</label>
+            <div class="field-wrap">
+              <span class="field-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+              <input type="password" id="confirm" placeholder="Repeat password">
+              <button class="toggle-pw" type="button" onclick="togglePw('confirm',this)" tabindex="-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+              <div class="field-line"></div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="back-btn" onclick="prevStep(2)">← Back</button>
+            <button class="submit-btn" onclick="nextStep(2)">
+              Continue
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- PAGE 3: PLAN -->
+        <div class="form-page" id="page-3">
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:2px">Select plan</div>
+
+          <div class="plan-grid">
+            <div class="plan-card selected" data-plan="free" onclick="selectPlan(this)">
+              <div class="plan-check"></div>
+              <div class="plan-name" style="color:var(--muted2)">FREE</div>
+              <div class="plan-price">$0<span>/mo</span></div>
+              <div class="plan-desc">1 scan/day. Risk score + 1 finding preview.</div>
+            </div>
+            <div class="plan-card" data-plan="pro" onclick="selectPlan(this)">
+              <div class="plan-check"></div>
+              <div class="plan-name" style="color:var(--acid)">PRO</div>
+              <div class="plan-price">$49<span>/mo</span></div>
+              <div class="plan-desc">Unlimited scans. Full findings + compliance PDFs.</div>
+            </div>
+            <div class="plan-card" data-plan="enterprise" onclick="selectPlan(this)">
+              <div class="plan-check"></div>
+              <div class="plan-name" style="color:var(--amber)">ENTERPRISE</div>
+              <div class="plan-price">Custom</div>
+              <div class="plan-desc">On-prem. SSO. Custom SLA. Contact us.</div>
+            </div>
+          </div>
+
+          <label class="terms-row">
+            <input type="checkbox" id="terms">
+            <div class="check-box"></div>
+            <span class="terms-text">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I understand scan results are for security research purposes only.</span>
+          </label>
+
+          <div class="btn-row">
+            <button class="back-btn" onclick="prevStep(3)">← Back</button>
+            <button class="submit-btn" id="submit-btn" onclick="handleSignUp()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.06 .22 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
+              CREATE ACCOUNT
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card-foot">
+        Already have an account? <a href="signin.html">Sign in →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item"><span class="status-dot"></span>TLS 1.3 ENCRYPTED</div>
+    <div class="status-item" style="margin-left:auto">VULNRA_REGISTER_NODE_v2.1</div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    let selectedPlan = 'free';
+
+    function handleOAuth(provider) {
+      // Visual loading feedback on the clicked button
+      const btns = document.querySelectorAll('.oauth-btn');
+      btns.forEach(b => { b.style.opacity = '.4'; b.style.pointerEvents = 'none'; });
+      const clicked = [...btns].find(b => b.getAttribute('onclick').includes(provider));
+      if (clicked) {
+        clicked.style.opacity = '1';
+        clicked.querySelector('.oauth-title').textContent = 'Redirecting…';
+        clicked.querySelector('.oauth-sub').textContent   = 'Connecting to ' + (provider==='google'?'Google':'GitHub');
+        clicked.querySelector('.oauth-arrow').innerHTML   =
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="20 40" style="animation:spin .8s linear infinite"><path d="M12 2a10 10 0 110 20"/></svg>';
+      }
+      // Replace with real OAuth redirect, e.g.:
+      // window.location.href = `/auth/${provider}`;
+      setTimeout(() => { window.location.href = 'scanner.html'; }, 1400);
+    }
+
+    function togglePw(id, btn) {
+      const input = document.getElementById(id);
+      const isText = input.type === 'text';
+      input.type = isText ? 'password' : 'text';
+      btn.innerHTML = isText
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>';
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      document.getElementById('error-text').textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 4000);
+    }
+
+    function checkPw(val) {
+      const bar   = document.getElementById('pw-bar');
+      const label = document.getElementById('pw-label');
+      const len   = val.length >= 8;
+      const upper = /[A-Z]/.test(val);
+      const num   = /[0-9]/.test(val);
+      const spec  = /[^A-Za-z0-9]/.test(val);
+      document.getElementById('req-len').classList.toggle('ok', len);
+      document.getElementById('req-upper').classList.toggle('ok', upper);
+      document.getElementById('req-num').classList.toggle('ok', num);
+      document.getElementById('req-special').classList.toggle('ok', spec);
+      const score = [len, upper, num, spec].filter(Boolean).length;
+      const colors = ['', '#ff3c5a', '#ffb340', '#ffb340', '#b8ff57'];
+      const labels = ['—', 'WEAK', 'FAIR', 'GOOD', 'STRONG'];
+      bar.style.width  = (score * 25) + '%';
+      bar.style.background = colors[score] || 'transparent';
+      label.textContent = 'STRENGTH: ' + (labels[score] || '—');
+      label.style.color = colors[score] || 'var(--muted2)';
+    }
+
+    function setStep(n) {
+      [1,2,3].forEach(i => {
+        const s = document.getElementById('step-' + i);
+        const p = document.getElementById('page-' + i);
+        s.classList.remove('active','done');
+        p.classList.remove('active');
+        if (i < n) s.classList.add('done');
+        else if (i === n) { s.classList.add('active'); p.classList.add('active'); }
+      });
+      currentStep = n;
+      document.getElementById('error-msg').classList.remove('show');
+    }
+
+    function nextStep(from) {
+      if (from === 1) {
+        const fname = document.getElementById('fname').value.trim();
+        const email = document.getElementById('email').value.trim();
+        if (!fname) { showError('First name is required.'); return; }
+        if (!email || !email.includes('@')) { showError('A valid email address is required.'); return; }
+        setStep(2);
+      } else if (from === 2) {
+        const pw   = document.getElementById('password').value;
+        const conf = document.getElementById('confirm').value;
+        if (pw.length < 8) { showError('Password must be at least 8 characters.'); return; }
+        if (pw !== conf)   { showError('Passwords do not match.'); return; }
+        setStep(3);
+      }
+    }
+
+    function prevStep(from) { setStep(from - 1); }
+
+    function selectPlan(el) {
+      document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedPlan = el.dataset.plan;
+    }
+
+    function handleSignUp() {
+      if (!document.getElementById('terms').checked) {
+        showError('Please accept the Terms of Service to continue.'); return;
+      }
+      const btn = document.getElementById('submit-btn');
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="20 40" style="animation:spin .8s linear infinite"><path d="M12 2a10 10 0 110 20"/></svg> REGISTERING…';
+      btn.disabled = true; btn.style.opacity = '.7';
+      setTimeout(() => { window.location.href = 'scanner.html'; }, 1800);
+    }
+  </script>
+</body>
+</html>
