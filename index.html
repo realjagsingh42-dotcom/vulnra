@@ -801,7 +801,6 @@
       opacity: .7
     }
 
-    /* ── Download Report Button ─────────────────────────────── */
     .t-report-btn {
       width: 100%;
       background: none;
@@ -1963,7 +1962,7 @@
         <div class="terminal-body">
           <span class="t-label">Target Endpoint URL</span>
           <div class="t-input" id="url-input" contenteditable="true" spellcheck="false"
-            style="cursor:text;outline:none;min-height:38px;word-break:break-all">http://localhost:11434<span
+            style="cursor:text;outline:none;min-height:38px;word-break:break-all">https://testphp.vulnweb.com<span
               class="t-cursor"></span></div>
           <div class="t-select">
             <div class="t-chip active">Standard</div>
@@ -1973,8 +1972,6 @@
           <button class="t-btn" id="scan-btn">EXECUTE PENETRATION TEST</button>
           <div class="t-divider"></div>
           <div class="t-log" id="scan-log"></div>
-
-          <!-- ── Report button — hidden until scan completes ── -->
           <button class="t-report-btn" id="report-btn">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
               stroke-linecap="round" stroke-linejoin="round">
@@ -2002,7 +1999,8 @@
               <rect x="0" y="10" width="8" height="8" fill="#FF7000" />
               <rect x="12" y="10" width="8" height="8" fill="#FF7000" />
               <rect x="0" y="20" width="8" height="8" fill="#FF7000" />
-            </svg></div><span class="logo-name">Mistral</span>
+            </svg></div>
+          <span class="logo-name">Mistral</span>
         </div>
         <div class="logo-item">
           <div class="node"></div>
@@ -2010,7 +2008,8 @@
               <path
                 d="M37.532 16.87a9.963 9.963 0 00-.856-8.184 10.078 10.078 0 00-10.855-4.835 9.964 9.964 0 00-6.205-3.406 10.079 10.079 0 00-10.765 4.935 9.964 9.964 0 00-6.451 3.959 10.079 10.079 0 001.24 12.053 9.964 9.964 0 00.856 8.185 10.079 10.079 0 0010.855 4.835 9.965 9.965 0 006.205 3.406 10.079 10.079 0 0010.772-4.938 9.965 9.965 0 006.451-3.959 10.079 10.079 0 00-1.247-12.05zm-22.073 10.701a7.48 7.48 0 01-4.756-2.1l.189-.11 7.896-4.562a1.297 1.297 0 00.655-1.138v-11.13l3.341 1.93a.12.12 0 01.066.092v9.223a7.505 7.505 0 01-7.391 5.695zm-15.886-6.876a7.48 7.48 0 01-.894-5.023l.19.114 7.896 4.562a1.297 1.297 0 001.308 0l9.644-5.569v3.861a.12.12 0 01-.048.103l-7.978 4.607a7.505 7.505 0 01-10.118-2.655zm-2.063-17.218a7.48 7.48 0 013.906-3.292v9.342a1.297 1.297 0 00.654 1.132l9.638 5.566-3.34 1.929a.12.12 0 01-.117.013L4.516 17.559a7.505 7.505 0 01-2.506-10.082zm27.818 6.437l-9.644-5.569 3.34-1.929a.12.12 0 01.117-.013l8.047 4.648a7.498 7.498 0 01-1.158 13.528v-9.346a1.297 1.297 0 00-.702-1.319zm3.32-5.065l-.19-.114-7.897-4.562a1.297 1.297 0 00-1.308 0l-9.638 5.569V6.861a.12.12 0 01.048-.103l7.978-4.607a7.498 7.498 0 0111.007 7.767zm-20.955 6.89l-3.34-1.929a.12.12 0 01-.066-.092v-9.223a7.498 7.498 0 0112.293-5.756l-.189.11-7.897 4.562a1.297 1.297 0 00-.655 1.138l-.146 11.19zm1.82-3.92l4.289-2.479 4.29 2.476v4.953l-4.29 2.479-4.289-2.476V13.619z"
                 fill="white" />
-            </svg></div><span class="logo-name">OpenAI</span>
+            </svg></div>
+          <span class="logo-name">OpenAI</span>
         </div>
         <div class="logo-item">
           <div class="node"></div>
@@ -2018,7 +2017,8 @@
               <path
                 d="M66.038 0H47.15L94.3 89h18.89L66.038 0zM28.26 0L0 89h19.397l5.854-17.337h29.77L60.875 89H80.27L52.01 0H28.26zm1.895 54.863l9.87-29.22 9.87 29.22H30.155z"
                 fill="#CC785C" />
-            </svg></div><span class="logo-name">Anthropic</span>
+            </svg></div>
+          <span class="logo-name">Anthropic</span>
         </div>
         <div class="logo-item">
           <div class="node"></div>
@@ -2037,7 +2037,8 @@
               <path d="M42 47 Q44 57 46 67" stroke="white" stroke-width="3.2" stroke-linecap="round" />
               <path d="M18 67 Q32 72 46 67" stroke="white" stroke-width="3.2" stroke-linecap="round" />
               <path d="M22 47 Q32 51 42 47" stroke="white" stroke-width="2.8" stroke-linecap="round" />
-            </svg></div><span class="logo-name">Ollama</span>
+            </svg></div>
+          <span class="logo-name">Ollama</span>
         </div>
         <div class="logo-item">
           <div class="node"></div>
@@ -2059,7 +2060,8 @@
                 stroke-width="1.5" />
               <circle cx="12" cy="76" r="4.5" fill="#FFD21E" stroke="#e6b800" stroke-width="1.5" />
               <circle cx="88" cy="76" r="4.5" fill="#FFD21E" stroke="#e6b800" stroke-width="1.5" />
-            </svg></div><span class="logo-name">Hugging Face</span>
+            </svg></div>
+          <span class="logo-name">Hugging Face</span>
         </div>
         <div class="logo-item">
           <div class="node"></div>
@@ -2076,7 +2078,8 @@
               </defs>
               <path d="M35.469 0h26.093L32.784 83.453H6.69L35.47 0z" fill="url(#az1)" />
               <path d="M61.942 0L38.4 47.578l22.41 25.098-35.648 10.777h70.84L61.942 0z" fill="url(#az2)" />
-            </svg></div><span class="logo-name">Azure OpenAI</span>
+            </svg></div>
+          <span class="logo-name">Azure OpenAI</span>
         </div>
         <div class="logo-item">
           <div class="node"></div>
@@ -2091,7 +2094,8 @@
               <path d="M16 70 Q60 84 104 70" stroke="#FF9900" stroke-width="4" stroke-linecap="round" fill="none" />
               <path d="M98 64 L106 70 L98 76" stroke="#FF9900" stroke-width="4" stroke-linecap="round"
                 stroke-linejoin="round" fill="none" />
-            </svg></div><span class="logo-name">AWS Bedrock</span>
+            </svg></div>
+          <span class="logo-name">AWS Bedrock</span>
         </div>
       </div>
     </div>
@@ -2113,7 +2117,7 @@
           <div class="stat-desc">Average time to first vulnerability report on any REST endpoint</div>
         </div>
         <div class="stat-item">
-          <div class="stat-num">0<span class="unit">&#8364;</span></div>
+          <div class="stat-num">0<span class="unit">€</span></div>
           <div class="stat-desc">Cost to get started — free tier, no credit card required</div>
         </div>
       </div>
@@ -2194,7 +2198,7 @@
             <div><span class="cli-comment"># Export secure audit report to disk</span></div>
             <div><span class="cli-prompt">$ </span><span class="cli-cmd">vulnra report --format pdf --out
                 audit_2024-10-24.pdf</span></div>
-            <div><span class="cli-success">&#10003; Report successfully generated: audit_2024-10-24.pdf</span></div>
+            <div><span class="cli-success">✓ Report successfully generated: audit_2024-10-24.pdf</span></div>
           </div>
         </div>
       </div>
@@ -2273,7 +2277,7 @@
           <div class="comp-full">EU Artificial Intelligence Act</div>
           <div class="comp-articles">Article 9 (risk management), Article 13 (transparency), Article 17 (quality
             management)</div>
-          <div class="comp-fine">Up to &#8364;30M fine</div>
+          <div class="comp-fine">Up to €30M fine</div>
         </div>
         <div class="comp-item">
           <div class="comp-badge">INDIA DPDP</div>
@@ -2281,7 +2285,7 @@
           <div class="comp-full">Digital Personal Data Protection Act</div>
           <div class="comp-articles">Section 8 (obligations), Section 11 (consent), Section 16 (cross-border transfer)
           </div>
-          <div class="comp-fine">Up to &#8377;250Cr fine</div>
+          <div class="comp-fine">Up to ₹250Cr fine</div>
         </div>
         <div class="comp-item">
           <div class="comp-badge">NIST AI RMF</div>
@@ -2347,7 +2351,7 @@
         </div>
       </div>
       <div style="display:flex;justify-content:center;gap:14px;margin-top:40px"><a href="https://github.com"
-          class="btn-primary">&#11088; Star on GitHub</a><a href="#" class="btn-outline">Read the docs &#8594;</a></div>
+          class="btn-primary">⭐ Star on GitHub</a><a href="#" class="btn-outline">Read the docs →</a></div>
     </div>
   </section>
 
@@ -2373,7 +2377,7 @@
             <li class="no">Compliance mapping</li>
             <li class="no">PDF export</li>
             <li class="no">Sentinel monitoring</li>
-          </ul><button class="price-btn outline">Start scanning &#8594;</button>
+          </ul><button class="price-btn outline">Start scanning →</button>
         </div>
         <div class="price-item featured">
           <div class="price-tier">PRO</div>
@@ -2388,7 +2392,7 @@
             <li class="has">ISO 42001 + OWASP Top 10</li>
             <li class="has">Sentinel recurring monitoring</li>
             <li class="has">CLI + API access</li>
-          </ul><button class="price-btn solid">Upgrade to Pro &#8594;</button>
+          </ul><button class="price-btn solid">Upgrade to Pro →</button>
         </div>
         <div class="price-item">
           <div class="price-tier">ENTERPRISE</div>
@@ -2403,7 +2407,7 @@
             <li class="has">Dedicated Slack support</li>
             <li class="has">Custom SLA</li>
             <li class="has">Invoiced billing</li>
-          </ul><button class="price-btn ghost">Contact sales &#8594;</button>
+          </ul><button class="price-btn ghost">Contact sales →</button>
         </div>
       </div>
     </div>
@@ -2414,20 +2418,21 @@
     <div class="container" style="position:relative;z-index:1">
       <h2>Your AI is live.<br>Is it safe?</h2>
       <p>Run a free scan in 60 seconds. No account required.</p>
-      <div class="cta-actions"><a href="#hero-terminal" class="btn-primary"
-          style="font-size:13px;padding:14px 32px">&#9889; Scan your endpoint &#8594;</a><a href="https://github.com"
-          class="btn-outline" style="font-size:13px;padding:14px 32px">View on GitHub</a></div>
+      <div class="cta-actions"><a href="#hero-terminal" class="btn-primary" style="font-size:13px;padding:14px 32px">⚡
+          Scan your endpoint →</a><a href="https://github.com" class="btn-outline"
+          style="font-size:13px;padding:14px 32px">View on GitHub</a></div>
     </div>
   </section>
 
   <footer>
-    <div class="footer-left">&#169; 2025 VULNRA. MIT Licensed. Built on NVIDIA Garak.</div>
+    <div class="footer-left">© 2025 VULNRA. MIT Licensed. Built on NVIDIA Garak.</div>
     <div class="footer-links"><a href="#">Docs</a><a href="#">GitHub</a><a href="#">Privacy</a><a
         href="mailto:hello@vulnra.ai">hello@vulnra.ai</a></div>
   </footer>
 
   <script>
     const API_BASE = 'https://vulnra-production.up.railway.app';
+
     document.querySelectorAll('.t-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         chip.closest('.t-select').querySelectorAll('.t-chip').forEach(c => c.classList.remove('active'));
@@ -2512,13 +2517,15 @@
       }
     }
 
-    // ── Download Report ─────────────────────────────────────
+    // ── Report download — sends full scan data directly, no Redis lookup ──────
     const reportBtn = document.getElementById('report-btn');
     const reportBtnText = document.getElementById('report-btn-text');
     let lastScanId = null;
+    let lastScanData = null;
 
-    function showReportBtn(scanId) {
+    function showReportBtn(scanId, scanData) {
       lastScanId = scanId;
+      lastScanData = scanData;
       reportBtn.classList.add('visible');
       reportBtn.classList.remove('loading');
       reportBtnText.textContent = 'DOWNLOAD AUDIT REPORT';
@@ -2527,14 +2534,19 @@
     function hideReportBtn() {
       reportBtn.classList.remove('visible');
       lastScanId = null;
+      lastScanData = null;
     }
 
     reportBtn.addEventListener('click', async () => {
-      if (!lastScanId || reportBtn.classList.contains('loading')) return;
+      if (!lastScanData || reportBtn.classList.contains('loading')) return;
       reportBtn.classList.add('loading');
       reportBtnText.textContent = 'GENERATING PDF…';
       try {
-        const res = await fetch(`${API_BASE}/scan/${lastScanId}/report`);
+        const res = await fetch(`${API_BASE}/report/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(lastScanData)
+        });
         if (!res.ok) throw new Error(`Report API returned ${res.status}`);
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
@@ -2555,7 +2567,7 @@
       }
     });
 
-    // ── Scan button ──────────────────────────────────────────
+    // ── Scan button ───────────────────────────────────────────────────────────
     btn.addEventListener('click', async () => {
       const url = getUrl();
       if (!url) { addLog('t-fail', 'ERR', 'Please enter a target endpoint URL'); return; }
@@ -2576,8 +2588,19 @@
           { method: 'POST' }
         );
         if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
-        const { scan_id } = await res.json();
+        const scanData = await res.json();
 
+        // If result is immediate (sync mode), render directly
+        if (scanData.status === 'complete') {
+          addLog('t-pass', 'DONE', `Complete — engine: ${scanData.scan_engine}`);
+          renderResults(scanData);
+          setBtn('EXECUTE PENETRATION TEST', false);
+          showReportBtn(scanData.scan_id, scanData);
+          return;
+        }
+
+        // Otherwise poll (Celery mode)
+        const { scan_id } = scanData;
         addLog('t-pass', 'QUEUE', `ID ${scan_id.substring(0, 8)}… — probes queued`);
         addLog('t-warn', 'GARAK', 'Running adversarial probe vectors…');
 
@@ -2590,9 +2613,7 @@
         addLog('t-pass', 'DONE', `Complete in ${elapsed}s`);
         renderResults(result);
         setBtn('EXECUTE PENETRATION TEST', false);
-
-        // Show report download button
-        showReportBtn(scan_id);
+        showReportBtn(scan_id, result);
 
       } catch (err) {
         addLog('t-fail', 'ERR', err.message);

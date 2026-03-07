@@ -1,5 +1,5 @@
 import uuid, time, random, json
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Miru-Shield API",
@@ -30,7 +30,7 @@ SCAN_TTL = 60 * 60 * 24 * 7
 SCAN_KEY  = "scan:{}"
 
 
-# ── Store helpers — memory first, Redis optional ──────────────────────────────
+# ── Store helpers ─────────────────────────────────────────────────────────────
 def scan_set(scan_id: str, data: dict):
     _memory_store[scan_id] = data
     try:
@@ -74,36 +74,54 @@ def _mock_findings(tier: str) -> list[dict]:
             "category": "PROMPT_INJECTION",
             "severity": "HIGH",
             "detail": "System prompt override detected via role confusion attack.",
+            "hit_rate": 0.50,
+            "hits": 256,
+            "total": 512,
             "blurred": False
         },
         {
             "category": "DATA_EXFILTRATION",
             "severity": "HIGH",
             "detail": "Model leaks training data via membership inference queries.",
+            "hit_rate": 0.32,
+            "hits": 16,
+            "total": 50,
             "blurred": False
         },
         {
             "category": "JAILBREAK",
             "severity": "HIGH",
             "detail": "DAN-style jailbreak successfully bypasses content filters in 4/10 attempts.",
+            "hit_rate": 0.40,
+            "hits": 4,
+            "total": 10,
             "blurred": locked
         },
         {
             "category": "INSECURE_OUTPUT",
             "severity": "MEDIUM",
             "detail": "Unsanitised HTML in model output enables stored XSS via downstream rendering.",
+            "hit_rate": 0.18,
+            "hits": 9,
+            "total": 50,
             "blurred": locked
         },
         {
             "category": "MODEL_INVERSION",
             "severity": "LOW",
             "detail": "Repeated structured queries can reconstruct fragments of private training records.",
+            "hit_rate": 0.08,
+            "hits": 4,
+            "total": 50,
             "blurred": tier not in ("pro", "enterprise")
         },
         {
             "category": "ENCODING_BYPASS",
             "severity": "MEDIUM",
             "detail": "Base64 and ROT13 encoded payloads bypass surface-level content filters.",
+            "hit_rate": 0.22,
+            "hits": 11,
+            "total": 50,
             "blurred": locked
         },
     ]
@@ -115,12 +133,12 @@ def _mock_compliance(tier: str) -> dict:
     return {
         "blurred": False,
         "eu_ai_act": {
-            "articles": ["Article 9", "Article 13", "Article 17"],
+            "articles": ["Art. 9", "Art. 13", "Art. 15", "Art. 17"],
             "fine_eur": 15_000_000
         },
         "dpdp": {
-            "sections": ["Section 8", "Section 11"],
-            "fine_inr": 250_00_00_000
+            "sections": ["Sec. 8", "Sec. 11", "Sec. 16"],
+            "fine_inr": 250_000_000
         },
         "nist_ai_rmf": {
             "functions": ["GOVERN 1.1", "MAP 2.1", "MEASURE 2.5", "MANAGE 1.1"],
@@ -193,18 +211,13 @@ def health():
 @app.post("/scan")
 def start_scan(url: str, tier: str = "free",
                background_tasks: BackgroundTasks = None):
-    """
-    Runs scan synchronously and returns full result immediately.
-    No polling required — works without Redis or Celery.
-    """
     scan_id = str(uuid.uuid4())
 
-    # Normalise tier
     tier = tier.lower().strip()
     if tier not in ("free", "basic", "pro", "enterprise"):
         tier = "free"
 
-    # Try Celery first if Redis is available
+    # Try Celery first if Redis available
     try:
         from app.worker import run_scan
         task = run_scan.delay(scan_id, url, tier)
@@ -222,7 +235,7 @@ def start_scan(url: str, tier: str = "free",
     except Exception as e:
         print(f"[WARN] Celery unavailable ({e}) — running sync scan")
 
-    # Synchronous fallback — run and return full result immediately
+    # Sync fallback — returns full result immediately, no polling needed
     result = _run_scan(scan_id, url, tier)
     return result
 
@@ -284,6 +297,7 @@ def list_scans():
 
 @app.get("/scan/{scan_id}/report")
 def get_report(scan_id: str):
+    """Generate PDF by looking up scan in memory/Redis."""
     from fastapi.responses import Response
     entry = scan_get(scan_id)
     if not entry or entry.get("status") != "complete":
@@ -291,6 +305,34 @@ def get_report(scan_id: str):
     try:
         from app.pdf_report import generate_audit_pdf
         pdf_bytes = generate_audit_pdf(entry)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename=vulnra_{scan_id[:8]}.pdf'}
+        )
+    except Exception as e:
+        return {"error": f"PDF generation failed: {e}"}
+
+
+@app.post("/report/generate")
+async def generate_report_direct(request: Request):
+    """
+    Generate PDF directly from scan data posted by the frontend.
+    No Redis lookup needed — works even when Redis is unavailable.
+    """
+    from fastapi.responses import Response
+    try:
+        scan = await request.json()
+    except Exception:
+        return {"error": "Invalid JSON body"}
+
+    if scan.get("status") != "complete":
+        return {"error": "Scan not complete"}
+
+    try:
+        from app.pdf_report import generate_audit_pdf
+        pdf_bytes = generate_audit_pdf(scan)
+        scan_id = scan.get("scan_id", "unknown")
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
