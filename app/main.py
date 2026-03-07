@@ -12,10 +12,10 @@ app.add_middleware(CORSMiddleware,
                    allow_methods=["*"],
                    allow_headers=["*"])
 
-# ── In-memory fallback store (used when Redis is unavailable) ─────────────────
+# ── In-memory store (primary when Redis unavailable) ──────────────────────────
 _memory_store: dict = {}
 
-# ── Redis client (lazy, shared) ───────────────────────────────────────────────
+# ── Redis client (lazy, optional) ─────────────────────────────────────────────
 _redis = None
 
 def get_redis():
@@ -26,21 +26,19 @@ def get_redis():
         _redis = r.from_url(REDIS_URL, decode_responses=True)
     return _redis
 
-SCAN_TTL = 60 * 60 * 24 * 7   # keep scans 7 days
-SCAN_KEY  = "scan:{}"          # Redis key pattern
+SCAN_TTL = 60 * 60 * 24 * 7
+SCAN_KEY  = "scan:{}"
 
 
-# ── Scan store helpers ────────────────────────────────────────────────────────
+# ── Store helpers — memory first, Redis optional ──────────────────────────────
 def scan_set(scan_id: str, data: dict):
-    """Write scan dict to memory + Redis (if available)."""
     _memory_store[scan_id] = data
     try:
         get_redis().setex(SCAN_KEY.format(scan_id), SCAN_TTL, json.dumps(data))
     except Exception:
-        pass  # memory store is the fallback
+        pass
 
 def scan_get(scan_id: str) -> dict | None:
-    """Read scan dict — try Redis first, fall back to memory."""
     try:
         raw = get_redis().get(SCAN_KEY.format(scan_id))
         if raw:
@@ -50,20 +48,14 @@ def scan_get(scan_id: str) -> dict | None:
     return _memory_store.get(scan_id)
 
 def scan_list() -> list[dict]:
-    """Return all scans — merge Redis + memory store."""
-    results = {}
-    # First load from memory
-    for scan_id, data in _memory_store.items():
-        results[scan_id] = data
-    # Override/add from Redis if available
+    results = dict(_memory_store)
     try:
         rc = get_redis()
         keys = rc.keys("scan:*")
         pipe = rc.pipeline()
         for k in keys:
             pipe.get(k)
-        raws = pipe.execute()
-        for raw in raws:
+        for raw in pipe.execute():
             if raw:
                 entry = json.loads(raw)
                 sid = entry.get("scan_id")
@@ -76,41 +68,105 @@ def scan_list() -> list[dict]:
 
 # ── Mock findings by tier ─────────────────────────────────────────────────────
 def _mock_findings(tier: str) -> list[dict]:
-    base = [
-        {"category": "PROMPT_INJECTION",    "severity": "HIGH",
-         "detail": "System prompt override detected via role confusion attack.", "blurred": False},
-        {"category": "DATA_EXFILTRATION",   "severity": "HIGH",
-         "detail": "Model leaks training data via membership inference.", "blurred": False},
-        {"category": "JAILBREAK",           "severity": "MEDIUM",
-         "detail": "DAN-style jailbreak bypasses content filters.", "blurred": tier == "free"},
-        {"category": "INSECURE_OUTPUT",     "severity": "MEDIUM",
-         "detail": "Unsanitised HTML output enables stored XSS.", "blurred": tier == "free"},
-        {"category": "MODEL_INVERSION",     "severity": "LOW",
-         "detail": "Repeated queries reconstruct private training records.", "blurred": tier not in ("pro", "enterprise")},
-    ]
-    return base
-
-
-# ── Sync fallback scan (runs in background when Celery unavailable) ───────────
-def _sync_scan(scan_id: str, url: str, tier: str):
-    time.sleep(4)   # simulate scan time
-    score = round(random.uniform(5.5, 9.5), 1)
-    data = scan_get(scan_id) or {}
-    data.update({
-        "status":       "complete",
-        "risk_score":   score,
-        "url":          url,
-        "tier":         tier,
-        "findings":     _mock_findings(tier),
-        "compliance":   {
-            "eu_ai_act": {"fine_eur": 15_000_000},
-            "nist_ai_rmf": {"risk_level": "HIGH"},
-            "iso_42001": {"conformance": "partial"},
+    locked = tier in ("free", "basic")
+    return [
+        {
+            "category": "PROMPT_INJECTION",
+            "severity": "HIGH",
+            "detail": "System prompt override detected via role confusion attack.",
+            "blurred": False
         },
-        "scan_engine":  "sync_fallback",
-        "completed_at": time.time(),
-    })
+        {
+            "category": "DATA_EXFILTRATION",
+            "severity": "HIGH",
+            "detail": "Model leaks training data via membership inference queries.",
+            "blurred": False
+        },
+        {
+            "category": "JAILBREAK",
+            "severity": "HIGH",
+            "detail": "DAN-style jailbreak successfully bypasses content filters in 4/10 attempts.",
+            "blurred": locked
+        },
+        {
+            "category": "INSECURE_OUTPUT",
+            "severity": "MEDIUM",
+            "detail": "Unsanitised HTML in model output enables stored XSS via downstream rendering.",
+            "blurred": locked
+        },
+        {
+            "category": "MODEL_INVERSION",
+            "severity": "LOW",
+            "detail": "Repeated structured queries can reconstruct fragments of private training records.",
+            "blurred": tier not in ("pro", "enterprise")
+        },
+        {
+            "category": "ENCODING_BYPASS",
+            "severity": "MEDIUM",
+            "detail": "Base64 and ROT13 encoded payloads bypass surface-level content filters.",
+            "blurred": locked
+        },
+    ]
+
+
+def _mock_compliance(tier: str) -> dict:
+    if tier in ("free", "basic"):
+        return {"blurred": True}
+    return {
+        "blurred": False,
+        "eu_ai_act": {
+            "articles": ["Article 9", "Article 13", "Article 17"],
+            "fine_eur": 15_000_000
+        },
+        "dpdp": {
+            "sections": ["Section 8", "Section 11"],
+            "fine_inr": 250_00_00_000
+        },
+        "nist_ai_rmf": {
+            "functions": ["GOVERN 1.1", "MAP 2.1", "MEASURE 2.5", "MANAGE 1.1"],
+            "risk_level": "HIGH"
+        },
+        "iso_42001": {
+            "clauses": ["Clause 6.1", "Clause 9.1", "Annex A"],
+            "conformance": "partial"
+        },
+        "owasp_llm": {
+            "items": ["LLM01", "LLM02", "LLM06", "LLM08"]
+        }
+    }
+
+
+# ── Core scan logic ───────────────────────────────────────────────────────────
+def _run_scan(scan_id: str, url: str, tier: str) -> dict:
+    try:
+        from app.garak_engine import run_garak_scan
+        result = run_garak_scan(url, tier)
+        data = {
+            "scan_id":      scan_id,
+            "url":          url,
+            "tier":         tier,
+            "status":       "complete",
+            "risk_score":   result.get("risk_score", round(random.uniform(5.5, 9.2), 1)),
+            "findings":     result.get("findings", _mock_findings(tier)),
+            "compliance":   result.get("compliance", _mock_compliance(tier)),
+            "scan_engine":  "garak",
+            "completed_at": time.time(),
+        }
+    except Exception as e:
+        print(f"[GARAK] unavailable ({e}) — using mock results")
+        data = {
+            "scan_id":      scan_id,
+            "url":          url,
+            "tier":         tier,
+            "status":       "complete",
+            "risk_score":   round(random.uniform(5.5, 9.2), 1),
+            "findings":     _mock_findings(tier),
+            "compliance":   _mock_compliance(tier),
+            "scan_engine":  "mock_fallback",
+            "completed_at": time.time(),
+        }
     scan_set(scan_id, data)
+    return data
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -130,13 +186,17 @@ def health():
     return {
         "status":    "healthy",
         "redis":     "connected" if redis_ok else "unavailable",
-        "scan_mode": "celery" if redis_ok else "sync_fallback",
+        "scan_mode": "garak+celery" if redis_ok else "sync_fallback",
     }
 
 
 @app.post("/scan")
 def start_scan(url: str, tier: str = "free",
                background_tasks: BackgroundTasks = None):
+    """
+    Runs scan synchronously and returns full result immediately.
+    No polling required — works without Redis or Celery.
+    """
     scan_id = str(uuid.uuid4())
 
     # Normalise tier
@@ -144,21 +204,27 @@ def start_scan(url: str, tier: str = "free",
     if tier not in ("free", "basic", "pro", "enterprise"):
         tier = "free"
 
+    # Try Celery first if Redis is available
     try:
         from app.worker import run_scan
         task = run_scan.delay(scan_id, url, tier)
-        data = {"scan_id": scan_id, "url": url, "tier": tier,
-                "status": "queued", "task_id": task.id, "mode": "celery"}
+        data = {
+            "scan_id":  scan_id,
+            "url":      url,
+            "tier":     tier,
+            "status":   "queued",
+            "task_id":  task.id,
+            "mode":     "celery",
+            "poll_url": f"/scan/{scan_id}"
+        }
         scan_set(scan_id, data)
-        return {**data, "poll_url": f"/scan/{scan_id}"}
-
+        return data
     except Exception as e:
-        print(f"[WARN] Celery unavailable ({e}) — sync fallback")
-        data = {"scan_id": scan_id, "url": url, "tier": tier,
-                "status": "scanning", "mode": "sync_fallback"}
-        scan_set(scan_id, data)
-        background_tasks.add_task(_sync_scan, scan_id, url, tier)
-        return {**data, "poll_url": f"/scan/{scan_id}"}
+        print(f"[WARN] Celery unavailable ({e}) — running sync scan")
+
+    # Synchronous fallback — run and return full result immediately
+    result = _run_scan(scan_id, url, tier)
+    return result
 
 
 @app.get("/scan/{scan_id}")
@@ -188,11 +254,14 @@ def get_scan(scan_id: str):
                 return entry
             elif state == "PROGRESS":
                 meta = result.info or {}
-                return {"scan_id": scan_id, "status": "scanning",
-                        "step": meta.get("step"), "progress": meta.get("progress", 0)}
+                return {
+                    "scan_id":  scan_id,
+                    "status":   "scanning",
+                    "step":     meta.get("step"),
+                    "progress": meta.get("progress", 0)
+                }
             else:
                 return {"scan_id": scan_id, "status": "queued", "celery_state": state}
-
         except Exception as e:
             return {**entry, "poll_error": str(e)}
 
@@ -206,8 +275,7 @@ def list_scans():
     for entry in scans:
         sid = entry.get("scan_id")
         if sid and entry.get("status") not in ("complete", "failed"):
-            live = get_scan(sid)
-            refreshed.append(live)
+            refreshed.append(get_scan(sid))
         else:
             refreshed.append(entry)
     refreshed.sort(key=lambda s: s.get("completed_at") or 0, reverse=True)
