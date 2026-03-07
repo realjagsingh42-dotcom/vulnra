@@ -1,0 +1,2606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VULNRA — Red-team your AI</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --bg: #07090c;
+      --bg2: #0c1015;
+      --bg3: #111820;
+      --border: rgba(255, 255, 255, 0.07);
+      --border2: rgba(255, 255, 255, 0.04);
+      --green: #00e5a0;
+      --green2: rgba(0, 229, 160, 0.08);
+      --green3: rgba(0, 229, 160, 0.18);
+      --green4: rgba(0, 229, 160, 0.35);
+      --text: #dde4ec;
+      --muted: rgba(221, 228, 236, 0.38);
+      --muted2: rgba(221, 228, 236, 0.2);
+      --red: #ff4d6a;
+      --yellow: #f5c842;
+      --mono: 'Space Mono', monospace;
+      --sans: 'Syne', sans-serif
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      overflow-x: hidden;
+      cursor: default
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999
+    }
+
+    ::-webkit-scrollbar {
+      width: 3px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg)
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--green);
+      opacity: .5
+    }
+
+    ::selection {
+      background: var(--green);
+      color: #000
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: var(--sans);
+      letter-spacing: -.03em
+    }
+
+    p,
+    span,
+    li,
+    a,
+    button {
+      font-family: var(--sans)
+    }
+
+    .mono {
+      font-family: var(--mono)
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0
+      }
+    }
+
+    @keyframes scan {
+      0% {
+        left: -15%;
+        opacity: 0
+      }
+
+      8% {
+        opacity: 1
+      }
+
+      92% {
+        opacity: 1
+      }
+
+      100% {
+        left: 112%;
+        opacity: 0
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: .4;
+        transform: scale(.65)
+      }
+    }
+
+    @keyframes marquee {
+      0% {
+        transform: translateX(0)
+      }
+
+      100% {
+        transform: translateX(-50%)
+      }
+    }
+
+    @keyframes glow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 20px rgba(0, 229, 160, .1)
+      }
+
+      50% {
+        box-shadow: 0 0 40px rgba(0, 229, 160, .25)
+      }
+    }
+
+    @keyframes slideRight {
+      from {
+        width: 0
+      }
+
+      to {
+        width: 100%
+      }
+    }
+
+    @keyframes termLine {
+      from {
+        opacity: 0;
+        transform: translateX(-6px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0)
+      }
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-6px)
+      }
+    }
+
+    @keyframes ringPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: .8
+      }
+
+      50% {
+        transform: scale(1.12);
+        opacity: .3
+      }
+    }
+
+    @keyframes gridFade {
+      0% {
+        opacity: .03
+      }
+
+      100% {
+        opacity: .07
+      }
+    }
+
+    @keyframes floatShape {
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1)
+      }
+
+      50% {
+        transform: translate(60px, -60px) scale(1.2)
+      }
+    }
+
+    @keyframes floatShape2 {
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1)
+      }
+
+      50% {
+        transform: translate(-70px, 70px) scale(.8)
+      }
+    }
+
+    @keyframes shine {
+      0% {
+        left: -100%
+      }
+
+      100% {
+        left: 200%
+      }
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(7, 9, 12, .85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border2)
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--sans);
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      color: var(--text);
+      text-decoration: none
+    }
+
+    .nav-logo-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .nav-logo-icon svg {
+      width: 16px;
+      height: 16px
+    }
+
+    .nav-logo span {
+      color: var(--green)
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: .06em;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s
+    }
+
+    .nav-links a:hover {
+      color: var(--text)
+    }
+
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .nav-sign {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      letter-spacing: .06em;
+      transition: color .2s;
+      padding: 0;
+      text-decoration: none
+    }
+
+    .nav-sign:hover {
+      color: var(--text)
+    }
+
+    .btn-primary {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .1em;
+      background: var(--green);
+      color: #000;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all .3s cubic-bezier(.4, 0, .2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 0 rgba(0, 229, 160, 0)
+    }
+
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .4), transparent);
+      transform: skewX(-20deg);
+      transition: none
+    }
+
+    .btn-primary:hover::after {
+      animation: shine .75s ease forwards
+    }
+
+    .btn-primary:hover {
+      opacity: .95;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 229, 160, .25)
+    }
+
+    .btn-outline {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .1em;
+      background: none;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 9px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 400;
+      text-decoration: none;
+      transition: all .3s cubic-bezier(.4, 0, .2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .btn-outline::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .15), transparent);
+      transform: skewX(-20deg);
+      transition: none
+    }
+
+    .btn-outline:hover::after {
+      animation: shine .75s ease forwards
+    }
+
+    .btn-outline:hover {
+      border-color: rgba(255, 255, 255, .25);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(255, 255, 255, .05)
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 48px 80px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(255, 255, 255, .026) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .026) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 40%, transparent 100%);
+      animation: gridFade 3s ease forwards
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: -10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(0, 229, 160, .065) 0%, transparent 70%);
+      pointer-events: none
+    }
+
+    .hero-shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: .8
+    }
+
+    .hero-shape-1 {
+      width: 500px;
+      height: 500px;
+      background: rgba(0, 229, 160, .25);
+      top: -10%;
+      left: -10%;
+      animation: floatShape 10s ease-in-out infinite
+    }
+
+    .hero-shape-2 {
+      width: 450px;
+      height: 450px;
+      background: rgba(255, 77, 106, .2);
+      bottom: 5%;
+      right: 0%;
+      animation: floatShape2 12s ease-in-out infinite reverse
+    }
+
+    .hero-shape-3 {
+      width: 350px;
+      height: 350px;
+      background: rgba(245, 200, 66, .15);
+      top: 25%;
+      left: 35%;
+      animation: floatShape 11s ease-in-out infinite 2s
+    }
+
+    .hero-inner {
+      max-width: 1160px;
+      margin: 0 auto;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 80px;
+      align-items: center;
+      position: relative;
+      z-index: 1
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .18em;
+      color: var(--green);
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp .6s ease forwards .1s
+    }
+
+    .hero-tag::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 1.8s ease infinite
+    }
+
+    h1 {
+      font-size: clamp(44px, 5.5vw, 72px);
+      font-weight: 800;
+      line-height: 1.04;
+      letter-spacing: -.04em;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp .7s ease forwards .25s
+    }
+
+    h1 .accent {
+      color: var(--green)
+    }
+
+    .hero-sub {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 520px;
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeUp .7s ease forwards .4s
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeUp .7s ease forwards .55s
+    }
+
+    .hero-actions .btn-primary {
+      font-size: 12px;
+      padding: 12px 28px
+    }
+
+    .hero-actions .btn-outline {
+      font-size: 12px;
+      padding: 12px 28px
+    }
+
+    .hero-badges {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      opacity: 0;
+      animation: fadeUp .6s ease forwards .7s
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted);
+      letter-spacing: .05em
+    }
+
+    .badge svg {
+      width: 13px;
+      height: 13px;
+      color: var(--green)
+    }
+
+    .terminal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeUp .8s ease forwards .35s, glow 4s ease infinite 2s;
+      position: relative
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border2);
+      background: rgba(255, 255, 255, .02)
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%
+    }
+
+    .terminal-dot.r {
+      background: #ff5f56
+    }
+
+    .terminal-dot.y {
+      background: #ffbd2e
+    }
+
+    .terminal-dot.g {
+      background: #27c93f
+    }
+
+    .terminal-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted2);
+      letter-spacing: .1em;
+      margin-left: 6px
+    }
+
+    .terminal-body {
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7
+    }
+
+    .t-label {
+      font-size: 9px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 8px;
+      display: block
+    }
+
+    .t-input {
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 14px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      width: 100%;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 38px;
+      word-break: break-all
+    }
+
+    .t-cursor {
+      display: inline-block;
+      width: 7px;
+      height: 13px;
+      background: var(--green);
+      animation: blink 1s step-start infinite;
+      vertical-align: text-bottom;
+      flex-shrink: 0
+    }
+
+    .t-select {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px
+    }
+
+    .t-chip {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .1em;
+      padding: 5px 12px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      color: var(--muted2);
+      cursor: pointer;
+      transition: all .2s
+    }
+
+    .t-chip.active {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--green2)
+    }
+
+    .t-btn {
+      width: 100%;
+      background: var(--green);
+      color: #000;
+      border: none;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      padding: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: opacity .2s;
+      margin-bottom: 16px
+    }
+
+    .t-btn:hover:not(:disabled) {
+      opacity: .85
+    }
+
+    .t-divider {
+      height: 1px;
+      background: var(--border2);
+      margin-bottom: 14px
+    }
+
+    .t-log {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 200px;
+      overflow-y: auto
+    }
+
+    .t-log::-webkit-scrollbar {
+      width: 2px
+    }
+
+    .t-log::-webkit-scrollbar-thumb {
+      background: var(--green)
+    }
+
+    .t-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 10.5px;
+      color: var(--muted);
+      opacity: 0;
+      animation: termLine .3s ease forwards
+    }
+
+    .t-pass {
+      color: #27c93f
+    }
+
+    .t-fail {
+      color: var(--red)
+    }
+
+    .t-warn {
+      color: var(--yellow)
+    }
+
+    .t-score {
+      margin-left: auto;
+      font-size: 10px;
+      opacity: .7
+    }
+
+    /* ── Download Report Button ─────────────────────────────── */
+    .t-report-btn {
+      width: 100%;
+      background: none;
+      border: 1px solid rgba(0, 229, 160, .35);
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      padding: 10px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      transition: background .25s, border-color .25s, transform .2s, box-shadow .25s;
+      position: relative;
+      overflow: hidden
+    }
+
+    .t-report-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 229, 160, .18), transparent);
+      transform: skewX(-20deg);
+      transition: none
+    }
+
+    .t-report-btn:hover::after {
+      animation: shine .75s ease forwards
+    }
+
+    .t-report-btn:hover {
+      background: rgba(0, 229, 160, .07);
+      border-color: rgba(0, 229, 160, .65);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0, 229, 160, .12)
+    }
+
+    .t-report-btn.visible {
+      display: flex;
+      animation: termLine .4s ease forwards
+    }
+
+    .t-report-btn.loading {
+      opacity: .55;
+      cursor: wait;
+      pointer-events: none
+    }
+
+    .t-report-btn svg {
+      flex-shrink: 0
+    }
+
+    section {
+      padding: 100px 48px
+    }
+
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      width: 100%
+    }
+
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px
+    }
+
+    .section-tag::before,
+    .section-tag::after {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--green);
+      opacity: .4
+    }
+
+    .section-title {
+      font-size: clamp(30px, 4vw, 46px);
+      font-weight: 800;
+      letter-spacing: -.035em;
+      margin-bottom: 16px
+    }
+
+    .section-sub {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 560px
+    }
+
+    .compat {
+      background: var(--bg);
+      border-top: 1px solid var(--border2);
+      border-bottom: 1px solid var(--border2);
+      padding: 72px 48px
+    }
+
+    .compat-label {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 52px
+    }
+
+    .logo-strip {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      max-width: 1000px;
+      margin: 0 auto;
+      position: relative
+    }
+
+    .logo-strip::before {
+      content: '';
+      position: absolute;
+      top: 27px;
+      left: 5%;
+      right: 5%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .055) 20%, rgba(255, 255, 255, .055) 80%, transparent)
+    }
+
+    .logo-strip::after {
+      content: '';
+      position: absolute;
+      top: 27px;
+      left: -12%;
+      width: 12%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green) 50%, transparent);
+      animation: scan 4s ease-in-out infinite 2s;
+      filter: drop-shadow(0 0 4px var(--green))
+    }
+
+    .logo-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 11px;
+      position: relative;
+      z-index: 2;
+      cursor: default;
+      flex: 1;
+      opacity: 0;
+      transform: translateY(14px)
+    }
+
+    .logo-item:nth-child(1) {
+      animation: fadeUp .5s ease forwards .3s
+    }
+
+    .logo-item:nth-child(2) {
+      animation: fadeUp .5s ease forwards .42s
+    }
+
+    .logo-item:nth-child(3) {
+      animation: fadeUp .5s ease forwards .54s
+    }
+
+    .logo-item:nth-child(4) {
+      animation: fadeUp .5s ease forwards .66s
+    }
+
+    .logo-item:nth-child(5) {
+      animation: fadeUp .5s ease forwards .78s
+    }
+
+    .logo-item:nth-child(6) {
+      animation: fadeUp .5s ease forwards .9s
+    }
+
+    .logo-item:nth-child(7) {
+      animation: fadeUp .5s ease forwards 1.02s
+    }
+
+    .icon-box {
+      width: 54px;
+      height: 54px;
+      border-radius: 13px;
+      background: rgba(255, 255, 255, .035);
+      border: 1px solid rgba(255, 255, 255, .07);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      transition: background .35s, border-color .35s, transform .4s cubic-bezier(.22, .68, 0, 1.3), box-shadow .35s
+    }
+
+    .icon-box::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 20%, rgba(0, 229, 160, .13) 50%, transparent 80%);
+      transform: translateX(-120%)
+    }
+
+    .logo-item:hover .icon-box::after {
+      transform: translateX(120%);
+      transition: transform .55s ease
+    }
+
+    .logo-item:hover .icon-box {
+      background: rgba(0, 229, 160, .055);
+      border-color: rgba(0, 229, 160, .28);
+      transform: translateY(-8px);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .5), 0 0 20px rgba(0, 229, 160, .09)
+    }
+
+    .icon-box svg,
+    .icon-box img {
+      transition: transform .35s ease, filter .35s ease;
+      filter: brightness(.5) saturate(.5)
+    }
+
+    .logo-item:hover .icon-box svg,
+    .logo-item:hover .icon-box img {
+      transform: scale(1.12);
+      filter: brightness(1.05) saturate(1)
+    }
+
+    .icon-box::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 13px;
+      border: 1px solid transparent;
+      transition: border-color 0s
+    }
+
+    .logo-item:hover .icon-box::before {
+      border-color: rgba(0, 229, 160, .35);
+      animation: ringPulse 1.4s ease infinite
+    }
+
+    .logo-item .node {
+      position: absolute;
+      top: 27px;
+      left: 50%;
+      transform: translate(-50%, 0);
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .1);
+      transition: background .3s, box-shadow .3s, border-color .3s;
+      z-index: 3;
+      pointer-events: none
+    }
+
+    .logo-item:hover .node {
+      background: var(--green);
+      border-color: var(--green);
+      box-shadow: 0 0 8px rgba(0, 229, 160, .7)
+    }
+
+    .logo-name {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted2);
+      letter-spacing: .02em;
+      white-space: nowrap;
+      margin-top: 6px;
+      transition: color .3s
+    }
+
+    .logo-item:hover .logo-name {
+      color: rgba(255, 255, 255, .55)
+    }
+
+    .stats-section {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border2)
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .stat-item {
+      padding: 40px 36px;
+      border-right: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      transition: background .3s
+    }
+
+    .stat-item:last-child {
+      border-right: none
+    }
+
+    .stat-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: transparent;
+      transition: background .3s
+    }
+
+    .stat-item:hover {
+      background: rgba(0, 229, 160, .03)
+    }
+
+    .stat-item:hover::before {
+      background: var(--green)
+    }
+
+    .stat-num {
+      font-family: var(--sans);
+      font-size: clamp(36px, 4vw, 52px);
+      font-weight: 800;
+      letter-spacing: -.04em;
+      line-height: 1;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px
+    }
+
+    .stat-num .unit {
+      font-size: .55em;
+      color: var(--green)
+    }
+
+    .stat-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-weight: 400
+    }
+
+    .flow-section {
+      background: var(--bg)
+    }
+
+    .flow-header {
+      text-align: center;
+      margin-bottom: 72px
+    }
+
+    .flow-header .section-tag {
+      justify-content: center
+    }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .flow-item {
+      background: var(--bg2);
+      padding: 36px 28px;
+      border-right: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      transition: background .3s
+    }
+
+    .flow-item:last-child {
+      border-right: none
+    }
+
+    .flow-item:hover {
+      background: rgba(0, 229, 160, .025)
+    }
+
+    .flow-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      color: var(--green);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .flow-num::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border)
+    }
+
+    .flow-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -.02em
+    }
+
+    .flow-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.62;
+      font-weight: 400
+    }
+
+    .cli-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border2);
+      border-bottom: 1px solid var(--border2)
+    }
+
+    .cli-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center
+    }
+
+    .cli-text .section-title {
+      margin-bottom: 20px
+    }
+
+    .cli-terminal {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .cli-bar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 11px 16px;
+      background: rgba(255, 255, 255, .02);
+      border-bottom: 1px solid var(--border2)
+    }
+
+    .cli-bar-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%
+    }
+
+    .cli-bar span {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted2);
+      margin-left: 6px;
+      letter-spacing: .1em
+    }
+
+    .cli-code {
+      padding: 24px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      line-height: 1.8
+    }
+
+    .cli-comment {
+      color: rgba(0, 229, 160, .45)
+    }
+
+    .cli-cmd {
+      color: var(--text)
+    }
+
+    .cli-pass {
+      color: #27c93f
+    }
+
+    .cli-fail {
+      color: var(--red)
+    }
+
+    .cli-warn {
+      color: var(--yellow)
+    }
+
+    .cli-success {
+      color: var(--green)
+    }
+
+    .cli-prompt {
+      color: var(--muted2)
+    }
+
+    .caps-section {
+      background: var(--bg)
+    }
+
+    .caps-header {
+      margin-bottom: 64px
+    }
+
+    .caps-header p {
+      font-size: 13px;
+      font-family: var(--mono);
+      color: var(--muted2);
+      margin-top: 8px;
+      letter-spacing: .05em
+    }
+
+    .caps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .cap-item {
+      background: var(--bg2);
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: background .3s
+    }
+
+    .cap-item:hover {
+      background: var(--bg3)
+    }
+
+    .cap-tag {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .cap-tag::before {
+      content: '>';
+      color: var(--green)
+    }
+
+    .cap-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -.02em
+    }
+
+    .cap-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.62;
+      margin-bottom: 16px;
+      font-weight: 400
+    }
+
+    .cap-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px
+    }
+
+    .cap-chip {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .1em;
+      padding: 3px 9px;
+      border-radius: 2px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      color: var(--muted2);
+      transition: all .2s
+    }
+
+    .cap-item:hover .cap-chip {
+      border-color: rgba(0, 229, 160, .18);
+      color: rgba(0, 229, 160, .65)
+    }
+
+    .comp-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border2)
+    }
+
+    .comp-header {
+      margin-bottom: 64px
+    }
+
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: var(--border2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .comp-item {
+      background: var(--bg);
+      padding: 28px 22px;
+      transition: background .3s;
+      position: relative;
+      overflow: hidden
+    }
+
+    .comp-item:hover {
+      background: rgba(0, 229, 160, .025)
+    }
+
+    .comp-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: transparent;
+      transition: background .3s
+    }
+
+    .comp-item:hover::before {
+      background: var(--green)
+    }
+
+    .comp-badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .14em;
+      padding: 3px 8px;
+      background: var(--green2);
+      border: 1px solid rgba(0, 229, 160, .18);
+      color: var(--green);
+      border-radius: 2px;
+      margin-bottom: 14px
+    }
+
+    .comp-name {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: -.02em
+    }
+
+    .comp-full {
+      font-size: 11px;
+      color: var(--muted2);
+      margin-bottom: 10px;
+      line-height: 1.4;
+      font-family: var(--mono)
+    }
+
+    .comp-articles {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 12px;
+      font-weight: 400
+    }
+
+    .comp-fine {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      color: var(--red);
+      border: 1px solid rgba(255, 77, 106, .2);
+      padding: 3px 8px;
+      border-radius: 2px;
+      display: inline-block
+    }
+
+    .oss-section {
+      background: var(--bg)
+    }
+
+    .oss-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 56px
+    }
+
+    .oss-item {
+      background: var(--bg2);
+      padding: 32px 28px;
+      transition: background .3s
+    }
+
+    .oss-item:hover {
+      background: var(--bg3)
+    }
+
+    .oss-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--green2);
+      border: 1px solid rgba(0, 229, 160, .15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px
+    }
+
+    .oss-icon svg {
+      width: 18px;
+      height: 18px;
+      color: var(--green)
+    }
+
+    .oss-badge {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .14em;
+      color: var(--green);
+      margin-bottom: 8px
+    }
+
+    .oss-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -.02em
+    }
+
+    .oss-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.62;
+      font-weight: 400
+    }
+
+    .price-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border2)
+    }
+
+    .price-header {
+      text-align: center;
+      margin-bottom: 64px
+    }
+
+    .price-header .section-tag {
+      justify-content: center
+    }
+
+    .price-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .price-item {
+      background: var(--bg);
+      padding: 40px 32px;
+      transition: background .3s;
+      position: relative
+    }
+
+    .price-item.featured {
+      background: var(--bg3);
+      border: 1px solid rgba(0, 229, 160, .2)
+    }
+
+    .price-item.featured::before {
+      content: 'MOST POPULAR';
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .18em;
+      background: var(--green);
+      color: #000;
+      padding: 4px 14px;
+      font-weight: 700;
+      border-radius: 0 0 4px 4px
+    }
+
+    .price-tier {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .16em;
+      color: var(--muted2);
+      margin-bottom: 12px
+    }
+
+    .price-val {
+      font-size: clamp(36px, 4vw, 48px);
+      font-weight: 800;
+      letter-spacing: -.04em;
+      margin-bottom: 4px
+    }
+
+    .price-val span {
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0
+    }
+
+    .price-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      font-weight: 400
+    }
+
+    .price-divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 24px
+    }
+
+    .price-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 32px
+    }
+
+    .price-features li {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 400
+    }
+
+    .price-features li.has::before {
+      content: '✓';
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 11px
+    }
+
+    .price-features li.no {
+      opacity: .35
+    }
+
+    .price-features li.no::before {
+      content: '–';
+      color: var(--muted2);
+      font-family: var(--mono);
+      font-size: 11px
+    }
+
+    .price-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .1em;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all .3s cubic-bezier(.4, 0, .2, 1);
+      position: relative;
+      overflow: hidden
+    }
+
+    .price-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      transform: skewX(-20deg);
+      transition: none
+    }
+
+    .price-btn:hover::after {
+      animation: shine .75s ease forwards
+    }
+
+    .price-btn.outline {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text)
+    }
+
+    .price-btn.outline::after {
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .15), transparent)
+    }
+
+    .price-btn.outline:hover {
+      border-color: rgba(255, 255, 255, .25);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(255, 255, 255, .05)
+    }
+
+    .price-btn.solid {
+      background: var(--green);
+      border: none;
+      color: #000
+    }
+
+    .price-btn.solid::after {
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .4), transparent)
+    }
+
+    .price-btn.solid:hover {
+      opacity: .95;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 229, 160, .25)
+    }
+
+    .price-btn.ghost {
+      background: none;
+      border: 1px solid rgba(0, 229, 160, .25);
+      color: var(--green)
+    }
+
+    .price-btn.ghost::after {
+      background: linear-gradient(90deg, transparent, rgba(0, 229, 160, .2), transparent)
+    }
+
+    .price-btn.ghost:hover {
+      background: var(--green2);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 229, 160, .15)
+    }
+
+    .cta-section {
+      background: var(--bg);
+      border-top: 1px solid var(--border2);
+      text-align: center;
+      padding: 120px 48px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .cta-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(0, 229, 160, .055) 0%, transparent 70%);
+      pointer-events: none
+    }
+
+    .cta-section h2 {
+      font-size: clamp(36px, 5vw, 58px);
+      font-weight: 800;
+      letter-spacing: -.04em;
+      margin-bottom: 8px
+    }
+
+    .cta-section p {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 40px;
+      font-weight: 400
+    }
+
+    .cta-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px
+    }
+
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border2);
+      padding: 32px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .footer-left {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted2);
+      letter-spacing: .05em
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px
+    }
+
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted2);
+      text-decoration: none;
+      letter-spacing: .05em;
+      transition: color .2s
+    }
+
+    .footer-links a:hover {
+      color: var(--text)
+    }
+
+    @media(max-width:900px) {
+      nav {
+        padding: 0 20px
+      }
+
+      .nav-links {
+        display: none
+      }
+
+      .hero {
+        padding: 100px 24px 60px
+      }
+
+      .hero-inner {
+        grid-template-columns: 1fr;
+        gap: 48px
+      }
+
+      section {
+        padding: 72px 24px
+      }
+
+      .compat {
+        padding: 60px 24px
+      }
+
+      .stats-grid,
+      .flow-grid,
+      .caps-grid,
+      .comp-grid,
+      .price-grid,
+      .oss-grid {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .cli-inner {
+        grid-template-columns: 1fr
+      }
+
+      .logo-strip {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 24px;
+        max-width: none
+      }
+
+      .logo-strip::before,
+      .logo-strip::after {
+        display: none
+      }
+
+      footer {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center
+      }
+    }
+
+    @media(max-width:580px) {
+
+      .stats-grid,
+      .caps-grid,
+      .comp-grid,
+      .price-grid,
+      .oss-grid,
+      .flow-grid {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon"><svg viewBox="0 0 16 16" fill="none">
+          <path d="M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3z" fill="#000" />
+        </svg></div>VULN<span>RA</span>
+    </a>
+    <div class="nav-links"><a href="#features">Features</a><a href="#flow">How it works</a><a
+        href="#compliance">Compliance</a><a href="#pricing">Pricing</a><a href="https://github.com"
+        target="_blank">GitHub</a></div>
+    <div class="nav-cta"><a href="#" class="nav-sign">Sign in</a><a href="#hero-terminal"
+        class="btn-primary">Authenticate →</a></div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-shape hero-shape-1"></div>
+    <div class="hero-shape hero-shape-2"></div>
+    <div class="hero-shape hero-shape-3"></div>
+    <div class="hero-inner container">
+      <div class="hero-left">
+        <div class="hero-tag">SYSTEM.DETECT(GARAK_V0.14)</div>
+        <h1>Red-team your&nbsp;AI.<br><span class="accent">Before someone</span><br>else does.</h1>
+        <p class="hero-sub">VULNRA automatically finds jailbreaks, prompt injections, and encoding bypasses in any LLM
+          endpoint — mapping vulnerabilities to EU AI Act &amp; NIST frameworks in real-time.</p>
+        <div class="hero-actions">
+          <a href="#hero-terminal" class="btn-primary">⚡ Initialize Scan</a>
+          <a href="https://github.com" class="btn-outline"><svg width="14" height="14" viewBox="0 0 24 24"
+              fill="currentColor">
+              <path
+                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
+            </svg>Source Code</a>
+        </div>
+        <div class="hero-badges">
+          <div class="badge"><svg viewBox="0 0 14 14" fill="none">
+              <path d="M7 1l1.5 3.5L12 5l-2.5 2.5.5 3.5L7 9.5 4 11l.5-3.5L2 5l3.5-.5L7 1z" fill="currentColor" />
+            </svg>MIT Licensed</div>
+          <div class="badge"><svg viewBox="0 0 14 14" fill="none">
+              <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5" />
+              <path d="M7 4v3.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>Results in ~60s</div>
+        </div>
+      </div>
+
+      <div class="terminal" id="hero-terminal">
+        <div class="terminal-bar">
+          <div class="terminal-dot r"></div>
+          <div class="terminal-dot y"></div>
+          <div class="terminal-dot g"></div>
+          <span class="terminal-title mono">&gt; VULNRA_SCANNING_NODE</span>
+        </div>
+        <div class="terminal-body">
+          <span class="t-label">Target Endpoint URL</span>
+          <div class="t-input" id="url-input" contenteditable="true" spellcheck="false"
+            style="cursor:text;outline:none;min-height:38px;word-break:break-all">http://localhost:11434<span
+              class="t-cursor"></span></div>
+          <div class="t-select">
+            <div class="t-chip active">Standard</div>
+            <div class="t-chip">Deep</div>
+            <div class="t-chip">Stealth</div>
+          </div>
+          <button class="t-btn" id="scan-btn">EXECUTE PENETRATION TEST</button>
+          <div class="t-divider"></div>
+          <div class="t-log" id="scan-log"></div>
+
+          <!-- ── Report button — hidden until scan completes ── -->
+          <button class="t-report-btn" id="report-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span id="report-btn-text">DOWNLOAD AUDIT REPORT</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="compat" id="compat">
+    <div class="container">
+      <p class="compat-label">Compatible with</p>
+      <div class="logo-strip">
+        <div class="logo-item">
+          <div class="node"></div>
+          <div class="icon-box"><svg width="30" height="26" viewBox="0 0 32 28" fill="none">
+              <rect x="0" y="0" width="8" height="8" fill="#FF7000" />
+              <rect x="12" y="0" width="8" height="8" fill="#FF7000" />
+              <rect x="24" y="0" width="8" height="8" fill="#FF7000" />
+              <rect x="0" y="10" width="8" height="8" fill="#FF7000" />
+              <rect x="12" y="10" width="8" height="8" fill="#FF7000" />
+              <rect x="0" y="20" width="8" height="8" fill="#FF7000" />
+            </svg></div><span class="logo-name">Mistral</span>
+        </div>
+        <div class="logo-item">
+          <div class="node"></div>
+          <div class="icon-box"><svg width="28" height="28" viewBox="0 0 41 41" fill="none">
+              <path
+                d="M37.532 16.87a9.963 9.963 0 00-.856-8.184 10.078 10.078 0 00-10.855-4.835 9.964 9.964 0 00-6.205-3.406 10.079 10.079 0 00-10.765 4.935 9.964 9.964 0 00-6.451 3.959 10.079 10.079 0 001.24 12.053 9.964 9.964 0 00.856 8.185 10.079 10.079 0 0010.855 4.835 9.965 9.965 0 006.205 3.406 10.079 10.079 0 0010.772-4.938 9.965 9.965 0 006.451-3.959 10.079 10.079 0 00-1.247-12.05zm-22.073 10.701a7.48 7.48 0 01-4.756-2.1l.189-.11 7.896-4.562a1.297 1.297 0 00.655-1.138v-11.13l3.341 1.93a.12.12 0 01.066.092v9.223a7.505 7.505 0 01-7.391 5.695zm-15.886-6.876a7.48 7.48 0 01-.894-5.023l.19.114 7.896 4.562a1.297 1.297 0 001.308 0l9.644-5.569v3.861a.12.12 0 01-.048.103l-7.978 4.607a7.505 7.505 0 01-10.118-2.655zm-2.063-17.218a7.48 7.48 0 013.906-3.292v9.342a1.297 1.297 0 00.654 1.132l9.638 5.566-3.34 1.929a.12.12 0 01-.117.013L4.516 17.559a7.505 7.505 0 01-2.506-10.082zm27.818 6.437l-9.644-5.569 3.34-1.929a.12.12 0 01.117-.013l8.047 4.648a7.498 7.498 0 01-1.158 13.528v-9.346a1.297 1.297 0 00-.702-1.319zm3.32-5.065l-.19-.114-7.897-4.562a1.297 1.297 0 00-1.308 0l-9.638 5.569V6.861a.12.12 0 01.048-.103l7.978-4.607a7.498 7.498 0 0111.007 7.767zm-20.955 6.89l-3.34-1.929a.12.12 0 01-.066-.092v-9.223a7.498 7.498 0 0112.293-5.756l-.189.11-7.897 4.562a1.297 1.297 0 00-.655 1.138l-.146 11.19zm1.82-3.92l4.289-2.479 4.29 2.476v4.953l-4.29 2.479-4.289-2.476V13.619z"
+                fill="white" />
+            </svg></div><span class="logo-name">OpenAI</span>
+        </div>
+        <div class="logo-item">
+          <div class="node"></div>
+          <div class="icon-box"><svg width="30" height="26" viewBox="0 0 95 89" fill="none">
+              <path
+                d="M66.038 0H47.15L94.3 89h18.89L66.038 0zM28.26 0L0 89h19.397l5.854-17.337h29.77L60.875 89H80.27L52.01 0H28.26zm1.895 54.863l9.87-29.22 9.87 29.22H30.155z"
+                fill="#CC785C" />
+            </svg></div><span class="logo-name">Anthropic</span>
+        </div>
+        <div class="logo-item">
+          <div class="node"></div>
+          <div class="icon-box"><svg width="28" height="32" viewBox="0 0 64 72" fill="none">
+              <ellipse cx="32" cy="28" rx="18" ry="20" fill="none" stroke="white" stroke-width="3.2" />
+              <circle cx="24" cy="24" r="2.8" fill="white" />
+              <circle cx="40" cy="24" r="2.8" fill="white" />
+              <circle cx="25" cy="24.8" r="1.2" fill="#07090c" />
+              <circle cx="41" cy="24.8" r="1.2" fill="#07090c" />
+              <ellipse cx="32" cy="32" rx="3.2" ry="2" fill="none" stroke="white" stroke-width="2" />
+              <path d="M17 12 Q13 3 19 5 Q22 7 20 12" fill="none" stroke="white" stroke-width="2.6"
+                stroke-linejoin="round" />
+              <path d="M47 12 Q51 3 45 5 Q42 7 44 12" fill="none" stroke="white" stroke-width="2.6"
+                stroke-linejoin="round" />
+              <path d="M22 47 Q20 57 18 67" stroke="white" stroke-width="3.2" stroke-linecap="round" />
+              <path d="M42 47 Q44 57 46 67" stroke="white" stroke-width="3.2" stroke-linecap="round" />
+              <path d="M18 67 Q32 72 46 67" stroke="white" stroke-width="3.2" stroke-linecap="round" />
+              <path d="M22 47 Q32 51 42 47" stroke="white" stroke-width="2.8" stroke-linecap="round" />
+            </svg></div><span class="logo-name">Ollama</span>
+        </div>
+        <div class="logo-item">
+          <div class="node"></div>
+          <div class="icon-box"><svg width="32" height="32" viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="55" r="36" fill="#FFD21E" />
+              <ellipse cx="37" cy="47" rx="4.5" ry="5.5" fill="#1a1208" />
+              <ellipse cx="38.5" cy="45.5" rx="1.6" ry="1.6" fill="white" />
+              <ellipse cx="63" cy="47" rx="4.5" ry="5.5" fill="#1a1208" />
+              <ellipse cx="64.5" cy="45.5" rx="1.6" ry="1.6" fill="white" />
+              <ellipse cx="28" cy="59" rx="6.5" ry="4.5" fill="#FF8C69" opacity="0.5" />
+              <ellipse cx="72" cy="59" rx="6.5" ry="4.5" fill="#FF8C69" opacity="0.5" />
+              <path d="M36 65 Q50 78 64 65" stroke="#1a1208" stroke-width="3" stroke-linecap="round" fill="none" />
+              <ellipse cx="50" cy="73" rx="5.5" ry="4" fill="#FF6B6B" />
+              <path d="M18 40 Q10 20 22 16 Q30 13 28 28" fill="#FFD21E" stroke="#e6b800" stroke-width="1.8" />
+              <path d="M82 40 Q90 20 78 16 Q70 13 72 28" fill="#FFD21E" stroke="#e6b800" stroke-width="1.8" />
+              <path d="M10 74 Q4 58 14 50 Q20 46 24 54 Q18 60 20 72" fill="#FFD21E" stroke="#e6b800"
+                stroke-width="1.5" />
+              <path d="M90 74 Q96 58 86 50 Q80 46 76 54 Q82 60 80 72" fill="#FFD21E" stroke="#e6b800"
+                stroke-width="1.5" />
+              <circle cx="12" cy="76" r="4.5" fill="#FFD21E" stroke="#e6b800" stroke-width="1.5" />
+              <circle cx="88" cy="76" r="4.5" fill="#FFD21E" stroke="#e6b800" stroke-width="1.5" />
+            </svg></div><span class="logo-name">Hugging Face</span>
+        </div>
+        <div class="logo-item">
+          <div class="node"></div>
+          <div class="icon-box"><svg width="30" height="26" viewBox="0 0 96 84" fill="none">
+              <defs>
+                <linearGradient id="az1" x1="48" y1="0" x2="16" y2="84" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#114A8B" />
+                  <stop offset="1" stop-color="#0669BC" />
+                </linearGradient>
+                <linearGradient id="az2" x1="55" y1="32" x2="90" y2="84" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#3CCBF4" />
+                  <stop offset="1" stop-color="#2892DF" />
+                </linearGradient>
+              </defs>
+              <path d="M35.469 0h26.093L32.784 83.453H6.69L35.47 0z" fill="url(#az1)" />
+              <path d="M61.942 0L38.4 47.578l22.41 25.098-35.648 10.777h70.84L61.942 0z" fill="url(#az2)" />
+            </svg></div><span class="logo-name">Azure OpenAI</span>
+        </div>
+        <div class="logo-item">
+          <div class="node"></div>
+          <div class="icon-box"><svg width="34" height="30" viewBox="0 0 120 80" fill="none">
+              <path d="M8 56 L20 10 L32 56" stroke="#FF9900" stroke-width="5" stroke-linecap="round"
+                stroke-linejoin="round" fill="none" />
+              <line x1="13.5" y1="40" x2="26.5" y2="40" stroke="#FF9900" stroke-width="5" stroke-linecap="round" />
+              <path d="M40 10 L50 56 L60 28 L70 56 L80 10" stroke="#FF9900" stroke-width="5" stroke-linecap="round"
+                stroke-linejoin="round" fill="none" />
+              <path d="M110 18 Q90 10 90 26 Q90 39 108 39 Q126 39 110 54 Q98 62 85 56" stroke="#FF9900" stroke-width="5"
+                stroke-linecap="round" fill="none" />
+              <path d="M16 70 Q60 84 104 70" stroke="#FF9900" stroke-width="4" stroke-linecap="round" fill="none" />
+              <path d="M98 64 L106 70 L98 76" stroke="#FF9900" stroke-width="4" stroke-linecap="round"
+                stroke-linejoin="round" fill="none" />
+            </svg></div><span class="logo-name">AWS Bedrock</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-num">8<span class="unit">+</span></div>
+          <div class="stat-desc">Attack categories covered including jailbreak, injection, and encoding bypasses</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">5<span class="unit">+</span></div>
+          <div class="stat-desc">Compliance frameworks automatically mapped per scan</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">&lt;60<span class="unit">s</span></div>
+          <div class="stat-desc">Average time to first vulnerability report on any REST endpoint</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">0<span class="unit">&#8364;</span></div>
+          <div class="stat-desc">Cost to get started — free tier, no credit card required</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="flow-section" id="flow">
+    <div class="container">
+      <div class="flow-header">
+        <div class="section-tag">Execution Flow</div>
+        <h2 class="section-title">From target endpoint to audit report<br>in four phases</h2>
+        <p class="section-sub" style="margin:0 auto">Deploy VULNRA against any LLM interface. The engine operates
+          autonomously — no complex configuration or manual prompt engineering required.</p>
+      </div>
+      <div class="flow-grid">
+        <div class="flow-item">
+          <div class="flow-num">01</div>
+          <div class="flow-title">Initialize</div>
+          <div class="flow-desc">Input any REST endpoint URL — whether it's an OpenAI-compatible interface, custom model
+            deployment, or internal proprietary API. VULNRA automatically maps the schema.</div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num">02</div>
+          <div class="flow-title">Execute Probes</div>
+          <div class="flow-desc">The core engine fires 100+ adversarial probe vectors asynchronously — including complex
+            DAN jailbreaks, indirect injection chains, encoding permutations, and structured PII lures.</div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num">03</div>
+          <div class="flow-title">Compute Score</div>
+          <div class="flow-desc">Every successful bypass is assigned a deterministic 0–10 threat score weighted by
+            vulnerability severity, ease of exploitation, and specific regulatory exposure.</div>
+        </div>
+        <div class="flow-item">
+          <div class="flow-num">04</div>
+          <div class="flow-title">Generate Audit</div>
+          <div class="flow-desc">Export a cryptographically verifiable PDF audit report documenting all active findings,
+            specific compliance framework violations, and actionable remediation steps.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cli-section">
+    <div class="container">
+      <div class="cli-inner">
+        <div class="cli-text">
+          <div class="section-tag">CLI</div>
+          <h2 class="section-title">One command.<br>Full red-team report.</h2>
+          <p class="section-sub" style="margin-bottom:32px">pip install vulnra — works everywhere Python runs. Add to
+            CI/CD and fail builds on high risk scores.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap"><a href="#" class="btn-primary" style="font-size:11px">pip
+              install vulnra</a><a href="#" class="btn-outline" style="font-size:11px">Read the docs →</a></div>
+        </div>
+        <div class="cli-terminal">
+          <div class="cli-bar">
+            <div class="cli-bar-dot" style="background:#ff5f56"></div>
+            <div class="cli-bar-dot" style="background:#ffbd2e"></div>
+            <div class="cli-bar-dot" style="background:#27c93f"></div><span>terminal</span>
+          </div>
+          <div class="cli-code">
+            <div><span class="cli-comment"># Install the CLI package</span></div>
+            <div><span class="cli-prompt">$ </span><span class="cli-cmd">pip install vulnra</span></div>
+            <div><span class="cli-prompt">$ </span><span class="cli-cmd">vulnra init</span></div>
+            <div>&nbsp;</div>
+            <div><span class="cli-comment"># Execute unauthenticated scan on target endpoint</span></div>
+            <div><span class="cli-prompt">$ </span><span class="cli-cmd">vulnra scan https://api.internal/v1/chat</span>
+            </div>
+            <div><span class="cli-pass">[OK]</span><span class="cli-cmd"> Initializing Garak engine...</span></div>
+            <div><span class="cli-pass">[PASS]</span><span class="cli-cmd"> Jailbreak (DAN_v11) mitigated</span></div>
+            <div><span class="cli-fail">[FAIL]</span><span class="cli-cmd"> Prompt injection bypass detected — Score:
+                8.2</span></div>
+            <div><span class="cli-warn">[WARN]</span><span class="cli-cmd"> PII reflection risk identified — Score:
+                5.7</span></div>
+            <div><span class="cli-pass">[PASS]</span><span class="cli-cmd"> Encoding bypass (Base64/ROT13)
+                mitigated</span></div>
+            <div>&nbsp;</div>
+            <div><span class="cli-comment"># Export secure audit report to disk</span></div>
+            <div><span class="cli-prompt">$ </span><span class="cli-cmd">vulnra report --format pdf --out
+                audit_2024-10-24.pdf</span></div>
+            <div><span class="cli-success">&#10003; Report successfully generated: audit_2024-10-24.pdf</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="caps-section" id="features">
+    <div class="container">
+      <div class="caps-header">
+        <div class="section-tag">Capabilities</div>
+        <h2 class="section-title">Every attack vector.<br>One tool.</h2>
+        <p>Built on NVIDIA Garak, the most comprehensive LLM red-teaming framework available.</p>
+      </div>
+      <div class="caps-grid">
+        <div class="cap-item">
+          <div class="cap-tag">JAILBREAK_DETECT</div>
+          <div class="cap-title">Jailbreak Detection</div>
+          <div class="cap-desc">Tests against the full Garak jailbreak suite — DAN, AutoDAN, AutoDANCached,
+            HijackKillHumans, and 30+ additional variants. Measures success rate across 10 attempts per probe.</div>
+          <div class="cap-chips"><span class="cap-chip">AutoDAN</span><span class="cap-chip">DAN_V11</span><span
+              class="cap-chip">Hijack</span><span class="cap-chip">Success_Rate</span></div>
+        </div>
+        <div class="cap-item">
+          <div class="cap-tag">PROMPT_INJECT</div>
+          <div class="cap-title">Prompt Injection</div>
+          <div class="cap-desc">Detects direct and indirect injection paths, including system prompt leakage,
+            instruction override, and multi-turn chain attacks.</div>
+          <div class="cap-chips"><span class="cap-chip">Indirect_Inj</span><span class="cap-chip">Prompt_Leak</span>
+          </div>
+        </div>
+        <div class="cap-item">
+          <div class="cap-tag">ENCODE_BYPASS</div>
+          <div class="cap-title">Encoding Bypass</div>
+          <div class="cap-desc">Tests Base64, ROT13, Unicode homoglyphs, and hex-encoded inputs that bypass
+            surface-level content filters.</div>
+          <div class="cap-chips"><span class="cap-chip">Base64</span><span class="cap-chip">Unicode</span><span
+              class="cap-chip">Homoglyphs</span></div>
+        </div>
+        <div class="cap-item">
+          <div class="cap-tag">THREAT_SCORE</div>
+          <div class="cap-title">Threat Scoring</div>
+          <div class="cap-desc">Every finding gets a 0–10 risk score weighted by severity, exploitability, and
+            regulatory exposure. Comparable across scans over time.</div>
+          <div class="cap-chips"><span class="cap-chip">CVSS_Style</span><span class="cap-chip">Trend_Log</span></div>
+        </div>
+        <div class="cap-item">
+          <div class="cap-tag">AUDIT_EXPORT</div>
+          <div class="cap-title">Audit Export</div>
+          <div class="cap-desc">One-click export of a formatted audit report listing all findings, risk scores, affected
+            compliance articles, and remediation steps.</div>
+          <div class="cap-chips"><span class="cap-chip">PDF_Secure</span><span class="cap-chip">Compliance</span></div>
+        </div>
+        <div class="cap-item">
+          <div class="cap-tag">SENTINEL_MONITOR</div>
+          <div class="cap-title">Sentinel Monitor</div>
+          <div class="cap-desc">Schedule recurring scans on any endpoint. Get alerted when new vulnerabilities emerge as
+            your model updates or context changes.</div>
+          <div class="cap-chips"><span class="cap-chip">Cron_Job</span><span class="cap-chip">Webhooks</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="comp-section" id="compliance">
+    <div class="container">
+      <div class="comp-header">
+        <div class="section-tag">Compliance</div>
+        <h2 class="section-title">Every finding maps to the regulation<br>you're responsible for</h2>
+        <p class="section-sub">VULNRA automatically cites the specific article, section, or function from each framework
+          that each finding implicates.</p>
+      </div>
+      <div class="comp-grid">
+        <div class="comp-item">
+          <div class="comp-badge">EU AI ACT</div>
+          <div class="comp-name">EU AI Act</div>
+          <div class="comp-full">EU Artificial Intelligence Act</div>
+          <div class="comp-articles">Article 9 (risk management), Article 13 (transparency), Article 17 (quality
+            management)</div>
+          <div class="comp-fine">Up to &#8364;30M fine</div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-badge">INDIA DPDP</div>
+          <div class="comp-name">India DPDP</div>
+          <div class="comp-full">Digital Personal Data Protection Act</div>
+          <div class="comp-articles">Section 8 (obligations), Section 11 (consent), Section 16 (cross-border transfer)
+          </div>
+          <div class="comp-fine">Up to &#8377;250Cr fine</div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-badge">NIST AI RMF</div>
+          <div class="comp-name">NIST AI RMF</div>
+          <div class="comp-full">NIST AI Risk Management Framework</div>
+          <div class="comp-articles">GOVERN 1.1, MAP 2.1, MEASURE 2.5, MANAGE 1.1 — full function coverage</div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-badge">ISO 42001</div>
+          <div class="comp-name">ISO 42001</div>
+          <div class="comp-full">ISO/IEC 42001:2023 AI Management</div>
+          <div class="comp-articles">Clause 6.1 (risk assessment), Clause 9.1 (monitoring), Annex A controls</div>
+        </div>
+        <div class="comp-item">
+          <div class="comp-badge">OWASP LLM</div>
+          <div class="comp-name">OWASP LLM</div>
+          <div class="comp-full">OWASP LLM Top 10</div>
+          <div class="comp-articles">LLM01 (prompt injection), LLM02 (insecure output), LLM06 (sensitive disclosure),
+            LLM08 (excessive agency)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="oss-section">
+    <div class="container">
+      <div style="text-align:center;margin-bottom:0">
+        <div class="section-tag" style="justify-content:center">Open Source</div>
+        <h2 class="section-title">Built in the open.<br>Trusted by default.</h2>
+        <p class="section-sub" style="margin:0 auto">VULNRA is MIT licensed. The scan engine, compliance mappings, and
+          CLI are all public. Security tools should be auditable.</p>
+      </div>
+      <div class="oss-grid">
+        <div class="oss-item">
+          <div class="oss-icon"><svg viewBox="0 0 18 18" fill="none">
+              <path d="M9 1L11.5 6.5L17 7.5L13 11.5L14 17L9 14.5L4 17L5 11.5L1 7.5L6.5 6.5L9 1Z" stroke="currentColor"
+                stroke-width="1.5" stroke-linejoin="round" />
+            </svg></div>
+          <div class="oss-badge">MIT</div>
+          <div class="oss-title">Fully Open Source</div>
+          <div class="oss-desc">Fork it, audit it, extend it. The entire scan engine and compliance mapper are in the
+            open.</div>
+        </div>
+        <div class="oss-item">
+          <div class="oss-icon"><svg viewBox="0 0 18 18" fill="none">
+              <rect x="2" y="5" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5" />
+              <path d="M6 5V4a3 3 0 016 0v1" stroke="currentColor" stroke-width="1.5" />
+            </svg></div>
+          <div class="oss-badge">pip</div>
+          <div class="oss-title">One-line CLI install</div>
+          <div class="oss-desc">pip install vulnra — works everywhere Python runs. Add to CI/CD and fail builds on high
+            risk scores.</div>
+        </div>
+        <div class="oss-item">
+          <div class="oss-icon"><svg viewBox="0 0 18 18" fill="none">
+              <path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" />
+            </svg></div>
+          <div class="oss-badge">REST</div>
+          <div class="oss-title">Self-hostable API</div>
+          <div class="oss-desc">Run the full FastAPI + Celery + Redis stack yourself. Works on Railway, Render, or your
+            own infra in 5 minutes.</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:14px;margin-top:40px"><a href="https://github.com"
+          class="btn-primary">&#11088; Star on GitHub</a><a href="#" class="btn-outline">Read the docs &#8594;</a></div>
+    </div>
+  </section>
+
+  <section class="price-section" id="pricing">
+    <div class="container">
+      <div class="price-header">
+        <div class="section-tag">Pricing</div>
+        <h2 class="section-title">Simple, transparent pricing</h2>
+        <p class="section-sub" style="margin:0 auto">Start free. Upgrade when you need full findings and compliance
+          mapping.</p>
+      </div>
+      <div class="price-grid">
+        <div class="price-item">
+          <div class="price-tier">FREE</div>
+          <div class="price-val">$0</div>
+          <div class="price-desc">For developers evaluating their first model.</div>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li class="has">1 scan per day</li>
+            <li class="has">Risk score (0–10)</li>
+            <li class="has">1 blurred finding preview</li>
+            <li class="no">Full finding details</li>
+            <li class="no">Compliance mapping</li>
+            <li class="no">PDF export</li>
+            <li class="no">Sentinel monitoring</li>
+          </ul><button class="price-btn outline">Start scanning &#8594;</button>
+        </div>
+        <div class="price-item featured">
+          <div class="price-tier">PRO</div>
+          <div class="price-val">$49<span>/mo</span></div>
+          <div class="price-desc">For teams who need full findings and compliance coverage.</div>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li class="has">Unlimited scans</li>
+            <li class="has">All findings, fully unblurred</li>
+            <li class="has">EU AI Act, DPDP, NIST mapping</li>
+            <li class="has">PDF audit report export</li>
+            <li class="has">ISO 42001 + OWASP Top 10</li>
+            <li class="has">Sentinel recurring monitoring</li>
+            <li class="has">CLI + API access</li>
+          </ul><button class="price-btn solid">Upgrade to Pro &#8594;</button>
+        </div>
+        <div class="price-item">
+          <div class="price-tier">ENTERPRISE</div>
+          <div class="price-val">Custom</div>
+          <div class="price-desc">For teams with custom compliance needs, SLAs, and on-prem requirements.</div>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li class="has">Everything in Pro</li>
+            <li class="has">On-premise deployment</li>
+            <li class="has">Custom compliance frameworks</li>
+            <li class="has">SSO + team management</li>
+            <li class="has">Dedicated Slack support</li>
+            <li class="has">Custom SLA</li>
+            <li class="has">Invoiced billing</li>
+          </ul><button class="price-btn ghost">Contact sales &#8594;</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="cta-glow"></div>
+    <div class="container" style="position:relative;z-index:1">
+      <h2>Your AI is live.<br>Is it safe?</h2>
+      <p>Run a free scan in 60 seconds. No account required.</p>
+      <div class="cta-actions"><a href="#hero-terminal" class="btn-primary"
+          style="font-size:13px;padding:14px 32px">&#9889; Scan your endpoint &#8594;</a><a href="https://github.com"
+          class="btn-outline" style="font-size:13px;padding:14px 32px">View on GitHub</a></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-left">&#169; 2025 VULNRA. MIT Licensed. Built on NVIDIA Garak.</div>
+    <div class="footer-links"><a href="#">Docs</a><a href="#">GitHub</a><a href="#">Privacy</a><a
+        href="mailto:hello@vulnra.ai">hello@vulnra.ai</a></div>
+  </footer>
+
+  <script>
+    const API_BASE = 'http://localhost:8000';
+
+    document.querySelectorAll('.t-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        chip.closest('.t-select').querySelectorAll('.t-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+
+    const TIER_MAP = { 'Standard': 'free', 'Deep': 'pro', 'Stealth': 'enterprise' };
+    const logEl = document.getElementById('scan-log');
+    const btn = document.getElementById('scan-btn');
+    const urlInput = document.getElementById('url-input');
+
+    urlInput.addEventListener('input', () => {
+      const cursor = urlInput.querySelector('.t-cursor');
+      if (cursor) urlInput.appendChild(cursor);
+    });
+
+    function clearLog() { logEl.innerHTML = ''; }
+
+    function addLog(cls, prefix, msg) {
+      const line = document.createElement('div');
+      line.className = 't-line';
+      line.style.animationDelay = '0s';
+      const display = msg.length > 76 ? msg.substring(0, 76) + '…' : msg;
+      line.innerHTML = `<span class="${cls}">[${prefix}]</span><span style="flex:1;word-break:break-word;padding-left:4px">${display}</span>`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function setBtn(text, disabled) {
+      btn.textContent = text;
+      btn.disabled = disabled;
+      btn.style.opacity = disabled ? '0.5' : '1';
+      btn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+    }
+
+    function getUrl() {
+      const clone = urlInput.cloneNode(true);
+      const cursor = clone.querySelector('.t-cursor');
+      if (cursor) cursor.remove();
+      return clone.textContent.trim();
+    }
+
+    async function pollScan(scanId, startTime) {
+      for (let i = 0; i < 200; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        try {
+          const res = await fetch(`${API_BASE}/scan/${scanId}`);
+          const data = await res.json();
+          if (data.status === 'complete') return data;
+          if (data.status === 'failed') throw new Error(data.error || 'Scan failed');
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          btn.textContent = `SCANNING… ${elapsed}s`;
+        } catch (e) {
+          if (e.message === 'Failed to fetch') continue;
+          throw e;
+        }
+      }
+      throw new Error('Scan timed out after 400s');
+    }
+
+    function renderResults(data) {
+      const score = data.risk_score ?? 0;
+      const findings = data.findings ?? [];
+      const engine = data.scan_engine ?? '?';
+      const scoreClass = score >= 7 ? 't-fail' : score >= 4 ? 't-warn' : 't-pass';
+      addLog(scoreClass, 'SCORE', `Risk Score: ${score}/10  [${engine}]`);
+      if (findings.length === 0) { addLog('t-pass', 'PASS', 'No vulnerabilities detected'); return; }
+      findings.forEach(f => {
+        if (f.blurred) { addLog('t-warn', 'LOCK', 'Upgrade to Pro to see full findings →'); return; }
+        const cls = f.severity === 'HIGH' ? 't-fail' : f.severity === 'MEDIUM' ? 't-warn' : 't-pass';
+        const prefix = f.severity === 'HIGH' ? 'FAIL' : f.severity === 'MEDIUM' ? 'WARN' : 'PASS';
+        addLog(cls, prefix, `${f.category}  ${f.detail}`);
+      });
+      const comp = data.compliance ?? {};
+      if (comp.blurred) {
+        addLog('t-warn', 'COMP', 'Compliance mapping locked — upgrade to Pro');
+      } else {
+        if (comp.eu_ai_act) addLog('t-warn', 'EU AI ACT', `${comp.eu_ai_act.articles.join(', ')} — €${(comp.eu_ai_act.fine_eur / 1e6).toFixed(0)}M exposure`);
+        if (comp.dpdp) addLog('t-warn', 'DPDP', `${comp.dpdp.sections.join(', ')} — ₹${(comp.dpdp.fine_inr / 1e7).toFixed(0)}Cr exposure`);
+        if (comp.nist_ai_rmf) addLog('t-pass', 'NIST', comp.nist_ai_rmf.functions.join(', '));
+      }
+    }
+
+    // ── Download Report ─────────────────────────────────────
+    const reportBtn = document.getElementById('report-btn');
+    const reportBtnText = document.getElementById('report-btn-text');
+    let lastScanId = null;
+
+    function showReportBtn(scanId) {
+      lastScanId = scanId;
+      reportBtn.classList.add('visible');
+      reportBtn.classList.remove('loading');
+      reportBtnText.textContent = 'DOWNLOAD AUDIT REPORT';
+    }
+
+    function hideReportBtn() {
+      reportBtn.classList.remove('visible');
+      lastScanId = null;
+    }
+
+    reportBtn.addEventListener('click', async () => {
+      if (!lastScanId || reportBtn.classList.contains('loading')) return;
+      reportBtn.classList.add('loading');
+      reportBtnText.textContent = 'GENERATING PDF…';
+      try {
+        const res = await fetch(`${API_BASE}/scan/${lastScanId}/report`);
+        if (!res.ok) throw new Error(`Report API returned ${res.status}`);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `vulnra_audit_${lastScanId.substring(0, 8)}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        reportBtnText.textContent = '✓ DOWNLOADED';
+        setTimeout(() => {
+          reportBtnText.textContent = 'DOWNLOAD AUDIT REPORT';
+          reportBtn.classList.remove('loading');
+        }, 2500);
+      } catch (err) {
+        addLog('t-fail', 'ERR', `Report failed: ${err.message}`);
+        reportBtnText.textContent = 'DOWNLOAD AUDIT REPORT';
+        reportBtn.classList.remove('loading');
+      }
+    });
+
+    // ── Scan button ──────────────────────────────────────────
+    btn.addEventListener('click', async () => {
+      const url = getUrl();
+      if (!url) { addLog('t-fail', 'ERR', 'Please enter a target endpoint URL'); return; }
+
+      const activeChip = document.querySelector('.t-chip.active');
+      const tierLabel = activeChip?.textContent?.trim() || 'Standard';
+      const tier = TIER_MAP[tierLabel] || 'free';
+
+      clearLog();
+      hideReportBtn();
+      setBtn('INITIALIZING…', true);
+      addLog('t-pass', 'INIT', `Target: ${url}`);
+      addLog('t-pass', 'TIER', `Mode: ${tierLabel} → ${tier} tier`);
+
+      try {
+        const res = await fetch(
+          `${API_BASE}/scan?url=${encodeURIComponent(url)}&tier=${tier}`,
+          { method: 'POST' }
+        );
+        if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
+        const { scan_id } = await res.json();
+
+        addLog('t-pass', 'QUEUE', `ID ${scan_id.substring(0, 8)}… — probes queued`);
+        addLog('t-warn', 'GARAK', 'Running adversarial probe vectors…');
+
+        const startTime = Date.now();
+        setBtn('SCANNING… 0s', true);
+
+        const result = await pollScan(scan_id, startTime);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+        addLog('t-pass', 'DONE', `Complete in ${elapsed}s`);
+        renderResults(result);
+        setBtn('EXECUTE PENETRATION TEST', false);
+
+        // Show report download button
+        showReportBtn(scan_id);
+
+      } catch (err) {
+        addLog('t-fail', 'ERR', err.message);
+        setBtn('EXECUTE PENETRATION TEST', false);
+      }
+    });
+  </script>
+</body>
+
+</html>

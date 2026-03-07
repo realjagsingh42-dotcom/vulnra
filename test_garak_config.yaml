@@ -1,0 +1,12 @@
+plugins: 
+  generators: 
+    rest: 
+      RestGenerator: 
+        uri: "https://httpbin.org/post" 
+        method: POST 
+        headers: 
+          Content-Type: application/json 
+        req_template_json_object: 
+          prompt: $INPUT 
+        response_json: false 
+        request_timeout: 30 
