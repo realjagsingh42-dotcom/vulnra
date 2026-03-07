@@ -1,4 +1,4 @@
-import uuid, time, random, json
+import uuid, time, random, json, os
 from fastapi import FastAPI, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,12 +18,28 @@ _memory_store: dict = {}
 # ── Redis client (lazy, optional) ─────────────────────────────────────────────
 _redis = None
 
+def _get_redis_url() -> str:
+    """Read REDIS_URL — env vars first (Railway), then .env file (local dev)."""
+    val = os.environ.get("REDIS_URL")
+    if val:
+        return val
+    import pathlib
+    p = pathlib.Path(__file__).parent.parent / ".env"
+    if p.exists():
+        for line in p.read_text().splitlines():
+            line = line.strip()
+            if line.startswith("REDIS_URL=") and not line.startswith("#"):
+                return line.split("=", 1)[1].strip()
+    return "redis://localhost:6379/0"
+
+REDIS_URL = _get_redis_url()
+
 def get_redis():
     global _redis
     if _redis is None:
         import redis as r
-        from app.worker import REDIS_URL
-        _redis = r.from_url(REDIS_URL, decode_responses=True)
+        url = _get_redis_url()  # re-read in case env changed
+        _redis = r.from_url(url, decode_responses=True, socket_connect_timeout=5)
     return _redis
 
 SCAN_TTL = 60 * 60 * 24 * 7
@@ -196,11 +212,13 @@ def root():
 @app.get("/health")
 def health():
     redis_ok = False
+    redis_url_hint = _get_redis_url()[:30] + "..."  # for debugging
     try:
-        get_redis().ping()
+        rc = get_redis()
+        rc.ping()
         redis_ok = True
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[REDIS] ping failed: {e} | URL starts with: {redis_url_hint}")
     return {
         "status":    "healthy",
         "redis":     "connected" if redis_ok else "unavailable",
@@ -235,7 +253,7 @@ def start_scan(url: str, tier: str = "free",
     except Exception as e:
         print(f"[WARN] Celery unavailable ({e}) — running sync scan")
 
-    # Sync fallback — returns full result immediately, no polling needed
+    # Sync fallback — returns full result immediately
     result = _run_scan(scan_id, url, tier)
     return result
 
@@ -340,3 +358,16 @@ async def generate_report_direct(request: Request):
         )
     except Exception as e:
         return {"error": f"PDF generation failed: {e}"}
+
+
+@app.get("/debug/redis")
+def debug_redis():
+    """Debug endpoint to check Redis connectivity."""
+    url = _get_redis_url()
+    masked = url[:20] + "..." if len(url) > 20 else url
+    try:
+        rc = get_redis()
+        rc.ping()
+        return {"redis": "connected", "url_prefix": masked}
+    except Exception as e:
+        return {"redis": "failed", "error": str(e), "url_prefix": masked}
