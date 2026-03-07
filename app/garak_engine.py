@@ -1,12 +1,12 @@
 """
 app/garak_engine.py - Real Garak scan engine for Miru-Shield.
 
-Uses Garak's native --model_type ollama generator (v0.14 compatible).
-KEY FIX: Uses subprocess.Popen + DEVNULL instead of capture_output=True
-to avoid Windows pipe buffer deadlock when Garak produces large output.
+Works both locally (garak_env) and on Railway (system Python with garak installed).
+Uses subprocess.Popen + DEVNULL to avoid Windows pipe buffer deadlock.
 """
 
 import os
+import sys
 import json
 import time
 import pathlib
@@ -14,17 +14,38 @@ import subprocess
 from typing import Optional
 
 
-# ── GARAK ENV DETECTION ───────────────────────────────────────
+# ── GARAK PYTHON DETECTION ────────────────────────────────────
 
 def _find_garak_python() -> Optional[str]:
-    root = pathlib.Path(__file__).parent.parent  # D:\shield\
+    """
+    Find a Python executable that has garak installed.
+    Checks local venv first (dev), then system Python (Railway).
+    """
+    root = pathlib.Path(__file__).parent.parent
+
     candidates = [
-        root / "garak_env" / "Scripts" / "python.exe",  # Windows
-        root / "garak_env" / "bin" / "python",           # Unix
+        root / "garak_env" / "Scripts" / "python.exe",  # Windows local venv
+        root / "garak_env" / "bin" / "python",           # Unix local venv
+        pathlib.Path(sys.executable),                     # Current Python (Railway)
     ]
+
     for c in candidates:
-        if c.exists():
-            return str(c)
+        try:
+            if not pathlib.Path(c).exists():
+                continue
+            result = subprocess.run(
+                [str(c), "-m", "garak", "--version"],
+                capture_output=True,
+                timeout=15,
+                text=True,
+            )
+            if result.returncode == 0:
+                print(f"[GARAK] Found garak at: {c}")
+                return str(c)
+        except Exception as e:
+            print(f"[GARAK] Candidate {c} failed: {e}")
+            continue
+
     return None
 
 
@@ -36,6 +57,8 @@ def garak_available() -> bool:
 
 TIER_PROBES = {
     "free":       ["dan.AutoDANCached"],
+    "basic":      ["dan.AutoDANCached",
+                   "dan.AntiDAN"],
     "pro":        ["dan.AutoDANCached",
                    "dan.AntiDAN",
                    "promptinject.HijackHateHumans"],
@@ -110,13 +133,17 @@ COMPLIANCE_MAP = {
 # ── FIND NEWEST REPORT ────────────────────────────────────────
 
 def _find_newest_report(scan_start_time: float) -> Optional[str]:
+    home = os.path.expanduser("~")
     search_dirs = [
-        os.path.join(os.path.expanduser("~"), ".local", "share", "garak", "garak_runs"),
-        os.path.join(os.path.expanduser("~"), ".local", "share", "garak"),
+        os.path.join(home, ".local", "share", "garak", "garak_runs"),
+        os.path.join(home, ".local", "share", "garak"),
+        os.path.join(home, "garak_runs"),
         os.path.join(os.environ.get("APPDATA", ""), "garak", "garak_runs"),
         os.path.join(os.environ.get("LOCALAPPDATA", ""), "garak", "garak_runs"),
         os.path.join(os.getcwd(), "garak_runs"),
         str(pathlib.Path(__file__).parent.parent / "garak_runs"),
+        "/tmp/garak_runs",
+        "/tmp/garak",
     ]
     best, best_mtime = None, 0.0
     for sdir in search_dirs:
@@ -249,6 +276,7 @@ def _build_compliance(findings: list) -> dict:
 # ── MOCK FALLBACK ─────────────────────────────────────────────
 
 def _mock_scan(scan_id: str, url: str, tier: str) -> dict:
+    import random
     mock_findings = {
         "pro": [
             {"category": "PROMPT_INJECTION", "severity": "HIGH",
@@ -263,6 +291,11 @@ def _mock_scan(scan_id: str, url: str, tier: str) -> dict:
              "detail": "4.0% of 10 probes bypassed via dan.AutoDANCached",
              "hit_rate": 0.04, "hits": 0, "total": 10, "blurred": False},
         ],
+        "basic": [
+            {"category": "JAILBREAK", "severity": "MEDIUM",
+             "detail": "6.0% of 20 probes bypassed via dan.AutoDANCached",
+             "hit_rate": 0.06, "hits": 1, "total": 20, "blurred": False},
+        ],
         "enterprise": [
             {"category": "PROMPT_INJECTION", "severity": "HIGH",
              "detail": "22.0% of 80 probes bypassed via promptinject.HijackLongPrompt",
@@ -276,9 +309,14 @@ def _mock_scan(scan_id: str, url: str, tier: str) -> dict:
     score      = _calculate_score(findings)
     compliance = _build_compliance(findings)
     return {
-        "scan_id": scan_id, "url": url,
-        "risk_score": score, "findings": findings,
-        "compliance": compliance, "scan_engine": "mock_v1", "status": "complete",
+        "scan_id":      scan_id,
+        "url":          url,
+        "risk_score":   score,
+        "findings":     findings,
+        "compliance":   compliance,
+        "scan_engine":  "mock_v1",
+        "status":       "complete",
+        "completed_at": time.time(),
     }
 
 
@@ -287,33 +325,40 @@ def _mock_scan(scan_id: str, url: str, tier: str) -> dict:
 def run_garak_scan(scan_id: str, url: str, tier: str = "pro") -> dict:
     garak_python = _find_garak_python()
     if not garak_python:
-        print(f"[GARAK] garak_env not found — using mock for {scan_id}")
+        print(f"[GARAK] No garak installation found — using mock for {scan_id}")
         return _mock_scan(scan_id, url, tier)
 
     probe_str  = ",".join(TIER_PROBES.get(tier, TIER_PROBES["free"]))
-    model_name = url if not url.startswith("http") else "llama3.2"
+
+    # On Railway, garak scans an actual REST endpoint via rest.RestGenerator
+    # Locally, it uses ollama if URL is a model name
+    if url.startswith("http"):
+        model_type = "rest"
+        model_name = url
+        extra_args = [
+            "--generator_option", f"uri={url}",
+            "--generator_option", "response_json=true",
+        ]
+    else:
+        model_type = "ollama"
+        model_name = url
+        extra_args = []
 
     cmd = [
         garak_python, "-m", "garak",
-        "--model_type",  "ollama",
+        "--model_type",  model_type,
         "--model_name",  model_name,
         "--probes",      probe_str,
         "--generations", "1",
-    ]
+    ] + extra_args
 
-    print(f"[GARAK] Starting scan {scan_id}: model={model_name} tier={tier}")
+    print(f"[GARAK] Starting scan {scan_id}: model_type={model_type} model={model_name} tier={tier}")
     print(f"[GARAK] Probes: {probe_str}")
+    print(f"[GARAK] Command: {' '.join(cmd)}")
 
     scan_start_time = time.time()
 
     try:
-        # KEY FIX: DEVNULL instead of capture_output=True.
-        # capture_output=True deadlocks on Windows when Garak's stdout
-        # (progress bars + probe results + HTML report path) exceeds the
-        # ~64KB pipe buffer. subprocess.run() then blocks forever waiting
-        # for the child to exit, but the child is blocked waiting for the
-        # pipe to drain. DEVNULL discards output; we read the report file
-        # directly from ~/.local/share/garak/garak_runs/ instead.
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.DEVNULL,
@@ -321,7 +366,6 @@ def run_garak_scan(scan_id: str, url: str, tier: str = "pro") -> dict:
             cwd=str(pathlib.Path(__file__).parent.parent),
         )
 
-        # Poll every 5s; total budget = 240s (4 min, plenty for 5 probes)
         timeout  = 480
         interval = 5
         elapsed  = 0
@@ -338,7 +382,7 @@ def run_garak_scan(scan_id: str, url: str, tier: str = "pro") -> dict:
             print(f"[GARAK] Killed after {timeout}s — falling back to mock")
             return _mock_scan(scan_id, url, tier)
 
-        # Brief grace period for Garak to finish flushing the report file
+        # Grace period for report file flush
         time.sleep(3)
 
         report_path = _find_newest_report(scan_start_time)
@@ -353,13 +397,14 @@ def run_garak_scan(scan_id: str, url: str, tier: str = "pro") -> dict:
         print(f"[GARAK] Done: {len(findings)} findings, score={score}")
 
         return {
-            "scan_id":     scan_id,
-            "url":         url,
-            "risk_score":  score,
-            "findings":    findings,
-            "compliance":  compliance,
-            "scan_engine": "garak_v1",
-            "status":      "complete",
+            "scan_id":      scan_id,
+            "url":          url,
+            "risk_score":   score,
+            "findings":     findings,
+            "compliance":   compliance,
+            "scan_engine":  "garak_v1",
+            "status":       "complete",
+            "completed_at": time.time(),
         }
 
     except Exception as e:
