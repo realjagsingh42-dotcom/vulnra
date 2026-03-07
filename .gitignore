@@ -5,3 +5,4 @@ env/
 __pycache__/ 
 *.pyc 
 *.dll 
+node_modules
