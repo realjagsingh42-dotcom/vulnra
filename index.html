@@ -2427,8 +2427,7 @@
   </footer>
 
   <script>
-    const API_BASE = 'http://localhost:8000';
-
+    const API_BASE = 'https://vulnra-production.up.railway.app';
     document.querySelectorAll('.t-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         chip.closest('.t-select').querySelectorAll('.t-chip').forEach(c => c.classList.remove('active'));
