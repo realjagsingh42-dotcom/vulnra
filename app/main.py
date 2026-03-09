@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from fastapi import FastAPI, BackgroundTasks, Request, HTTPException, Depends, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, HttpUrl, validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import redis as r
@@ -29,15 +30,24 @@ class Settings(BaseSettings):
     app_name: str = "VULNRA API"
     version: str = "0.2.0"
     debug: bool = False
-    
+
     # Security
     secret_key: str = Field(default="dev-secret-change-me", env="SECRET_KEY")
-    allowed_origins: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000", "https://vulnra.ai", "https://vulnra-production.up.railway.app"]
-    
+    allowed_origins: List[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "https://vulnra.ai",
+        "https://vulnra-production.up.railway.app",
+    ]
+
     # Redis
     redis_url: str = Field(default="redis://localhost:6379/0", env="REDIS_URL")
-    
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
 
 settings = Settings()
 
@@ -53,37 +63,49 @@ app = FastAPI(
     title=settings.app_name,
     description="Production-hardened AI Risk Scanner & Compliance Reporter",
     version=settings.version,
-    debug=settings.debug
+    debug=settings.debug,
 )
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS Hardening
+# ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
-    allow_credentials=True,
+    allow_credentials=False,          # Must be False when allow_origins=["*"] pattern used
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# Security Headers Middleware
+# ── Security Headers ──────────────────────────────────────────────────────────
+# CSP is intentionally permissive for the frontend to load:
+#   - Google Fonts (fonts.googleapis.com, fonts.gstatic.com)
+#   - Supabase JS SDK (cdn.jsdelivr.net)
+#   - Inline scripts in our own HTML pages
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; object-src 'none';"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data: https:; "
+        "connect-src 'self' https://*.supabase.co https://vulnra-production.up.railway.app; "
+        "object-src 'none';"
+    )
     return response
 
-# Request Size Limit Middleware (1MB)
+# ── Request Size Limit (1 MB) ─────────────────────────────────────────────────
 @app.middleware("http")
 async def limit_request_size(request: Request, call_next):
     if request.method == "POST":
         content_length = request.headers.get("content-length")
-        if content_length and int(content_length) > 1_048_576: # 1MB
+        if content_length and int(content_length) > 1_048_576:
             return JSONResponse(status_code=413, content={"detail": "Payload too large"})
     return await call_next(request)
 
@@ -94,23 +116,26 @@ def is_safe_url(target_url: str) -> bool:
         parsed = urlparse(target_url)
         if parsed.scheme not in ("http", "https"):
             return False
-        
+
         hostname = parsed.hostname
         if not hostname:
             return False
-            
-        # Resolve to IP to check for private ranges
+
         ip = socket.gethostbyname(hostname)
         ip_obj = ipaddress.ip_address(ip)
-        
-        # Blacklist private, loopback, link-local
-        if ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_reserved or ip_obj.is_unspecified:
+
+        if (
+            ip_obj.is_private
+            or ip_obj.is_loopback
+            or ip_obj.is_link_local
+            or ip_obj.is_reserved
+            or ip_obj.is_unspecified
+        ):
             return False
-            
-        # Check for specific blacklisted hostnames (redundant but safe)
+
         if hostname.lower() in ("localhost", "0.0.0.0", "127.0.0.1"):
             return False
-            
+
         return True
     except Exception as e:
         logger.error(f"SSRF validation error for {target_url}: {e}")
@@ -123,14 +148,18 @@ def get_redis():
     global _redis_pool
     if _redis_pool is None:
         try:
-            _redis_pool = r.from_url(settings.redis_url, decode_responses=True, socket_connect_timeout=5)
+            _redis_pool = r.from_url(
+                settings.redis_url,
+                decode_responses=True,
+                socket_connect_timeout=5,
+            )
         except Exception as e:
             logger.error(f"Failed to connect to Redis: {e}")
             return None
     return _redis_pool
 
 SCAN_TTL = 60 * 60 * 24 * 7
-SCAN_KEY = "scan:{}"
+SCAN_KEY  = "scan:{}"
 _memory_store: dict = {}
 
 # ── Store Helpers ─────────────────────────────────────────────────────────────
@@ -192,38 +221,36 @@ def _mock_findings(tier: str) -> List[dict]:
         {
             "category": "PROMPT_INJECTION",
             "severity": "HIGH",
-            "detail": "System prompt override detected via role confusion attack.",
+            "detail":   "System prompt override detected via role confusion attack.",
             "hit_rate": 0.50,
-            "hits": 256,
-            "total": 512,
-            "blurred": False
+            "hits":     256,
+            "total":    512,
+            "blurred":  False,
         },
         {
             "category": "DATA_EXFILTRATION",
             "severity": "HIGH",
-            "detail": "Model leaks training data via membership inference queries.",
+            "detail":   "Model leaks training data via membership inference queries.",
             "hit_rate": 0.32,
-            "hits": 16,
-            "total": 50,
-            "blurred": False
+            "hits":     16,
+            "total":    50,
+            "blurred":  False,
         },
         {
             "category": "JAILBREAK",
             "severity": "HIGH",
-            "detail": "DAN-style jailbreak successfully bypasses content filters in 4/10 attempts.",
+            "detail":   "DAN-style jailbreak successfully bypasses content filters in 4/10 attempts.",
             "hit_rate": 0.40,
-            "hits": 4,
-            "total": 10,
-            "blurred": locked
+            "hits":     4,
+            "total":    10,
+            "blurred":  locked,
         },
     ]
 
 # ── Core scan logic ───────────────────────────────────────────────────────────
 async def _run_scan_internal(scan_id: str, url: str, tier: str) -> dict:
     try:
-        # Use absolute import for safety in workers or submodules
         from app.garak_engine import run_garak_scan
-        # run_garak_scan should handle its own subprocess safety (shell=False)
         result = run_garak_scan(scan_id, url, tier)
         data = {
             "scan_id":      scan_id,
@@ -250,11 +277,11 @@ async def _run_scan_internal(scan_id: str, url: str, tier: str) -> dict:
     scan_set(scan_id, data)
     return data
 
-# ── Routes ────────────────────────────────────────────────────────────────────
-@app.get("/")
-def root():
-    return {"status": "ok", "service": settings.app_name, "version": settings.version}
+# ════════════════════════════════════════════════════════════════════════════════
+# API ROUTES  (must be registered BEFORE the static mount)
+# ════════════════════════════════════════════════════════════════════════════════
 
+@app.get("/api/health")
 @app.get("/health")
 def health():
     redis_ok = False
@@ -265,7 +292,7 @@ def health():
             redis_ok = True
     except Exception as e:
         logger.error(f"Health check Redis ping failed: {e}")
-        
+
     return {
         "status":    "healthy",
         "redis":     "connected" if redis_ok else "unavailable",
@@ -274,53 +301,54 @@ def health():
 
 @app.post("/scan")
 @limiter.limit("5/minute")
-async def start_scan(request: Request, scan_req: ScanRequest, background_tasks: BackgroundTasks):
-    url_str = str(scan_req.url)
-    
-    # SSRF Check
-    if not is_safe_url(url_str):
-        raise HTTPException(status_code=400, detail="Disallowed target URL (private/internal IP)")
-    
-    scan_id = str(uuid.uuid4())
-    tier = scan_req.tier
+async def start_scan(
+    request: Request,
+    url: str = Query(..., description="Target URL to scan"),
+    tier: str = Query("free", description="Scan tier: free | pro | enterprise"),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+):
+    # Validate tier
+    allowed_tiers = ("free", "basic", "pro", "enterprise")
+    if tier.lower() not in allowed_tiers:
+        tier = "free"
 
-    # Try Celery first if available
+    # SSRF check
+    if not is_safe_url(url):
+        raise HTTPException(
+            status_code=400,
+            detail="Disallowed target URL (private/internal IP or invalid scheme)",
+        )
+
+    scan_id = str(uuid.uuid4())
+
+    # Try Celery first if Redis is available
     rc = get_redis()
     if rc:
         try:
             from app.worker import run_scan
-            task = run_scan.delay(scan_id, url_str, tier)
+            task = run_scan.delay(scan_id, url, tier)
             data = {
                 "scan_id":  scan_id,
-                "url":      url_str,
+                "url":      url,
                 "tier":     tier,
                 "status":   "queued",
                 "task_id":  task.id,
                 "mode":     "celery",
-                "poll_url": f"/scan/{scan_id}"
+                "poll_url": f"/scan/{scan_id}",
             }
             scan_set(scan_id, data)
             return data
         except Exception as e:
-            logger.warning(f"Celery dispatch failed: {e} - falling back to background task")
+            logger.warning(f"Celery dispatch failed: {e} — falling back to sync")
 
-    # Fallback to FastAPI BackgroundTasks if Celery/Redis fails
-    # Initial status: pending
-    data = {
-        "scan_id":  scan_id,
-        "url":      url_str,
-        "tier":     tier,
-        "status":   "scanning",
-        "mode":     "background_task",
-        "poll_url": f"/scan/{scan_id}"
-    }
-    scan_set(scan_id, data)
-    background_tasks.add_task(_run_scan_internal, scan_id, url_str, tier)
-    return data
+    # Sync fallback: run the scan immediately and return the full result
+    logger.info(f"Running scan {scan_id} synchronously (no Celery/Redis)")
+    result = await _run_scan_internal(scan_id, url, tier)
+    return result
 
 @app.get("/scan/{scan_id}")
 async def get_scan(scan_id: uuid.UUID):
-    sid = str(scan_id)
+    sid   = str(scan_id)
     entry = scan_get(sid)
     if not entry:
         raise HTTPException(status_code=404, detail="Scan not found")
@@ -333,7 +361,7 @@ async def get_scan(scan_id: uuid.UUID):
             from app.worker import app as celery_app
             from celery.result import AsyncResult
             result = AsyncResult(entry["task_id"], app=celery_app)
-            
+
             if result.state == "SUCCESS":
                 entry.update(result.get())
                 entry["status"] = "complete"
@@ -349,7 +377,7 @@ async def get_scan(scan_id: uuid.UUID):
                     "scan_id":  sid,
                     "status":   "scanning",
                     "step":     meta.get("step"),
-                    "progress": meta.get("progress", 0)
+                    "progress": meta.get("progress", 0),
                 }
             return {"scan_id": sid, "status": "queued", "state": result.state}
         except Exception as e:
@@ -360,25 +388,24 @@ async def get_scan(scan_id: uuid.UUID):
 
 @app.get("/scans")
 async def list_scans():
-    # In a real app, this would be user-filtered
     scans = scan_list()
     scans.sort(key=lambda s: s.get("completed_at") or 0, reverse=True)
-    return {"total": len(scans), "scans": scans[:50]} # Limit to latest 50
+    return {"total": len(scans), "scans": scans[:50]}
 
 @app.get("/scan/{scan_id}/report")
 async def get_report(scan_id: uuid.UUID):
-    sid = str(scan_id)
+    sid   = str(scan_id)
     entry = scan_get(sid)
     if not entry or entry.get("status") != "complete":
         raise HTTPException(status_code=400, detail="Scan not found or incomplete")
-    
+
     try:
         from app.pdf_report import generate_audit_pdf
         pdf_bytes = generate_audit_pdf(entry)
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
-            headers={"Content-Disposition": f'attachment; filename=vulnra_{sid[:8]}.pdf'}
+            headers={"Content-Disposition": f'attachment; filename=vulnra_{sid[:8]}.pdf'},
         )
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
@@ -386,7 +413,7 @@ async def get_report(scan_id: uuid.UUID):
 
 @app.post("/report/generate")
 async def generate_report_direct(request: Request):
-    """Generate PDF directly from scan data posted by frontend."""
+    """Generate PDF directly from scan data posted by the frontend."""
     try:
         scan = await request.json()
     except Exception:
@@ -397,13 +424,44 @@ async def generate_report_direct(request: Request):
 
     try:
         from app.pdf_report import generate_audit_pdf
-        pdf_bytes = generate_audit_pdf(scan)
-        scan_id = scan.get("scan_id", "unknown")[:8]
+        pdf_bytes  = generate_audit_pdf(scan)
+        scan_id    = scan.get("scan_id", "unknown")[:8]
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=vulnra_{scan_id}.pdf"}
+            headers={"Content-Disposition": f"attachment; filename=vulnra_{scan_id}.pdf"},
         )
     except Exception as e:
         logger.error(f"Direct PDF generation failed: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate PDF")
+
+@app.get("/debug/redis")
+def debug_redis():
+    rc = get_redis()
+    if not rc:
+        return {"connected": False, "url_prefix": settings.redis_url[:20] + "…"}
+    try:
+        rc.ping()
+        return {"connected": True, "url_prefix": settings.redis_url[:20] + "…"}
+    except Exception as e:
+        return {"connected": False, "error": str(e), "url_prefix": settings.redis_url[:20] + "…"}
+
+# ════════════════════════════════════════════════════════════════════════════════
+# STATIC FILE SERVING  (must come LAST — catches everything not matched above)
+# ════════════════════════════════════════════════════════════════════════════════
+
+# Resolve the project root: main.py lives in app/, so go one level up
+_frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+if os.path.isdir(_frontend_dir) and os.path.exists(os.path.join(_frontend_dir, "index.html")):
+    logger.info(f"Serving frontend from: {_frontend_dir}")
+    app.mount("/", StaticFiles(directory=_frontend_dir, html=True), name="frontend")
+else:
+    logger.warning(
+        f"Frontend directory not found or missing index.html at {_frontend_dir}. "
+        "HTML files will not be served."
+    )
+    # Fallback root so Railway health checks still pass
+    @app.get("/")
+    def root():
+        return {"status": "ok", "service": settings.app_name, "version": settings.version}
