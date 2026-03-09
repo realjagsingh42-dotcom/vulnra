@@ -2794,7 +2794,7 @@
   </footer>
 
   <script>
-    const API_BASE = 'https://vulnra-production.up.railway.app';
+    const API_BASE = window.location.origin;
 
     document.querySelectorAll('.t-chip').forEach(chip => {
       chip.addEventListener('click', () => {
