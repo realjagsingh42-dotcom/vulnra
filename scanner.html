@@ -1749,7 +1749,7 @@
       <div class="sb-dot dim"></div>REDIS: <span id="sb-redis" style="margin-left:4px">CHECKING…</span>
     </div>
     <div class="sb-item">
-      <div class="sb-dot dim"></div>API: vulnra-production.up.railway.app
+      <div class="sb-dot dim"></div>API: <span id="sb-api">DETECTING…</span>
     </div>
     <div class="sb-right">
       <div class="sb-item" id="sb-elapsed">ELAPSED: —</div>
@@ -1836,7 +1836,7 @@
     // ════════════════════════════════════════════════════════════════
     // SCANNER
     // ════════════════════════════════════════════════════════════════
-    const API_BASE = 'https://vulnra-production.up.railway.app';
+    const API_BASE = window.location.origin;
     const TIER_MAP = { 'Standard': 'free', 'Deep': 'pro', 'Stealth': 'enterprise' };
 
     let scanRunning = false;
@@ -2213,6 +2213,8 @@
     }
 
     checkRedis();
+    // Show API host in status bar
+    try { document.getElementById('sb-api').textContent = new URL(API_BASE).host; } catch {}
     document.getElementById('target-url').addEventListener('keydown', e => {
       if (e.key === 'Enter') startScan();
     });

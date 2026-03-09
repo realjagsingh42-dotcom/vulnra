@@ -95,7 +95,7 @@ async def add_security_headers(request: Request, call_next):
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self' data: https:; "
-        "connect-src 'self' https://*.supabase.co https://vulnra-production.up.railway.app; "
+        "connect-src 'self' https://*.supabase.co; "
         "object-src 'none';"
     )
     return response
