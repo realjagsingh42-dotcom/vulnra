@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VULNRA — Scanner</title>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600@display=swap"
     rel="stylesheet">
@@ -189,28 +191,6 @@
       }
     }
 
-    @keyframes barFill {
-      from {
-        width: 0
-      }
-
-      to {
-        width: var(--w)
-      }
-    }
-
-    @keyframes countUp {
-      from {
-        opacity: 0;
-        transform: translateY(6px)
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0)
-      }
-    }
-
     @keyframes ripple {
       0% {
         transform: scale(1);
@@ -240,6 +220,32 @@
     ::selection {
       background: var(--acid);
       color: #000;
+    }
+
+    /* ── AUTH OVERLAY ── */
+    #auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .2em;
+      color: var(--muted2);
+    }
+
+    #auth-overlay .auth-spinner {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-top-color: var(--acid);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
     }
 
     /* ── TOP NAV ── */
@@ -396,6 +402,27 @@
       flex-shrink: 0;
     }
 
+    /* tier pill inside chip */
+    .chip-tier {
+      font-size: 8px;
+      letter-spacing: .14em;
+      padding: 1px 5px;
+      border-radius: 2px;
+      background: var(--acid2);
+      color: var(--acid);
+      border: 1px solid rgba(184, 255, 87, .2);
+    }
+
+    .chip-tier.pro {
+      background: rgba(184, 255, 87, .15);
+    }
+
+    .chip-tier.enterprise {
+      background: rgba(255, 179, 64, .1);
+      color: var(--amber);
+      border-color: rgba(255, 179, 64, .25);
+    }
+
     /* ── MAIN LAYOUT ── */
     .workspace {
       flex: 1;
@@ -430,7 +457,6 @@
       color: var(--muted2);
     }
 
-    /* scan config */
     .config-body {
       padding: 14px 16px;
       display: flex;
@@ -491,7 +517,6 @@
       display: flex;
     }
 
-    /* mode tabs */
     .mode-tabs {
       display: flex;
       gap: 4px;
@@ -523,7 +548,6 @@
       background: var(--acid2);
     }
 
-    /* toggle rows */
     .toggle-row {
       display: flex;
       align-items: center;
@@ -604,7 +628,6 @@
       margin: 2px 0 8px;
     }
 
-    /* scan button */
     .scan-btn-wrap {
       padding: 14px 16px;
       border-top: 1px solid var(--border2);
@@ -662,14 +685,6 @@
       background: rgba(184, 255, 87, .12);
       color: var(--acid);
       border: 1px solid rgba(184, 255, 87, .25);
-    }
-
-    /* recent scans */
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-      flex: 1;
     }
 
     .history-item {
@@ -747,7 +762,6 @@
       background: var(--bg);
     }
 
-    /* terminal header */
     .term-head {
       display: flex;
       align-items: center;
@@ -786,7 +800,6 @@
       gap: 6px;
     }
 
-    /* log output */
     .log-output {
       flex: 1;
       overflow-y: auto;
@@ -797,7 +810,6 @@
       position: relative;
     }
 
-    /* scanline */
     .log-output::before {
       content: '';
       position: absolute;
@@ -886,7 +898,6 @@
       color: var(--green);
     }
 
-    /* idle state */
     .idle-state {
       position: absolute;
       inset: 0;
@@ -938,7 +949,6 @@
       color: var(--muted2);
     }
 
-    /* progress bar */
     .progress-bar-wrap {
       height: 2px;
       background: var(--border);
@@ -958,7 +968,6 @@
       box-shadow: 0 0 8px rgba(184, 255, 87, .5);
     }
 
-    /* log toolbar */
     .log-toolbar {
       display: flex;
       align-items: center;
@@ -1104,7 +1113,6 @@
       animation: fadeIn .25s ease forwards;
     }
 
-    /* score ring */
     .score-display {
       display: flex;
       flex-direction: column;
@@ -1170,7 +1178,6 @@
       color: var(--muted2);
     }
 
-    /* findings list */
     .findings-list {
       display: flex;
       flex-direction: column;
@@ -1262,7 +1269,6 @@
       font-weight: 300;
     }
 
-    /* compliance */
     .comp-list {
       display: flex;
       flex-direction: column;
@@ -1329,7 +1335,6 @@
       display: inline-block;
     }
 
-    /* placeholder */
     .r-empty {
       display: flex;
       flex-direction: column;
@@ -1348,7 +1353,6 @@
       opacity: .3;
     }
 
-    /* metrics grid */
     .metrics-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1380,7 +1384,7 @@
       color: var(--muted2);
     }
 
-    /* status bar */
+    /* ── STATUS BAR ── */
     .statusbar {
       height: 24px;
       flex-shrink: 0;
@@ -1428,10 +1432,15 @@
       gap: 20px;
     }
   </style>
-  <link rel="stylesheet" href="loader.css">
 </head>
 
 <body>
+
+  <!-- ── AUTH LOADING OVERLAY ── -->
+  <div id="auth-overlay">
+    <div class="auth-spinner"></div>
+    VERIFYING SESSION…
+  </div>
 
   <!-- TOP NAV -->
   <div class="topnav">
@@ -1469,9 +1478,11 @@
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
       </button>
-      <a href="signin.html" class="user-chip">
-        <div class="user-avatar">OP</div>
-        Operator
+      <!-- User chip — populated by auth script -->
+      <a href="#" id="user-chip" class="user-chip">
+        <div class="user-avatar" id="user-avatar">…</div>
+        <span id="user-name">Loading</span>
+        <span class="chip-tier" id="chip-tier">FREE</span>
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M6 9l6 6 6-6" />
         </svg>
@@ -1742,11 +1753,89 @@
     </div>
     <div class="sb-right">
       <div class="sb-item" id="sb-elapsed">ELAPSED: —</div>
+      <div class="sb-item" id="sb-user">USER: —</div>
       <div class="sb-item">VULNRA_SCANNER_v2.1</div>
     </div>
   </div>
 
   <script>
+    // ════════════════════════════════════════════════════════════════
+    // SUPABASE AUTH GUARD
+    // ════════════════════════════════════════════════════════════════
+    const SUPABASE_URL = 'https://muhudfrdakbpxzahenkw.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11aHVkZnJkYWticHh6YWhlbmt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNTM4ODQsImV4cCI6MjA4ODYyOTg4NH0.5UK4CfS1-nchuSAoGb9hPkOn4fuYrezEchrCUidzU5c';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let _currentUser = null;
+
+    (async () => {
+      const { data: { session } } = await sb.auth.getSession();
+
+      if (!session) {
+        // No session → send to sign in
+        window.location.replace('signin.html');
+        return;
+      }
+
+      // Session confirmed — hide overlay and show the app
+      document.getElementById('auth-overlay').style.display = 'none';
+
+      // Build user object from Supabase session
+      const u = session.user;
+      const meta = u.user_metadata || {};
+      _currentUser = {
+        id: u.id,
+        email: u.email,
+        plan: meta.plan || 'free',
+        name: meta.full_name || meta.first_name ||
+          u.email?.split('@')[0] || 'Operator'
+      };
+
+      // Populate user chip
+      const initials = _currentUser.name
+        .split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      document.getElementById('user-avatar').textContent = initials;
+      document.getElementById('user-name').textContent = _currentUser.name;
+
+      // Tier badge
+      const tierEl = document.getElementById('chip-tier');
+      tierEl.textContent = _currentUser.plan.toUpperCase();
+      tierEl.className = 'chip-tier ' + _currentUser.plan;
+
+      // Status bar email
+      document.getElementById('sb-user').textContent = 'USER: ' + _currentUser.email;
+
+      // Lock Deep + Stealth tabs for free users
+      if (_currentUser.plan === 'free') {
+        document.querySelectorAll('.mode-tab[data-mode="pro"], .mode-tab[data-mode="enterprise"]')
+          .forEach(t => {
+            t.style.opacity = '.35';
+            t.style.cursor = 'not-allowed';
+            t.title = 'Upgrade to Pro to unlock';
+            t.addEventListener('click', e => {
+              e.stopImmediatePropagation();
+              addLog('LOCK', 'tag-warn',
+                'Deep and Stealth modes require a Pro plan — upgrade at vulnra.ai/pro');
+            }, true);
+          });
+      }
+    })();
+
+    // Sign out on chip click
+    document.getElementById('user-chip').addEventListener('click', async e => {
+      e.preventDefault();
+      await sb.auth.signOut();
+      window.location.replace('signin.html');
+    });
+
+    // Handle sign-out from another tab
+    sb.auth.onAuthStateChange(event => {
+      if (event === 'SIGNED_OUT') window.location.replace('signin.html');
+    });
+
+    // ════════════════════════════════════════════════════════════════
+    // SCANNER
+    // ════════════════════════════════════════════════════════════════
     const API_BASE = 'https://vulnra-production.up.railway.app';
     const TIER_MAP = { 'Standard': 'free', 'Deep': 'pro', 'Stealth': 'enterprise' };
 
@@ -1781,7 +1870,9 @@
     // ── Log helpers ────────────────────────────────────────────────
     function ts() {
       const n = new Date();
-      return String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0') + ':' + String(n.getSeconds()).padStart(2, '0');
+      return String(n.getHours()).padStart(2, '0') + ':' +
+        String(n.getMinutes()).padStart(2, '0') + ':' +
+        String(n.getSeconds()).padStart(2, '0');
     }
 
     function addLog(tag, tagClass, msg, msgClass = '') {
@@ -1802,9 +1893,8 @@
 
       const msgSpan = document.createElement('span');
       msgSpan.className = `log-msg ${msgClass}`;
-      // Basic support for our own harmless <span> tags used in logging
       if (msg.includes('<span')) {
-        msgSpan.innerHTML = msg; // Internal trusted usage
+        msgSpan.innerHTML = msg;
       } else {
         msgSpan.textContent = msg;
       }
@@ -1825,7 +1915,7 @@
 
     function clearLog() {
       const out = document.getElementById('log-output');
-      out.innerHTML = ''; // Safe to clear
+      out.innerHTML = '';
       const idle = document.createElement('div');
       idle.className = 'idle-state';
       idle.id = 'idle-state';
@@ -1860,11 +1950,9 @@
         document.getElementById('sb-elapsed').textContent = `ELAPSED: ${s}s`;
       }, 100);
     }
-    function stopTimer() {
-      clearInterval(elapsedTimer);
-    }
+    function stopTimer() { clearInterval(elapsedTimer); }
 
-    // ── Scan button state ─────────────────────────────────────────
+    // ── Scan button state ──────────────────────────────────────────
     function setScanBtn(state) {
       const btn = document.getElementById('scan-btn');
       const icon = document.getElementById('btn-icon');
@@ -1887,18 +1975,15 @@
       const score = data.risk_score ?? 0;
       const engine = data.scan_engine ?? '?';
       const findings = data.findings ?? [];
-
       const fill = document.getElementById('ring-fill');
       const num = document.getElementById('score-num');
       const color = score >= 7 ? 'var(--red)' : score >= 4 ? 'var(--amber)' : 'var(--green)';
-      const offset = 283 - (score / 10) * 283;
       fill.style.stroke = color;
-      fill.style.strokeDashoffset = offset;
+      fill.style.strokeDashoffset = 283 - (score / 10) * 283;
       num.textContent = score.toFixed(1);
       num.style.color = color;
       document.getElementById('score-engine').textContent = `ENGINE: ${engine.toUpperCase()}`;
       document.getElementById('score-empty').style.display = 'none';
-
       document.getElementById('metrics-grid').style.display = 'grid';
       document.getElementById('m-findings').textContent = findings.filter(f => !f.blurred).length;
       document.getElementById('m-probes').textContent = statCounts.probes || data.probes_run || '—';
@@ -1911,10 +1996,7 @@
       const empty = document.getElementById('findings-empty');
       list.innerHTML = '';
       const findings = data.findings ?? [];
-      if (!findings.length) {
-        empty.style.display = 'flex';
-        return;
-      }
+      if (!findings.length) { empty.style.display = 'flex'; return; }
       empty.style.display = 'none';
 
       findings.forEach((f, i) => {
@@ -1923,45 +2005,19 @@
 
         if (f.blurred) {
           div.className = 'finding-item locked';
-          const head = document.createElement('div');
-          head.className = 'finding-head';
-          head.innerHTML = '<div class="finding-sev sev-locked">LOCKED</div><div class="finding-cat">Upgrade to Pro</div>';
-          const detail = document.createElement('div');
-          detail.className = 'finding-detail';
-          detail.textContent = 'Full finding details available on Pro plan.';
-          div.appendChild(head);
-          div.appendChild(detail);
+          div.innerHTML = '<div class="finding-head"><div class="finding-sev sev-locked">LOCKED</div><div class="finding-cat">Upgrade to Pro</div></div><div class="finding-detail">Full finding details available on Pro plan.</div>';
         } else {
           const sev = (f.severity || 'LOW').toLowerCase();
           div.className = `finding-item ${sev}`;
-
-          const head = document.createElement('div');
-          head.className = 'finding-head';
-
-          const sevDiv = document.createElement('div');
-          sevDiv.className = `finding-sev sev-${sev}`;
-          sevDiv.textContent = f.severity;
-
-          const catDiv = document.createElement('div');
-          catDiv.className = 'finding-cat';
-          catDiv.textContent = f.category;
-
-          head.appendChild(sevDiv);
-          head.appendChild(catDiv);
-
+          const head = document.createElement('div'); head.className = 'finding-head';
+          const sevDiv = document.createElement('div'); sevDiv.className = `finding-sev sev-${sev}`; sevDiv.textContent = f.severity;
+          const catDiv = document.createElement('div'); catDiv.className = 'finding-cat'; catDiv.textContent = f.category;
+          head.appendChild(sevDiv); head.appendChild(catDiv);
           if (f.score) {
-            const scoreDiv = document.createElement('div');
-            scoreDiv.className = 'finding-score';
-            scoreDiv.textContent = `${f.score}/10`;
-            head.appendChild(scoreDiv);
+            const scoreDiv = document.createElement('div'); scoreDiv.className = 'finding-score'; scoreDiv.textContent = `${f.score}/10`; head.appendChild(scoreDiv);
           }
-
-          const detail = document.createElement('div');
-          detail.className = 'finding-detail';
-          detail.textContent = f.detail;
-
-          div.appendChild(head);
-          div.appendChild(detail);
+          const detail = document.createElement('div'); detail.className = 'finding-detail'; detail.textContent = f.detail;
+          div.appendChild(head); div.appendChild(detail);
         }
         list.appendChild(div);
       });
@@ -1989,50 +2045,21 @@
       list.style.display = 'flex';
 
       frameworks.forEach(f => {
-        const item = document.createElement('div');
-        item.className = 'comp-item';
-
-        const head = document.createElement('div');
-        head.className = 'comp-head-row';
+        const item = document.createElement('div'); item.className = 'comp-item';
+        const head = document.createElement('div'); head.className = 'comp-head-row';
         head.innerHTML = `<span class="comp-fw" style="color:var(--acid)">${f.fw}</span><span class="comp-arrow"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>`;
-
-        const bodyWrap = document.createElement('div');
-        bodyWrap.className = 'comp-body-wrap';
-
-        const full = document.createElement('div');
-        full.style.fontSize = '10px';
-        full.style.color = 'var(--muted2)';
-        full.style.fontFamily = 'var(--mono)';
-        full.style.letterSpacing = '.06em';
-        full.style.marginBottom = '6px';
-        full.textContent = f.full;
-
-        bodyWrap.appendChild(full);
-
-        if (f.articles) {
-          const arts = document.createElement('div');
-          arts.className = 'comp-articles';
-          arts.textContent = f.articles;
-          bodyWrap.appendChild(arts);
-        }
-        if (f.fine) {
-          const fine = document.createElement('div');
-          fine.className = 'comp-fine';
-          fine.textContent = f.fine;
-          bodyWrap.appendChild(fine);
-        }
-
-        item.appendChild(head);
-        item.appendChild(bodyWrap);
-        list.appendChild(item);
+        const bodyWrap = document.createElement('div'); bodyWrap.className = 'comp-body-wrap';
+        const fullEl = document.createElement('div');
+        fullEl.style.cssText = 'font-size:10px;color:var(--muted2);font-family:var(--mono);letter-spacing:.06em;margin-bottom:6px';
+        fullEl.textContent = f.full;
+        bodyWrap.appendChild(fullEl);
+        if (f.articles) { const a = document.createElement('div'); a.className = 'comp-articles'; a.textContent = f.articles; bodyWrap.appendChild(a); }
+        if (f.fine) { const fn = document.createElement('div'); fn.className = 'comp-fine'; fn.textContent = f.fine; bodyWrap.appendChild(fn); }
+        item.appendChild(head); item.appendChild(bodyWrap); list.appendChild(item);
       });
     }
 
-    function renderResults(data) {
-      renderScore(data);
-      renderFindings(data);
-      renderCompliance(data);
-    }
+    function renderResults(data) { renderScore(data); renderFindings(data); renderCompliance(data); }
 
     // ── Log final findings ─────────────────────────────────────────
     function logFindings(data) {
@@ -2040,15 +2067,8 @@
       const findings = data.findings ?? [];
       const engine = data.scan_engine ?? '?';
       const scoreClass = score >= 7 ? 'tag-fail' : score >= 4 ? 'tag-warn' : 'tag-pass';
-
-      const scoreMsg = document.createElement('span');
-      scoreMsg.innerHTML = `Risk Score: <span class="val">${score}/10</span>  [ engine: ${engine} ]`;
-      addLog('SCORE', scoreClass, scoreMsg.innerHTML);
-
-      if (!findings.length) {
-        addLog('PASS', 'tag-pass', 'No vulnerabilities detected — endpoint appears safe', 'pass');
-        return;
-      }
+      addLog('SCORE', scoreClass, `Risk Score: ${score}/10  [ engine: ${engine} ]`);
+      if (!findings.length) { addLog('PASS', 'tag-pass', 'No vulnerabilities detected — endpoint appears safe', 'pass'); return; }
       findings.forEach(f => {
         if (f.blurred) { addLog('LOCK', 'tag-warn', 'Upgrade to Pro to see full findings →'); return; }
         const cls = f.severity === 'HIGH' ? 'tag-fail' : f.severity === 'MEDIUM' ? 'tag-warn' : 'tag-pass';
@@ -2056,7 +2076,6 @@
         const mClass = f.severity === 'HIGH' ? 'fail' : f.severity === 'MEDIUM' ? 'warn' : 'pass';
         addLog(prefix, cls, `${f.category} — ${f.detail}`, mClass);
       });
-
       const comp = data.compliance ?? {};
       if (!comp.blurred) {
         if (comp.eu_ai_act) addLog('EU AI ACT', 'tag-warn', `${comp.eu_ai_act.articles?.join(', ')} — €${(comp.eu_ai_act.fine_eur / 1e6).toFixed(0)}M exposure`);
@@ -2093,23 +2112,20 @@
 
       const activeMode = document.querySelector('.mode-tab.active');
       const tierLabel = activeMode?.textContent?.trim() || 'Standard';
-      const tier = TIER_MAP[tierLabel] || 'free';
+      const requestedTier = TIER_MAP[tierLabel] || 'free';
+      // Enforce plan — free users can't sneak Pro tier through the URL
+      const tier = (_currentUser?.plan === 'free' && requestedTier !== 'free') ? 'free' : requestedTier;
 
-      scanRunning = true;
-      lastScanData = null;
-      lastScanId = null;
+      scanRunning = true; lastScanData = null; lastScanId = null;
       statCounts = { probes: 0, fail: 0, warn: 0, pass: 0 };
       ['probes', 'fail', 'warn', 'pass'].forEach(k => document.getElementById('stat-' + k).textContent = '0');
 
-      clearLog();
-      setScanBtn('scanning');
-      setBadge('live');
-      startTimer();
-      setProgress(5);
+      clearLog(); setScanBtn('scanning'); setBadge('live'); startTimer(); setProgress(5);
       document.getElementById('download-btn').classList.remove('show');
 
       addLog('INIT', 'tag-init', `Target: <span class="val">${url}</span>`);
       addLog('INIT', 'tag-init', `Mode: <span class="val">${tierLabel} → ${tier}</span>`);
+      addLog('INIT', 'tag-init', `Operator: <span class="val">${_currentUser?.email || 'unknown'}</span>`);
       addLog('INIT', 'tag-init', 'Connecting to VULNRA scan engine…');
 
       try {
@@ -2119,9 +2135,7 @@
         setProgress(20);
 
         let result;
-
         if (data.status === 'complete') {
-          // Sync mode — immediate result
           await sleep(400);
           addLog('PROBE', 'tag-probe', 'Firing jailbreak probe vectors (DAN, AutoDAN)…');
           await sleep(300);
@@ -2131,24 +2145,18 @@
           setProgress(70);
           statCounts.probes = 47;
           document.getElementById('stat-probes').textContent = '47';
-          await sleep(200);
-          setProgress(95);
+          await sleep(200); setProgress(95);
           result = data;
         } else {
-          // Async/Celery mode
           lastScanId = data.scan_id;
           addLog('QUEUE', 'tag-init', `Scan queued — ID: <span class="val">${data.scan_id.substring(0, 8)}…</span>`);
           addLog('PROBE', 'tag-probe', 'Running adversarial probe vectors via Garak…');
           result = await pollScan(data.scan_id);
         }
 
-        setProgress(100);
-        await sleep(200);
-        setProgress(0);
+        setProgress(100); await sleep(200); setProgress(0);
         addLog('DONE', 'tag-done', `Scan complete in <span class="val">${result.scan_duration || '?'}s</span>`);
-        logFindings(result);
-        renderResults(result);
-
+        logFindings(result); renderResults(result);
         lastScanData = result;
         lastScanId = result.scan_id || lastScanId || 'unknown';
         document.getElementById('download-btn').classList.add('show');
@@ -2157,10 +2165,7 @@
         setProgress(0);
         addLog('ERR', 'tag-err', err.message, 'fail');
       } finally {
-        scanRunning = false;
-        setScanBtn('idle');
-        setBadge('idle');
-        stopTimer();
+        scanRunning = false; setScanBtn('idle'); setBadge('idle'); stopTimer();
       }
     }
 
@@ -2169,8 +2174,7 @@
       if (!lastScanData) return;
       const btn = document.getElementById('download-btn');
       const dlText = document.getElementById('dl-text');
-      btn.classList.add('loading');
-      dlText.textContent = 'GENERATING…';
+      btn.classList.add('loading'); dlText.textContent = 'GENERATING…';
       try {
         const res = await fetch(`${API_BASE}/report/generate`, {
           method: 'POST',
@@ -2183,21 +2187,18 @@
         const a = document.createElement('a');
         a.href = url;
         a.download = `vulnra_audit_${lastScanId.substring(0, 8)}.pdf`;
-        a.click();
-        URL.revokeObjectURL(url);
+        a.click(); URL.revokeObjectURL(url);
         dlText.textContent = '✓ DOWNLOADED';
         setTimeout(() => { dlText.textContent = 'DOWNLOAD REPORT'; btn.classList.remove('loading'); }, 2500);
       } catch (e) {
         addLog('ERR', 'tag-err', `Report failed: ${e.message}`, 'fail');
-        dlText.textContent = 'DOWNLOAD REPORT';
-        btn.classList.remove('loading');
+        dlText.textContent = 'DOWNLOAD REPORT'; btn.classList.remove('loading');
       }
     }
 
     // ── Load history item ──────────────────────────────────────────
     function loadHistory(el) {
-      const url = el.querySelector('.history-url').textContent;
-      document.getElementById('target-url').value = url;
+      document.getElementById('target-url').value = el.querySelector('.history-url').textContent;
     }
 
     // ── Check Redis status ─────────────────────────────────────────
@@ -2206,21 +2207,17 @@
         const r = await fetch(`${API_BASE}/health`);
         const d = await r.json();
         const el = document.getElementById('sb-redis');
-        if (d.redis === 'connected') {
-          el.textContent = 'CONNECTED'; el.style.color = 'var(--acid)';
-        } else {
-          el.textContent = 'UNAVAILABLE'; el.style.color = 'var(--amber)';
-        }
+        if (d.redis === 'connected') { el.textContent = 'CONNECTED'; el.style.color = 'var(--acid)'; }
+        else { el.textContent = 'UNAVAILABLE'; el.style.color = 'var(--amber)'; }
       } catch { document.getElementById('sb-redis').textContent = 'UNREACHABLE'; }
     }
 
-    // init
     checkRedis();
     document.getElementById('target-url').addEventListener('keydown', e => {
       if (e.key === 'Enter') startScan();
     });
   </script>
-  <script src="loader.js"></script>
+
 </body>
 
 </html>
