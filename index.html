@@ -2126,6 +2126,70 @@
       color: var(--muted2);
     }
 
+    .footer-legal {
+      background: var(--bg);
+      border-top: 1px solid var(--border2);
+      padding: 24px 48px;
+    }
+
+    .footer-legal-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-legal-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-legal-links a {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s;
+    }
+
+    .footer-legal-links a:hover {
+      color: var(--acid);
+    }
+
+    .footer-legal-copy {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-legal-sep {
+      color: var(--muted3);
+    }
+
+    .footer-legal-copy a {
+      color: var(--muted2);
+      text-decoration: none;
+      transition: color .2s;
+    }
+
+    .footer-legal-copy a:hover {
+      color: var(--acid);
+    }
+
+    @media (max-width: 768px) {
+      .footer-legal-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+      }
+    }
+
     @media (max-width: 1200px) {
       .footer-grid {
         grid-template-columns: 1fr 1fr 1fr;
@@ -2922,15 +2986,24 @@
         </ul>
       </div>
     </div>
+  </footer>
 
-    <div class="footer-bottom">
-      <div class="footer-copy">© 2025 VULNRA. MIT Licensed. Built on NVIDIA Garak.</div>
-      <div style="display:flex; gap:20px">
-        <a href="https://github.com" class="footer-copy" style="text-decoration:none">GitHub</a>
-        <a href="mailto:hello@vulnra.ai" class="footer-copy" style="text-decoration:none">hello@vulnra.ai</a>
+  <div class="footer-legal">
+    <div class="footer-legal-inner">
+      <div class="footer-legal-links">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
+        <a href="acceptable-use.html">Acceptable Use</a>
+      </div>
+      <div class="footer-legal-copy">
+        © 2025 VULNRA. MIT Licensed. Built on NVIDIA Garak.
+        <span class="footer-legal-sep">·</span>
+        <a href="https://github.com">GitHub</a>
+        <span class="footer-legal-sep">·</span>
+        <a href="mailto:hello@vulnra.ai">hello@vulnra.ai</a>
       </div>
     </div>
-  </footer>
+  </div>
 
   <script>
     const API_BASE = 'https://vulnra-production.up.railway.app';
