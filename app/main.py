@@ -51,6 +51,64 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+# ── Environment Validation ─────────────────────────────────────────────────────
+REQUIRED_ENV_VARS = ["REDIS_URL"]
+_missing = [v for v in REQUIRED_ENV_VARS if not getattr(settings, v.lower(), None)]
+if _missing:
+    logger.error(f"Missing required environment variables: {_missing}")
+    raise RuntimeError(f"Missing required environment variables: {_missing}")
+
+# ── Authentication & Tier Management ──────────────────────────────────────────
+from typing import Optional
+from fastapi import Header
+
+TIER_LIMITS = {
+    "free": {"scans_per_day": 1, "reports_per_hour": 5},
+    "basic": {"scans_per_day": 10, "reports_per_hour": 10},
+    "pro": {"scans_per_day": 100, "reports_per_hour": 20},
+    "enterprise": {"scans_per_day": float("inf"), "reports_per_hour": float("inf")},
+}
+
+_user_tier_cache: dict = {}
+
+def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
+    """
+    Verify Supabase JWT token and return user object.
+    For now, extracts tier from a custom claim or defaults to free.
+    In production, this would verify the JWT with Supabase.
+    """
+    user = {"id": "anonymous", "tier": "free", "email": None}
+    
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization[7:]
+        # In production: verify with Supabase and extract user data
+        # For now, check for tier in token (base64 decoded) or use default
+        try:
+            import base64
+            # Simple check - in production use proper JWT verification
+            if token:
+                user["id"] = f"user_{hash(token)[:8]}"
+                user["tier"] = "pro"  # Demo: default to pro for authenticated users
+        except Exception:
+            pass
+    
+    return user
+
+def get_user_tier(user: dict) -> str:
+    """Get tier from user object, default to free if not found."""
+    return user.get("tier", "free")
+
+# ── Rate Limiting ─────────────────────────────────────────────────────────────
+
+# ── Global Exception Handler ─────────────────────────────────────────────────
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Internal server error", "code": "INTERNAL_ERROR"}
+    )
+
 # ── Rate Limiting ─────────────────────────────────────────────────────────────
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -329,13 +387,51 @@ def health():
 async def start_scan(
     request: Request,
     url: str = Query(..., description="Target URL to scan"),
-    tier: str = Query("free", description="Scan tier: free | pro | enterprise"),
+    tier: str = Query("free", description="Scan tier: free | basic | pro | enterprise"),
     background_tasks: BackgroundTasks = BackgroundTasks(),
+    authorization: Optional[str] = Header(None),
 ):
-    # Validate tier
+    # Get current user (authentication)
+    user = get_current_user(authorization)
+    user_tier = get_user_tier(user)
+    
+    # Validate tier - use user tier, not frontend-provided tier (enforcement)
     allowed_tiers = ("free", "basic", "pro", "enterprise")
     if tier.lower() not in allowed_tiers:
         tier = "free"
+    
+    # Tier enforcement: user can only use their tier or lower
+    tier_hierarchy = {"free": 0, "basic": 1, "pro": 2, "enterprise": 3}
+    user_level = tier_hierarchy.get(user_tier, 0)
+    requested_level = tier_hierarchy.get(tier.lower(), 0)
+    
+    if requested_level > user_level:
+        tier = user_tier  # Downgrade to user's actual tier
+        logger.info(f"Tier downgraded to {tier} for user {user.get('id')}")
+
+    # Check daily scan limit based on tier
+    limits = TIER_LIMITS.get(user_tier, TIER_LIMITS["free"])
+    daily_limit = limits.get("scans_per_day", 1)
+    
+    # Simple rate check using Redis or memory
+    today_key = f"daily_scans:{user.get('id')}:{time.strftime('%Y-%m-%d')}"
+    rc = get_redis()
+    if rc:
+        try:
+            current_scans = rc.get(today_key) or "0"
+            if int(current_scans) >= daily_limit:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Daily scan limit ({daily_limit}) exceeded. Upgrade your tier for more scans."
+                )
+            rc.incr(today_key)
+            rc.expire(today_key, 86400)  # 24 hours
+        except Exception as e:
+            logger.warning(f"Rate limit check failed: {e}")
+
+    # URL validation: max 2048 characters
+    if len(url) > 2048:
+        raise HTTPException(status_code=400, detail="URL too long (max 2048 characters)")
 
     # SSRF check
     if not is_safe_url(url):
@@ -437,8 +533,37 @@ async def get_report(scan_id: uuid.UUID):
         raise HTTPException(status_code=500, detail="Internal error generating PDF")
 
 @app.post("/report/generate")
-async def generate_report_direct(request: Request):
+@limiter.limit("20/hour")
+async def generate_report_direct(
+    request: Request,
+    authorization: Optional[str] = Header(None),
+):
     """Generate PDF directly from scan data posted by the frontend."""
+    # Get current user
+    user = get_current_user(authorization)
+    user_tier = get_user_tier(user)
+    
+    # Check hourly report limit
+    limits = TIER_LIMITS.get(user_tier, TIER_LIMITS["free"])
+    hourly_limit = limits.get("reports_per_hour", 5)
+    
+    hour_key = f"hourly_reports:{user.get('id')}:{time.strftime('%Y-%m-%d-%H')}"
+    rc = get_redis()
+    if rc:
+        try:
+            current_reports = rc.get(hour_key) or "0"
+            if int(current_reports) >= hourly_limit:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Hourly report limit ({hourly_limit}) exceeded. Upgrade your tier for more reports."
+                )
+            rc.incr(hour_key)
+            rc.expire(hour_key, 3600)  # 1 hour
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.warning(f"Rate limit check failed: {e}")
+    
     try:
         scan = await request.json()
     except Exception:
