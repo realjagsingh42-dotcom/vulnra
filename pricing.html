@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — VULNRA LLM Security Scanner | $49/mo vs $16,000 Manual Audit</title>
+  <meta name="description" content="VULNRA pricing: Free tier for developers, $49/mo Pro for unlimited scans + compliance PDF, Enterprise for on-prem and SSO. Replace $16,000 LLM security audits.">
+  <meta name="keywords" content="LLM security scanner pricing, AI red teaming cost, VULNRA pricing, EU AI Act compliance tool cost, LLM audit tool price">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://vulnra.ai/pricing.html">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Pricing — VULNRA | $49/mo LLM Security Scanner">
+  <meta property="og:description" content="Free tier, $49/mo Pro, Enterprise custom. Replace $16,000 manual LLM security audits with automated scanning.">
+  <meta property="og:url" content="https://vulnra.ai/pricing.html">
+  <meta property="og:site_name" content="VULNRA">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="VULNRA Pricing — LLM Security from $0">
+  <meta name="twitter:description" content="Replace $16,000 manual AI security audits with VULNRA at $49/month. Free tier available.">
+
+  <!-- Hreflang GEO -->
+  <link rel="alternate" hreflang="en-in" href="https://vulnra.ai/pricing.html">
+  <link rel="alternate" hreflang="en-eu" href="https://vulnra.ai/pricing.html">
+  <link rel="alternate" hreflang="en-us" href="https://vulnra.ai/pricing.html">
+  <link rel="alternate" hreflang="en" href="https://vulnra.ai/pricing.html">
+  <link rel="alternate" hreflang="x-default" href="https://vulnra.ai/pricing.html">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://vulnra.ai/pricing.html",
+        "name": "VULNRA Pricing",
+        "url": "https://vulnra.ai/pricing.html",
+        "description": "VULNRA pricing tiers: Free, Pro at $49/month, Enterprise custom.",
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://vulnra.ai/" },
+            { "@type": "ListItem", "position": 2, "name": "Pricing", "item": "https://vulnra.ai/pricing.html" }
+          ]
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "VULNRA",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "Web, CLI",
+        "offers": [
+          {
+            "@type": "Offer",
+            "name": "Free",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "1 scan/day, risk score, 1 blurred finding"
+          },
+          {
+            "@type": "Offer",
+            "name": "Pro",
+            "price": "49",
+            "priceCurrency": "USD",
+            "billingIncrement": "P1M",
+            "description": "Unlimited scans, full findings, compliance PDF, Sentinel monitoring"
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Can I try VULNRA for free?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. The Free tier gives you 1 scan per day, a risk score, and a blurred preview of one finding. No credit card required." }
+          },
+          {
+            "@type": "Question",
+            "name": "Does VULNRA work for India DPDP compliance?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. VULNRA is the only LLM security scanner that maps findings to India DPDP Act 2023 sections, in addition to EU AI Act, NIST AI RMF, ISO 42001, and OWASP LLM Top 10." }
+          },
+          {
+            "@type": "Question",
+            "name": "What is included in the compliance PDF?",
+            "acceptedAnswer": { "@type": "Answer", "text": "The Pro compliance PDF includes all findings, risk scores, and specific citations from EU AI Act, India DPDP, NIST AI RMF, ISO 42001, and OWASP LLM Top 10 for each vulnerability found." }
+          },
+          {
+            "@type": "Question",
+            "name": "How does VULNRA compare to a $16,000 manual audit?",
+            "acceptedAnswer": { "@type": "Answer", "text": "VULNRA Pro at $49/month delivers automated LLM red-teaming with compliance-mapped findings in 60 seconds. Manual audits from firms like Schellman cost $16,000+ with 2-week turnaround. VULNRA is a 99% cost reduction for continuous coverage." }
+          },
+          {
+            "@type": "Question",
+            "name": "Is there an annual billing discount?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. Annual billing is available at a 20% discount — Pro at $470/year instead of $588/year on monthly billing." }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#060608;--bg1:#0a0b0f;--bg2:#0f1117;--bg3:#151820;
+      --acid:#b8ff57;--acid2:rgba(184,255,87,.08);--acid3:rgba(184,255,87,.18);
+      --red:#ff3c5a;--amber:#ffb340;--blue:#4db8ff;
+      --text:#e8edf4;--muted:rgba(232,237,244,.42);--muted2:rgba(232,237,244,.2);
+      --muted3:rgba(232,237,244,.1);--border:rgba(255,255,255,.07);
+      --border2:rgba(255,255,255,.04);--mono:'IBM Plex Mono',monospace;--sans:'DM Sans',sans-serif;
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);pointer-events:none;z-index:9998}
+    body::after{content:'';position:fixed;inset:-200%;width:400%;height:400%;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9997;animation:grain .4s steps(1) infinite}
+    @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,-4%)}40%{transform:translate(-6%,3%)}60%{transform:translate(3%,-2%)}80%{transform:translate(-4%,6%)}100%{transform:translate(5%,-3%)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes shine{0%{left:-100%}100%{left:200%}}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
+    ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--acid)}
+    ::selection{background:var(--acid);color:#000}
+
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px;background:rgba(6,6,8,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2)}
+    nav::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(184,255,87,.3),transparent)}
+    .nav-logo{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.1em;color:var(--text);text-decoration:none}
+    .nav-logo-mark{width:28px;height:28px;border-radius:5px;background:var(--acid);display:flex;align-items:center;justify-content:center}
+    .nav-logo-mark svg{width:14px;height:14px}
+    .nav-logo em{font-style:normal;color:var(--acid)}
+    .nav-links{display:flex;align-items:center;gap:36px}
+    .nav-links a{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted);text-decoration:none;transition:color .2s}
+    .nav-links a:hover,.nav-links a.active{color:var(--acid)}
+    .nav-right{display:flex;align-items:center;gap:12px}
+    .btn-ghost{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:none;transition:color .2s;padding:0}
+    .btn-ghost:hover{color:var(--text)}
+    .btn-acid{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.12em;background:var(--acid);color:#000;border:none;padding:8px 18px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .25s;display:inline-flex;align-items:center;gap:6px;position:relative;overflow:hidden}
+    .btn-acid:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(184,255,87,.3)}
+
+    /* HERO */
+    .page-hero{padding:120px 48px 72px;text-align:center;position:relative;overflow:hidden}
+    .hero-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:400px;background:radial-gradient(ellipse,rgba(184,255,87,.05) 0%,transparent 70%);pointer-events:none}
+    .page-eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--acid);margin-bottom:18px;animation:fadeUp .5s ease forwards .1s;opacity:0}
+    .page-eyebrow::before,.page-eyebrow::after{content:'';display:block;width:20px;height:1px;background:var(--acid);opacity:.35}
+    .page-title{font-family:var(--mono);font-size:clamp(32px,5vw,56px);font-weight:700;letter-spacing:-.03em;margin-bottom:16px;animation:fadeUp .5s ease forwards .2s;opacity:0}
+    .page-sub{font-size:15px;color:var(--muted);max-width:520px;margin:0 auto 40px;line-height:1.72;font-weight:300;animation:fadeUp .5s ease forwards .3s;opacity:0}
+
+    /* BILLING TOGGLE */
+    .billing-toggle{display:inline-flex;align-items:center;gap:12px;background:var(--bg1);border:1px solid var(--border);border-radius:4px;padding:6px 8px;margin-bottom:64px;animation:fadeUp .5s ease forwards .38s;opacity:0}
+    .bill-opt{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted2);padding:6px 14px;border-radius:2px;cursor:pointer;transition:all .2s;user-select:none}
+    .bill-opt.active{background:var(--acid);color:#000;font-weight:700}
+    .bill-save{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--acid);background:var(--acid2);border:1px solid var(--acid3);padding:2px 8px;border-radius:2px}
+
+    /* COMPARISON CALLOUT */
+    .vs-banner{max-width:880px;margin:0 auto 40px;background:var(--bg1);border:1px solid var(--border);border-radius:5px;padding:20px 28px;display:flex;align-items:center;justify-content:center;gap:40px;animation:fadeUp .5s ease forwards .32s;opacity:0;flex-wrap:wrap}
+    .vs-item{text-align:center}
+    .vs-label{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted2);margin-bottom:4px}
+    .vs-val{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.02em}
+    .vs-val.red{color:var(--red)}
+    .vs-val.green{color:var(--acid)}
+    .vs-val.muted{color:var(--muted2)}
+    .vs-sep{font-family:var(--mono);font-size:28px;color:var(--border);font-weight:300}
+    .vs-desc{font-size:11px;color:var(--muted2);margin-top:2px;font-family:var(--mono)}
+
+    /* PRICING GRID */
+    .pricing-section{padding:0 48px 96px}
+    .price-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border2);border:1px solid var(--border);border-radius:5px;overflow:hidden;animation:fadeUp .6s ease forwards .4s;opacity:0}
+    .price-item{background:var(--bg);padding:40px 32px;position:relative;transition:background .3s}
+    .price-item.featured{background:var(--bg2);border:1px solid rgba(184,255,87,.18)}
+    .price-item.featured::before{content:'MOST POPULAR';position:absolute;top:-1px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;background:var(--acid);color:#000;padding:4px 12px;font-weight:700;border-radius:0 0 3px 3px}
+    .price-tier{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px}
+    .price-val{font-family:var(--mono);font-size:clamp(34px,4vw,48px);font-weight:700;letter-spacing:-.03em;margin-bottom:4px;line-height:1}
+    .price-period{font-size:14px;font-weight:300;color:var(--muted);letter-spacing:0;font-family:var(--sans)}
+    .price-annual{font-family:var(--mono);font-size:9px;color:var(--acid);letter-spacing:.08em;margin-bottom:10px;min-height:14px;display:none}
+    .price-annual.show{display:block}
+    .price-desc{font-size:13px;color:var(--muted);margin-bottom:28px;font-weight:300;line-height:1.6}
+    .price-divider{height:1px;background:var(--border);margin-bottom:24px}
+    .price-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:32px}
+    .price-features li{font-size:13px;color:var(--muted);display:flex;align-items:flex-start;gap:10px;font-weight:300;line-height:1.5}
+    .price-features li.has::before{content:'✓';color:var(--acid);font-family:var(--mono);font-size:10px;flex-shrink:0;margin-top:2px}
+    .price-features li.no{opacity:.3}
+    .price-features li.no::before{content:'–';color:var(--muted2);font-family:var(--mono);font-size:10px;flex-shrink:0;margin-top:2px}
+    .price-btn{width:100%;padding:12px;border-radius:3px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;cursor:pointer;font-weight:600;transition:all .25s;text-decoration:none;display:block;text-align:center;position:relative;overflow:hidden}
+    .price-btn::after{content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;transform:skewX(-20deg)}
+    .price-btn:hover::after{animation:shine .6s ease forwards}
+    .price-btn.outline{background:none;border:1px solid var(--border);color:var(--text)}
+    .price-btn.outline::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)}
+    .price-btn.outline:hover{border-color:rgba(255,255,255,.2);transform:translateY(-2px)}
+    .price-btn.solid{background:var(--acid);border:none;color:#000}
+    .price-btn.solid::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent)}
+    .price-btn.solid:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(184,255,87,.28)}
+    .price-btn.ghost{background:none;border:1px solid rgba(184,255,87,.22);color:var(--acid)}
+    .price-btn.ghost::after{background:linear-gradient(90deg,transparent,rgba(184,255,87,.18),transparent)}
+    .price-btn.ghost:hover{background:var(--acid2);transform:translateY(-2px)}
+
+    /* FEATURE TABLE */
+    .compare-section{padding:0 48px 96px}
+    .compare-inner{max-width:1100px;margin:0 auto}
+    .compare-title{font-family:var(--mono);font-size:clamp(22px,3vw,32px);font-weight:700;letter-spacing:-.02em;margin-bottom:40px;text-align:center}
+    .compare-table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:5px;overflow:hidden}
+    .compare-table th{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);padding:14px 20px;background:var(--bg1);border-bottom:1px solid var(--border);text-align:left}
+    .compare-table th:not(:first-child){text-align:center}
+    .compare-table td{padding:14px 20px;border-bottom:1px solid var(--border2);font-size:13px;color:var(--muted);font-weight:300}
+    .compare-table td:not(:first-child){text-align:center;font-family:var(--mono);font-size:11px}
+    .compare-table tr:last-child td{border-bottom:none}
+    .compare-table tr:hover td{background:rgba(255,255,255,.015)}
+    .compare-table td.featured-col{background:rgba(184,255,87,.03)}
+    .c-yes{color:var(--acid)}
+    .c-no{color:var(--muted2);opacity:.4}
+    .c-partial{color:var(--amber)}
+    .cat-row td{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--acid);background:var(--bg1)!important;padding:10px 20px}
+
+    /* FAQ */
+    .faq-section{padding:0 48px 96px}
+    .faq-inner{max-width:800px;margin:0 auto}
+    .faq-title{font-family:var(--mono);font-size:clamp(22px,3vw,32px);font-weight:700;letter-spacing:-.02em;margin-bottom:40px;text-align:center}
+    .faq-item{border-bottom:1px solid var(--border2);overflow:hidden}
+    .faq-q{font-family:var(--mono);font-size:12.5px;font-weight:600;padding:20px 0;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;letter-spacing:.01em;user-select:none;transition:color .2s}
+    .faq-q:hover{color:var(--acid)}
+    .faq-icon{flex-shrink:0;width:16px;height:16px;position:relative;transition:transform .3s}
+    .faq-icon::before,.faq-icon::after{content:'';position:absolute;background:currentColor;border-radius:1px;transition:all .3s}
+    .faq-icon::before{width:12px;height:1.5px;top:50%;left:50%;transform:translate(-50%,-50%)}
+    .faq-icon::after{width:1.5px;height:12px;top:50%;left:50%;transform:translate(-50%,-50%)}
+    .faq-item.open .faq-icon::after{transform:translate(-50%,-50%) rotate(90deg);opacity:0}
+    .faq-a{font-size:13.5px;color:var(--muted);line-height:1.75;font-weight:300;max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s}
+    .faq-item.open .faq-a{max-height:300px;padding-bottom:20px}
+
+    /* CTA */
+    .cta{background:var(--bg);border-top:1px solid var(--border2);text-align:center;padding:96px 48px;position:relative;overflow:hidden}
+    .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(184,255,87,.05) 0%,transparent 70%);pointer-events:none}
+    .cta h2{font-family:var(--mono);font-size:clamp(28px,4vw,48px);font-weight:700;letter-spacing:-.03em;margin-bottom:12px}
+    .cta p{font-size:15px;color:var(--muted);margin-bottom:36px;font-weight:300}
+    .cta-actions{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+    .btn-primary{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;background:var(--acid);color:#000;border:none;padding:12px 26px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .25s;display:inline-flex;align-items:center;gap:7px;position:relative;overflow:hidden}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(184,255,87,.3)}
+    .btn-outline{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.1em;color:var(--text);background:none;border:1px solid var(--border);padding:12px 24px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .25s;display:inline-flex;align-items:center;gap:7px}
+    .btn-outline:hover{border-color:rgba(255,255,255,.2);transform:translateY(-2px)}
+
+    footer{background:var(--bg);border-top:1px solid var(--border2);padding:28px 48px;display:flex;align-items:center;justify-content:space-between}
+    .footer-left{font-family:var(--mono);font-size:10.5px;color:var(--muted2);letter-spacing:.05em}
+    .footer-links{display:flex;gap:22px}
+    .footer-links a{font-family:var(--mono);font-size:10.5px;color:var(--muted2);text-decoration:none;letter-spacing:.05em;transition:color .2s}
+    .footer-links a:hover{color:var(--acid)}
+
+    @media(max-width:960px){
+      nav{padding:0 20px}.nav-links{display:none}
+      .page-hero,.pricing-section,.compare-section,.faq-section,.cta{padding-left:24px;padding-right:24px}
+      .price-grid{grid-template-columns:1fr}
+      .compare-table{font-size:12px}
+      footer{flex-direction:column;gap:14px;text-align:center;padding:24px}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" fill="#000"/><rect x="8" y="1" width="5" height="5" fill="#000"/><rect x="1" y="8" width="5" height="5" fill="#000"/><rect x="8" y="10" width="2" height="2" fill="#000"/><rect x="11" y="10" width="2" height="2" fill="#000"/></svg>
+    </div>
+    VULN<em>RA</em>
+  </a>
+  <div class="nav-links">
+    <a href="index.html#features">Features</a>
+    <a href="how-it-works.html">How it works</a>
+    <a href="compliance.html">Compliance</a>
+    <a href="pricing.html" class="active">Pricing</a>
+    <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+  </div>
+  <div class="nav-right">
+    <a href="signin.html" class="btn-ghost">Sign In</a>
+    <a href="signup.html" class="btn-acid">Get Started →</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-hero">
+    <div class="hero-glow"></div>
+    <div style="position:relative;z-index:1">
+      <div class="page-eyebrow">Pricing</div>
+      <h1 class="page-title">Replace a $16,000 audit<br>for $49 a month.</h1>
+      <p class="page-sub">The same compliance-mapped LLM security report that specialist firms charge $16,000 for. Automated. In 60 seconds.</p>
+
+      <div class="vs-banner">
+        <div class="vs-item">
+          <div class="vs-label">Manual Audit (Schellman)</div>
+          <div class="vs-val red">$16,000</div>
+          <div class="vs-desc">one-time · 2 week turnaround</div>
+        </div>
+        <div class="vs-sep">→</div>
+        <div class="vs-item">
+          <div class="vs-label">VULNRA Pro</div>
+          <div class="vs-val green">$49/mo</div>
+          <div class="vs-desc">unlimited · 60 seconds</div>
+        </div>
+        <div class="vs-sep">=</div>
+        <div class="vs-item">
+          <div class="vs-label">Cost Reduction</div>
+          <div class="vs-val green">99%</div>
+          <div class="vs-desc">same compliance output</div>
+        </div>
+      </div>
+
+      <div class="billing-toggle" id="billing-toggle">
+        <div class="bill-opt active" data-period="monthly">Monthly</div>
+        <div class="bill-opt" data-period="annual">Annual</div>
+        <span class="bill-save">Save 20%</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="pricing-section">
+    <div class="price-grid">
+      <!-- FREE -->
+      <div class="price-item">
+        <div class="price-tier">FREE</div>
+        <div class="price-val">$0</div>
+        <div class="price-annual" id="annual-free"></div>
+        <div class="price-desc">For developers evaluating their first model. No card required.</div>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li class="has">1 scan per day</li>
+          <li class="has">Risk score (0–10)</li>
+          <li class="has">1 blurred finding preview</li>
+          <li class="has">Standard probe set</li>
+          <li class="no">Full finding details</li>
+          <li class="no">Compliance mapping (EU AI Act, DPDP)</li>
+          <li class="no">PDF audit export</li>
+          <li class="no">Sentinel monitoring</li>
+          <li class="no">CLI + API access</li>
+        </ul>
+        <a href="scanner.html" class="price-btn outline">Start scanning free →</a>
+      </div>
+
+      <!-- PRO -->
+      <div class="price-item featured">
+        <div class="price-tier">PRO</div>
+        <div class="price-val" id="pro-price">$49<span class="price-period">/mo</span></div>
+        <div class="price-annual" id="annual-pro">Billed annually — $470/year</div>
+        <div class="price-desc">For developers and teams who need full findings and compliance coverage.</div>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li class="has">Unlimited scans</li>
+          <li class="has">All findings, fully unblurred</li>
+          <li class="has">EU AI Act, India DPDP, NIST mapping</li>
+          <li class="has">ISO 42001 + OWASP LLM Top 10</li>
+          <li class="has">MITRE ATLAS mapping</li>
+          <li class="has">PDF compliance audit export</li>
+          <li class="has">Sentinel recurring monitoring</li>
+          <li class="has">CLI + REST API access</li>
+          <li class="has">GitHub Action for CI/CD</li>
+        </ul>
+        <a href="signup.html" class="price-btn solid">Upgrade to Pro →</a>
+      </div>
+
+      <!-- ENTERPRISE -->
+      <div class="price-item">
+        <div class="price-tier">ENTERPRISE</div>
+        <div class="price-val">Custom</div>
+        <div class="price-annual" id="annual-ent"></div>
+        <div class="price-desc">Custom compliance needs, SLAs, on-prem, and team management.</div>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li class="has">Everything in Pro</li>
+          <li class="has">On-premise deployment</li>
+          <li class="has">Custom compliance frameworks</li>
+          <li class="has">SSO + SCIM provisioning</li>
+          <li class="has">Dedicated Slack channel</li>
+          <li class="has">Custom SLA with uptime guarantee</li>
+          <li class="has">Invoiced billing (INR/USD/EUR)</li>
+          <li class="has">SOC 2 Type II documentation</li>
+          <li class="has">Priority engineering support</li>
+        </ul>
+        <a href="mailto:sales@vulnra.ai" class="price-btn ghost">Contact sales →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURE COMPARISON TABLE -->
+  <section class="compare-section">
+    <div class="compare-inner">
+      <h2 class="compare-title">Full feature comparison</h2>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Free</th>
+            <th style="color:var(--acid)">Pro</th>
+            <th>Enterprise</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="cat-row"><td colspan="4">Scanning</td></tr>
+          <tr><td>Scans per day</td><td>1</td><td class="featured-col c-yes">Unlimited</td><td>Unlimited</td></tr>
+          <tr><td>Probe types</td><td>Basic (8)</td><td class="featured-col c-yes">Full (40+)</td><td class="c-yes">Full + Custom</td></tr>
+          <tr><td>Single-turn attacks</td><td class="c-yes">✓</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr><td>Multi-turn attack chains</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr><td>LLM-as-Judge scoring</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr class="cat-row"><td colspan="4">Compliance</td></tr>
+          <tr><td>EU AI Act mapping</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr><td>India DPDP mapping</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr><td>NIST AI RMF mapping</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr><td>OWASP LLM Top 10</td><td class="c-no">–</td><td class="featured-col c-yes">✓ All 10</td><td class="c-yes">✓</td></tr>
+          <tr><td>MITRE ATLAS</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr><td>PDF audit report</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓ Custom branding</td></tr>
+          <tr><td>Custom frameworks</td><td class="c-no">–</td><td class="featured-col c-no">–</td><td class="c-yes">✓</td></tr>
+          <tr class="cat-row"><td colspan="4">Integration</td></tr>
+          <tr><td>REST API access</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr><td>CLI (pip install)</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr><td>GitHub Action</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr><td>Sentinel monitoring</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr><td>Webhook alerts</td><td class="c-no">–</td><td class="featured-col c-yes">✓</td><td class="c-yes">✓</td></tr>
+          <tr class="cat-row"><td colspan="4">Security & Support</td></tr>
+          <tr><td>SSO (SAML/OIDC)</td><td class="c-no">–</td><td class="featured-col c-no">–</td><td class="c-yes">✓</td></tr>
+          <tr><td>On-premise deployment</td><td class="c-no">–</td><td class="featured-col c-no">–</td><td class="c-yes">✓</td></tr>
+          <tr><td>SOC 2 Type II</td><td class="c-no">–</td><td class="featured-col c-partial">In progress</td><td class="c-yes">✓</td></tr>
+          <tr><td>Dedicated Slack support</td><td class="c-no">–</td><td class="featured-col c-no">–</td><td class="c-yes">✓</td></tr>
+          <tr><td>SLA guarantee</td><td class="c-no">–</td><td class="featured-col c-no">–</td><td class="c-yes">✓ Custom</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <div class="faq-inner">
+      <h2 class="faq-title">Pricing FAQ</h2>
+      <div class="faq-item">
+        <div class="faq-q">Do I need a credit card to start? <span class="faq-icon"></span></div>
+        <div class="faq-a">No. The Free tier requires only an email address. You only need a payment method when upgrading to Pro.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can I pay in Indian Rupees (INR)? <span class="faq-icon"></span></div>
+        <div class="faq-a">Yes. Indian users can pay in INR via Razorpay. International users are billed in USD via Lemon Squeezy. Both options appear at checkout based on your location.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What compliance frameworks does Pro cover? <span class="faq-icon"></span></div>
+        <div class="faq-a">Pro maps findings to EU AI Act (Articles 9, 13, 15, 17), India DPDP Act 2023 (Sections 8, 11, 16), NIST AI RMF (GOVERN 1.1, MAP 2.1, MEASURE 2.5, MANAGE 1.1), ISO 42001 (Clause 6.1, 9.1, Annex A), OWASP LLM Top 10 2025, and MITRE ATLAS. This is the broadest compliance coverage of any self-serve LLM security tool.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How does VULNRA compare to a manual red-team engagement? <span class="faq-icon"></span></div>
+        <div class="faq-a">Manual LLM security assessments from specialist firms (Schellman, Coalfire) cost $16,000 minimum with a 2-week turnaround and annual cadence. VULNRA Pro costs $49/month, delivers results in 60 seconds, and can be run on every model update. For continuous coverage, VULNRA is a 99% cost reduction.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can I cancel at any time? <span class="faq-icon"></span></div>
+        <div class="faq-a">Yes. Monthly subscriptions can be cancelled any time — you retain Pro access until the end of the billing period. Annual subscriptions are non-refundable after 14 days but can be cancelled to prevent renewal.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What is the Enterprise minimum commitment? <span class="faq-icon"></span></div>
+        <div class="faq-a">Enterprise starts at $499/month (equivalent of ~$6,000/year) and is billed annually. Pricing varies based on team size, scan volume, and deployment requirements. Contact sales@vulnra.ai to get a custom quote.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="cta-glow"></div>
+    <div style="position:relative;z-index:1">
+      <h2>Start free. Ship safe.</h2>
+      <p>No card required. First scan in 60 seconds.</p>
+      <div class="cta-actions">
+        <a href="signup.html" class="btn-primary">Get started free →</a>
+        <a href="mailto:sales@vulnra.ai" class="btn-outline">Talk to sales</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-left">© 2025 VULNRA. MIT Licensed. Built on NVIDIA Garak.</div>
+  <div class="footer-links">
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+    <a href="acceptable-use.html">AUP</a>
+    <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+    <a href="mailto:hello@vulnra.ai">hello@vulnra.ai</a>
+  </div>
+</footer>
+
+<script>
+  // Billing toggle
+  const toggle = document.getElementById('billing-toggle');
+  const proPrice = document.getElementById('pro-price');
+  const annualPro = document.getElementById('annual-pro');
+  toggle.querySelectorAll('.bill-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      toggle.querySelectorAll('.bill-opt').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      if (opt.dataset.period === 'annual') {
+        proPrice.innerHTML = '$39<span class="price-period">/mo</span>';
+        annualPro.textContent = 'Billed annually — $470/year';
+        annualPro.classList.add('show');
+      } else {
+        proPrice.innerHTML = '$49<span class="price-period">/mo</span>';
+        annualPro.classList.remove('show');
+      }
+    });
+  });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-q').addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+</script>
+</body>
+</html>
