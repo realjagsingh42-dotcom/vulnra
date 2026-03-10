@@ -50,7 +50,7 @@ uvicorn==0.41.0
 vine==5.1.0
 watchfiles==1.1.1
 wcwidth==0.6.0
-websockets==16.0
+websockets==14.2
 reportlab==4.1.0
 slowapi==0.1.9
 pydantic-settings==2.1.0
