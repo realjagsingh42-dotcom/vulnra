@@ -75,12 +75,86 @@ if _missing:
 from typing import Optional
 from fastapi import Header
 
+# ── Tier limits ────────────────────────────────────────────────
 TIER_LIMITS = {
-    "free": {"scans_per_day": 1, "reports_per_hour": 5},
-    "basic": {"scans_per_day": 10, "reports_per_hour": 10},
-    "pro": {"scans_per_day": 100, "reports_per_hour": 20},
-    "enterprise": {"scans_per_day": float("inf"), "reports_per_hour": float("inf")},
+    "free":       {"scans_per_day": 1,   "findings_visible": 1,  "pdf": False, "sentinel": False, "compliance": False},
+    "pro":        {"scans_per_day": 100, "findings_visible": 999, "pdf": True,  "sentinel": True,  "compliance": True},
+    "enterprise": {"scans_per_day": 999, "findings_visible": 999, "pdf": True,  "sentinel": True,  "compliance": True},
 }
+
+def get_user_tier(user_id: str) -> str:
+    """Fetch current tier from Supabase profiles table."""
+    try:
+        sb = get_supabase()
+        if not sb:
+            return "free"
+        res = sb.table("profiles").select("tier").eq("id", user_id).single().execute()
+        return res.data.get("tier", "free") if res.data else "free"
+    except Exception as e:
+        print(f"[TIER] lookup failed: {e}")
+        return "free"
+
+def check_scan_quota(user_id: str, tier: str) -> dict:
+    """
+    Check if user has scans remaining today.
+    Returns {"allowed": True} or {"allowed": False, "reason": "..."}
+    """
+    limit = TIER_LIMITS[tier]["scans_per_day"]
+    if limit >= 999:
+        return {"allowed": True}
+    try:
+        sb = get_supabase()
+        if not sb:
+            return {"allowed": True}
+        
+        from datetime import date
+        today = date.today().isoformat()
+        
+        res = (
+            sb.table("scans")
+            .select("id", count="exact")
+            .eq("user_id", user_id)
+            .eq("status", "complete")
+            .gte("created_at", today)
+            .execute()
+        )
+        used = res.count or 0
+        if used >= limit:
+            return {
+                "allowed": False,
+                "reason":  f"Free tier limit reached ({limit} scan/day). Upgrade to Pro for unlimited scans.",
+                "used":    used,
+                "limit":   limit,
+            }
+        return {"allowed": True, "used": used, "limit": limit}
+    except Exception as e:
+        print(f"[QUOTA] check failed: {e}")
+        return {"allowed": True}
+
+def apply_tier_blurring(data: dict, tier: str) -> dict:
+    """
+    Blur findings and compliance for free tier after scan completes.
+    Modifies data in-place and returns it.
+    """
+    limits = TIER_LIMITS[tier]
+
+    findings = data.get("findings", [])
+    for i, f in enumerate(findings):
+        if i >= limits["findings_visible"]:
+            f["blurred"]  = True
+            f["detail"]   = "Upgrade to Pro to unlock all findings."
+            f["hit_rate"] = None
+            f["hits"]     = None
+
+    if not limits["compliance"]:
+        data["compliance"] = {
+            "blurred": True,
+            "hint":    "Upgrade to Pro to see full compliance mapping (EU AI Act, DPDP, NIST, OWASP)."
+        }
+
+    data["pdf_available"] = limits["pdf"]
+
+    return data
 
 _user_tier_cache: dict = {}
 
@@ -420,47 +494,34 @@ def health():
 async def start_scan(
     request: Request,
     url: str = Query(..., description="Target URL to scan"),
-    tier: str = Query("free", description="Scan tier: free | basic | pro | enterprise"),
+    tier: str = Query("free", description="Scan tier: free | pro | enterprise"),
     background_tasks: BackgroundTasks = BackgroundTasks(),
     authorization: Optional[str] = Header(None),
 ):
-    # Get current user (authentication)
-    user = get_current_user(authorization)
-    user_tier = get_user_tier(user)
-    
-    # Validate tier - use user tier, not frontend-provided tier (enforcement)
-    allowed_tiers = ("free", "basic", "pro", "enterprise")
-    if tier.lower() not in allowed_tiers:
-        tier = "free"
-    
-    # Tier enforcement: user can only use their tier or lower
-    tier_hierarchy = {"free": 0, "basic": 1, "pro": 2, "enterprise": 3}
-    user_level = tier_hierarchy.get(user_tier, 0)
-    requested_level = tier_hierarchy.get(tier.lower(), 0)
-    
-    if requested_level > user_level:
-        tier = user_tier  # Downgrade to user's actual tier
-        logger.info(f"Tier downgraded to {tier} for user {user.get('id')}")
+    # ── Get user identity ──────────────────────────────────────
+    user_id = None
+    tier = "free"
 
-    # Check daily scan limit based on tier
-    limits = TIER_LIMITS.get(user_tier, TIER_LIMITS["free"])
-    daily_limit = limits.get("scans_per_day", 1)
-    
-    # Simple rate check using Redis or memory
-    today_key = f"daily_scans:{user.get('id')}:{time.strftime('%Y-%m-%d')}"
-    rc = get_redis()
-    if rc:
+    if authorization and authorization.startswith("Bearer "):
         try:
-            current_scans = rc.get(today_key) or "0"
-            if int(current_scans) >= daily_limit:
-                raise HTTPException(
-                    status_code=429,
-                    detail=f"Daily scan limit ({daily_limit}) exceeded. Upgrade your tier for more scans."
-                )
-            rc.incr(today_key)
-            rc.expire(today_key, 86400)  # 24 hours
+            token = authorization.split(" ")[1]
+            sb = get_supabase()
+            user_resp = sb.auth.get_user(token) if sb else None
+            if user_resp and user_resp.user:
+                user_id = user_resp.user.id
+                tier = get_user_tier(user_id)
         except Exception as e:
-            logger.warning(f"Rate limit check failed: {e}")
+            print(f"[AUTH] token check failed: {e}")
+
+    # ── Quota check ────────────────────────────────────────────
+    if user_id:
+        quota = check_scan_quota(user_id, tier)
+        if not quota["allowed"]:
+            return {
+                "error": "quota_exceeded",
+                "message": quota["reason"],
+                "upgrade": "https://vulnra.lemonsqueezy.com/checkout"
+            }
 
     # URL validation: max 2048 characters
     if len(url) > 2048:
@@ -498,6 +559,30 @@ async def start_scan(
     # Sync fallback: run the scan immediately and return the full result
     logger.info(f"Running scan {scan_id} synchronously (no Celery/Redis)")
     result = await _run_scan_internal(scan_id, url, tier)
+
+    # ── Apply tier blurring ────────────────────────────────────
+    result = apply_tier_blurring(result, tier)
+
+    # ── Save to Supabase ───────────────────────────────────────
+    if user_id:
+        try:
+            sb = get_supabase()
+            if sb:
+                sb.table("scans").upsert({
+                    "id":           scan_id,
+                    "user_id":      user_id,
+                    "target_url":   url,
+                    "tier":         tier,
+                    "status":       "complete",
+                    "scan_engine":  result.get("scan_engine"),
+                    "risk_score":   result.get("risk_score"),
+                    "findings":     result.get("findings"),
+                    "compliance":   result.get("compliance"),
+                    "completed_at": "now()",
+                }).execute()
+        except Exception as e:
+            print(f"[SUPABASE] save failed: {e}")
+
     return result
 
 @app.get("/scan/{scan_id}")
@@ -668,6 +753,35 @@ async def log_login(request: Request, authorization: Optional[str] = Header(None
     except Exception as e:
         print(f"[LOGIN LOG] failed: {e}")
         return {"status": "error", "detail": str(e)}
+
+@app.get("/me")
+async def get_me(authorization: Optional[str] = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        return {"authenticated": False, "tier": "free"}
+    try:
+        token = authorization.split(" ")[1]
+        sb = get_supabase()
+        user_resp = sb.auth.get_user(token) if sb else None
+        if not user_resp or not user_resp.user:
+            return {"authenticated": False, "tier": "free"}
+
+        user_id = user_resp.user.id
+        tier = get_user_tier(user_id)
+        limits = TIER_LIMITS[tier]
+        quota = check_scan_quota(user_id, tier)
+
+        return {
+            "authenticated": True,
+            "user_id": user_id,
+            "email": user_resp.user.email,
+            "tier": tier,
+            "pdf_available": limits["pdf"],
+            "sentinel": limits["sentinel"],
+            "scans_used": quota.get("used", 0),
+            "scans_limit": limits["scans_per_day"],
+        }
+    except Exception as e:
+        return {"authenticated": False, "tier": "free", "error": str(e)}
 
 # ════════════════════════════════════════════════════════════════════════════════
 # STATIC FILE SERVING  (must come LAST — catches everything not matched above)

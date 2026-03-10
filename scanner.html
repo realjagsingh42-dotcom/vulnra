@@ -2025,6 +2025,95 @@ window._supabase.auth.onAuthStateChange(async (event, session) => {
     const SUPABASE_URL = 'https://muhudfrdakbpxzahenkw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11aHVkZnJkYWticHh6YWhlbmt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNTM4ODQsImV4cCI6MjA4ODYyOTg4NH0.5UK4CfS1-nchuSAoGb9hPkOn4fuYrezEchrCUidzU5c';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window._supabase = sb;
+
+    const API_BASE = 'https://vulnra-production.up.railway.app';
+    let currentUser = null;
+
+    // Load user tier on page open
+    async function loadUser() {
+      const { data: { session } } = await window._supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'signin.html';
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/me`, {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      currentUser = await res.json();
+      applyTierUI(currentUser);
+    }
+
+    function applyTierUI(user) {
+      const tier = user.tier || 'free';
+
+      // Show tier badge in header
+      const tierBadge = document.getElementById('tier-badge');
+      if (tierBadge) {
+        tierBadge.textContent = tier.toUpperCase();
+        tierBadge.className = 'tier-badge tier-' + tier;
+      }
+
+      // Show scan usage for free tier
+      if (tier === 'free') {
+        const quotaBar = document.getElementById('quota-bar');
+        if (quotaBar) quotaBar.style.display = 'block';
+        const quotaUsed = document.getElementById('quota-used');
+        const quotaLimit = document.getElementById('quota-limit');
+        if (quotaUsed) quotaUsed.textContent = user.scans_used;
+        if (quotaLimit) quotaLimit.textContent = user.scans_limit;
+      }
+
+      // Lock PDF download button for free tier
+      const pdfBtn = document.getElementById('download-pdf-btn');
+      if (pdfBtn && !user.pdf_available) {
+        pdfBtn.textContent = '🔒 PDF Report — Pro only';
+        pdfBtn.disabled = true;
+        pdfBtn.onclick = () => showUpgradeModal('PDF reports require Pro.');
+      }
+
+      // Lock Sentinel for free tier
+      const sentinelBtn = document.getElementById('sentinel-btn');
+      if (sentinelBtn && !user.sentinel) {
+        sentinelBtn.textContent = '🔒 Sentinel — Pro only';
+        sentinelBtn.disabled = true;
+        sentinelBtn.onclick = () => showUpgradeModal('Continuous monitoring requires Pro.');
+      }
+    }
+
+    // Always send auth token with every scan request
+    async function startScan(targetUrl) {
+      const { data: { session } } = await window._supabase.auth.getSession();
+
+      const res = await fetch(`${API_BASE}/scan?url=${encodeURIComponent(targetUrl)}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await res.json();
+
+      // Handle quota exceeded
+      if (data.error === 'quota_exceeded') {
+        showUpgradeModal(data.message);
+        return;
+      }
+
+      renderScanResult(data);
+    }
+
+    function showUpgradeModal(reason) {
+      const modal = document.getElementById('upgrade-modal');
+      const reasonEl = document.getElementById('upgrade-reason');
+      if (reasonEl) reasonEl.textContent = reason;
+      if (modal) modal.style.display = 'flex';
+    }
+
+    // Call on page load
+    loadUser();
 
     let _currentUser = null;
 
@@ -2477,6 +2566,23 @@ window._supabase.auth.onAuthStateChange(async (event, session) => {
       if (e.key === 'Enter') startScan();
     });
   </script>
+
+  <!-- Upgrade Modal -->
+  <div id="upgrade-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#0A0B0F; border:1px solid #B8FF57; border-radius:12px; padding:40px; max-width:420px; text-align:center;">
+      <div style="font-size:32px; margin-bottom:16px;">🔒</div>
+      <h2 style="color:#fff; margin-bottom:12px;">Upgrade to Pro</h2>
+      <p id="upgrade-reason" style="color:#8A93A0; margin-bottom:24px;"></p>
+      <a href="https://vulnra.lemonsqueezy.com/checkout"
+         style="background:#B8FF57; color:#060608; font-weight:700; padding:14px 32px; border-radius:8px; text-decoration:none; display:block; margin-bottom:12px;">
+        Upgrade — $49/mo →
+      </a>
+      <button onclick="document.getElementById('upgrade-modal').style.display='none'"
+              style="background:none; border:none; color:#8A93A0; cursor:pointer;">
+        Maybe later
+      </button>
+    </div>
+  </div>
 
 </body>
 
