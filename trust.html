@@ -1,593 +1,1935 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trust Center — VULNRA Security, Uptime, Subprocessors & Compliance Status</title>
-  <meta name="description" content="VULNRA Trust Center. SOC 2 certification status, live uptime, subprocessors list, data residency, data processing agreement, and security controls. Everything procurement needs.">
+  <meta name="description"
+    content="VULNRA Trust Center. SOC 2 certification status, live uptime, subprocessors list, data residency, data processing agreement, and security controls. Everything procurement needs.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://vulnra.ai/trust.html">
   <meta property="og:type" content="website">
   <meta property="og:title" content="VULNRA Trust Center — Security & Compliance Documentation">
-  <meta property="og:description" content="SOC 2 status, uptime SLA, subprocessors, data residency, and DPA. Everything your procurement team needs.">
+  <meta property="og:description"
+    content="SOC 2 status, uptime SLA, subprocessors, data residency, and DPA. Everything your procurement team needs.">
   <meta property="og:url" content="https://vulnra.ai/trust.html">
   <link rel="alternate" hreflang="en" href="https://vulnra.ai/trust.html">
   <link rel="alternate" hreflang="x-default" href="https://vulnra.ai/trust.html">
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"WebPage","@id":"https://vulnra.ai/trust.html","name":"VULNRA Trust Center","url":"https://vulnra.ai/trust.html","description":"VULNRA security posture, SOC 2 status, uptime, subprocessors, and compliance documentation.","breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://vulnra.ai/"},{"@type":"ListItem","position":2,"name":"Trust Center","item":"https://vulnra.ai/trust.html"}]}}
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="loader.css">
   <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --bg:#060608;--bg1:#0a0b0f;--bg2:#0f1117;--bg3:#13151c;
-      --acid:#b8ff57;--acid2:rgba(184,255,87,.07);
-      --red:#ff3c5a;--amber:#ffb340;--blue:#4db8ff;--green:#3dffaa;
-      --gold:#ffd166;
-      --text:#e8edf4;--muted:rgba(232,237,244,.44);--muted2:rgba(232,237,244,.22);
-      --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.04);
-      --mono:'IBM Plex Mono',monospace;--sans:'DM Sans',sans-serif
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
     }
-    html{scroll-behavior:smooth}
-    body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
-    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.02) 2px,rgba(0,0,0,.02) 4px);pointer-events:none;z-index:9998}
-    body::after{content:'';position:fixed;inset:-200%;width:400%;height:400%;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9997;animation:grain .4s steps(1) infinite}
-    @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,-4%)}40%{transform:translate(-6%,3%)}60%{transform:translate(3%,-2%)}80%{transform:translate(-4%,6%)}100%{transform:translate(5%,-3%)}}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.65)}}
-    @keyframes uptime-fill{from{width:0}to{width:var(--pct)}}
-    ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--acid)}
-    ::selection{background:var(--acid);color:#000}
+
+    :root {
+      --bg: #060608;
+      --bg1: #0a0b0f;
+      --bg2: #0f1117;
+      --bg3: #13151c;
+      --acid: #b8ff57;
+      --acid2: rgba(184, 255, 87, .07);
+      --red: #ff3c5a;
+      --amber: #ffb340;
+      --blue: #4db8ff;
+      --green: #3dffaa;
+      --gold: #ffd166;
+      --text: #e8edf4;
+      --muted: rgba(232, 237, 244, .44);
+      --muted2: rgba(232, 237, 244, .22);
+      --border: rgba(255, 255, 255, .07);
+      --border2: rgba(255, 255, 255, .04);
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'DM Sans', sans-serif
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      overflow-x: hidden
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, .02) 2px, rgba(0, 0, 0, .02) 4px);
+      pointer-events: none;
+      z-index: 9998
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: -200%;
+      width: 400%;
+      height: 400%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9997;
+      animation: grain .4s steps(1) infinite
+    }
+
+    @keyframes grain {
+      0% {
+        transform: translate(0, 0)
+      }
+
+      20% {
+        transform: translate(-3%, -4%)
+      }
+
+      40% {
+        transform: translate(-6%, 3%)
+      }
+
+      60% {
+        transform: translate(3%, -2%)
+      }
+
+      80% {
+        transform: translate(-4%, 6%)
+      }
+
+      100% {
+        transform: translate(5%, -3%)
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: .4;
+        transform: scale(.65)
+      }
+    }
+
+    @keyframes uptime-fill {
+      from {
+        width: 0
+      }
+
+      to {
+        width: var(--pct)
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 3px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg)
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--acid)
+    }
+
+    ::selection {
+      background: var(--acid);
+      color: #000
+    }
 
     /* NAV */
-    nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px;background:rgba(6,6,8,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2)}
-    nav::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(184,255,87,.25),transparent)}
-    .nav-logo{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.1em;color:var(--text);text-decoration:none}
-    .nav-logo-mark{width:28px;height:28px;border-radius:5px;background:var(--acid);display:flex;align-items:center;justify-content:center}
-    .nav-logo-mark svg{width:14px;height:14px}
-    .nav-logo em{font-style:normal;color:var(--acid)}
-    .nav-links{display:flex;align-items:center;gap:36px}
-    .nav-links a{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted);text-decoration:none;transition:color .2s}
-    .nav-links a:hover{color:var(--acid)}
-    .nav-right{display:flex;align-items:center;gap:12px}
-    .btn-ghost{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:none;transition:color .2s}
-    .btn-ghost:hover{color:var(--text)}
-    .btn-acid{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.12em;background:var(--acid);color:#000;border:none;padding:8px 18px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .25s}
-    .btn-acid:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(184,255,87,.28)}
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 60px;
+      background: rgba(6, 6, 8, .95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border2)
+    }
+
+    nav::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(184, 255, 87, .25), transparent)
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--text);
+      text-decoration: none
+    }
+
+    .nav-logo-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      background: #060608;
+      border: 1.5px solid #b8ff57;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: neonBoxPulse 2s ease-in-out infinite;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .nav-logo-mark::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 1px solid rgba(184, 255, 87, .25);
+      animation: expandRing 2s ease-out infinite;
+      pointer-events: none;
+    }
+
+    .nsq {
+      fill: #b8ff57;
+    }
+
+    .nsq1 {
+      animation: neonSqSeq 2.4s ease-in-out infinite 0s;
+    }
+
+    .nsq2 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .3s;
+    }
+
+    .nsq3 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .6s;
+    }
+
+    .nsq4 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .9s;
+    }
+
+    .ndot1 {
+      fill: #b8ff57;
+      animation: neonDotPulse 1.2s ease-in-out infinite 0s;
+    }
+
+    .ndot2 {
+      fill: #b8ff57;
+      animation: neonDotPulse 1.2s ease-in-out infinite .5s;
+    }
+
+    @keyframes neonBoxPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 8px rgba(184, 255, 87, .4), 0 0 20px rgba(184, 255, 87, .15), inset 0 0 10px rgba(184, 255, 87, .04);
+        border-color: rgba(184, 255, 87, .9);
+      }
+
+      50% {
+        box-shadow: 0 0 16px rgba(184, 255, 87, .7), 0 0 40px rgba(184, 255, 87, .3), 0 0 80px rgba(184, 255, 87, .1), inset 0 0 20px rgba(184, 255, 87, .08);
+        border-color: #d4ff8a;
+      }
+    }
+
+    @keyframes expandRing {
+      0% {
+        transform: scale(1);
+        opacity: .7;
+      }
+
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    @keyframes neonSqSeq {
+
+      0%,
+      100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 3px rgba(184, 255, 87, .9)) drop-shadow(0 0 7px rgba(184, 255, 87, .5));
+      }
+
+      40%,
+      60% {
+        opacity: .08;
+        filter: none;
+      }
+    }
+
+    @keyframes neonDotPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 4px #b8ff57) drop-shadow(0 0 8px rgba(184, 255, 87, .6));
+      }
+
+      50% {
+        opacity: .1;
+        filter: none;
+      }
+    }
+
+    .nav-logo-mark svg {
+      width: 14px;
+      height: 14px
+    }
+
+    .nav-logo em {
+      font-style: normal;
+      color: var(--acid)
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .1em;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s
+    }
+
+    .nav-links a:hover {
+      color: var(--acid)
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .btn-ghost {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .1em;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color .2s
+    }
+
+    .btn-ghost:hover {
+      color: var(--text)
+    }
+
+    .btn-acid {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      background: var(--acid);
+      color: #000;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .25s
+    }
+
+    .btn-acid:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(184, 255, 87, .28)
+    }
 
     /* HERO */
-    .hero{padding:100px 48px 72px;max-width:1100px;margin:0 auto}
-    .page-eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--acid);margin-bottom:18px;animation:fadeUp .5s ease forwards;opacity:0}
-    .page-eyebrow::before,.page-eyebrow::after{content:'';display:block;width:20px;height:1px;background:var(--acid);opacity:.35}
-    .hero-title{font-family:var(--mono);font-size:clamp(28px,4.5vw,50px);font-weight:700;letter-spacing:-.03em;line-height:1.07;margin-bottom:16px;animation:fadeUp .5s ease forwards .1s;opacity:0}
-    .hero-title .accent{color:var(--acid)}
-    .hero-sub{font-size:15.5px;color:var(--muted);line-height:1.74;font-weight:300;max-width:560px;animation:fadeUp .5s ease forwards .2s;opacity:0;margin-bottom:32px}
-    .last-updated{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted2);display:flex;align-items:center;gap:8px;animation:fadeUp .5s ease forwards .3s;opacity:0}
-    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease infinite;flex-shrink:0}
+    .hero {
+      padding: 100px 48px 72px;
+      max-width: 1100px;
+      margin: 0 auto
+    }
+
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: var(--acid);
+      margin-bottom: 18px;
+      animation: fadeUp .5s ease forwards;
+      opacity: 0
+    }
+
+    .page-eyebrow::before,
+    .page-eyebrow::after {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 1px;
+      background: var(--acid);
+      opacity: .35
+    }
+
+    .hero-title {
+      font-family: var(--mono);
+      font-size: clamp(28px, 4.5vw, 50px);
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1.07;
+      margin-bottom: 16px;
+      animation: fadeUp .5s ease forwards .1s;
+      opacity: 0
+    }
+
+    .hero-title .accent {
+      color: var(--acid)
+    }
+
+    .hero-sub {
+      font-size: 15.5px;
+      color: var(--muted);
+      line-height: 1.74;
+      font-weight: 300;
+      max-width: 560px;
+      animation: fadeUp .5s ease forwards .2s;
+      opacity: 0;
+      margin-bottom: 32px
+    }
+
+    .last-updated {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      color: var(--muted2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: fadeUp .5s ease forwards .3s;
+      opacity: 0
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s ease infinite;
+      flex-shrink: 0
+    }
 
     /* STATUS OVERVIEW */
-    .status-overview{max-width:1100px;margin:0 auto;padding:0 48px 64px}
-    .status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border2);border:1px solid var(--border);border-radius:5px;overflow:hidden;margin-bottom:32px}
-    .status-card{background:var(--bg1);padding:24px 20px;transition:background .2s}
-    .status-card:hover{background:var(--bg2)}
-    .sc-label{font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);margin-bottom:10px}
-    .sc-val{font-family:var(--mono);font-size:22px;font-weight:700;margin-bottom:4px}
-    .sc-desc{font-size:11.5px;color:var(--muted);font-weight:300;line-height:1.5}
-    .sc-status{display:flex;align-items:center;gap:6px;margin-top:8px}
-    .sc-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-    .sc-dot.green{background:var(--green)}
-    .sc-dot.amber{background:var(--amber)}
-    .sc-dot.blue{background:var(--blue)}
-    .sc-status-text{font-family:var(--mono);font-size:9px;letter-spacing:.08em}
+    .status-overview {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 48px 64px
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 32px
+    }
+
+    .status-card {
+      background: var(--bg1);
+      padding: 24px 20px;
+      transition: background .2s
+    }
+
+    .status-card:hover {
+      background: var(--bg2)
+    }
+
+    .sc-label {
+      font-family: var(--mono);
+      font-size: 8.5px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 10px
+    }
+
+    .sc-val {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 4px
+    }
+
+    .sc-desc {
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.5
+    }
+
+    .sc-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px
+    }
+
+    .sc-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .sc-dot.green {
+      background: var(--green)
+    }
+
+    .sc-dot.amber {
+      background: var(--amber)
+    }
+
+    .sc-dot.blue {
+      background: var(--blue)
+    }
+
+    .sc-status-text {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .08em
+    }
 
     /* UPTIME CHART */
-    .uptime-section{background:var(--bg1);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:64px 48px}
-    .uptime-inner{max-width:1100px;margin:0 auto}
-    .section-eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--acid);margin-bottom:14px}
-    .section-eyebrow::before,.section-eyebrow::after{content:'';display:block;width:18px;height:1px;background:var(--acid);opacity:.35}
-    .section-title{font-family:var(--mono);font-size:clamp(18px,2.5vw,28px);font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
-    .section-sub{font-size:14px;color:var(--muted);line-height:1.7;font-weight:300;max-width:520px;margin-bottom:32px}
-    .uptime-bars{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
-    .uptime-row{display:grid;grid-template-columns:180px 1fr 60px;align-items:center;gap:16px}
-    .uptime-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;color:var(--muted)}
-    .uptime-bar-wrap{background:var(--bg2);border:1px solid var(--border2);border-radius:2px;height:8px;overflow:hidden;position:relative}
-    .uptime-bar-fill{height:100%;border-radius:2px;animation:uptime-fill 1.2s ease forwards}
-    .uptime-pct{font-family:var(--mono);font-size:11px;font-weight:600;text-align:right}
-    .uptime-months{display:flex;gap:3px;margin-top:8px;padding-left:196px}
-    .uptime-month{flex:1;font-family:var(--mono);font-size:8px;letter-spacing:.04em;color:var(--muted2);text-align:center}
-    .uptime-bar-dots{display:flex;gap:3px;flex:1}
-    .uptime-dot{flex:1;height:8px;border-radius:1px}
+    .uptime-section {
+      background: var(--bg1);
+      border-top: 1px solid var(--border2);
+      border-bottom: 1px solid var(--border2);
+      padding: 64px 48px
+    }
+
+    .uptime-inner {
+      max-width: 1100px;
+      margin: 0 auto
+    }
+
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: var(--acid);
+      margin-bottom: 14px
+    }
+
+    .section-eyebrow::before,
+    .section-eyebrow::after {
+      content: '';
+      display: block;
+      width: 18px;
+      height: 1px;
+      background: var(--acid);
+      opacity: .35
+    }
+
+    .section-title {
+      font-family: var(--mono);
+      font-size: clamp(18px, 2.5vw, 28px);
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: 10px
+    }
+
+    .section-sub {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 300;
+      max-width: 520px;
+      margin-bottom: 32px
+    }
+
+    .uptime-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px
+    }
+
+    .uptime-row {
+      display: grid;
+      grid-template-columns: 180px 1fr 60px;
+      align-items: center;
+      gap: 16px
+    }
+
+    .uptime-label {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .05em;
+      color: var(--muted)
+    }
+
+    .uptime-bar-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 2px;
+      height: 8px;
+      overflow: hidden;
+      position: relative
+    }
+
+    .uptime-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      animation: uptime-fill 1.2s ease forwards
+    }
+
+    .uptime-pct {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      text-align: right
+    }
+
+    .uptime-months {
+      display: flex;
+      gap: 3px;
+      margin-top: 8px;
+      padding-left: 196px
+    }
+
+    .uptime-month {
+      flex: 1;
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .04em;
+      color: var(--muted2);
+      text-align: center
+    }
+
+    .uptime-bar-dots {
+      display: flex;
+      gap: 3px;
+      flex: 1
+    }
+
+    .uptime-dot {
+      flex: 1;
+      height: 8px;
+      border-radius: 1px
+    }
 
     /* CERTIFICATIONS TIMELINE */
-    .cert-section{padding:64px 48px}
-    .cert-inner{max-width:1100px;margin:0 auto}
-    .cert-timeline{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:5px;overflow:hidden;margin-top:32px}
-    .cert-row{display:grid;grid-template-columns:200px 1fr 140px;align-items:center;gap:24px;padding:20px 24px;border-bottom:1px solid var(--border2);background:var(--bg1);transition:background .15s}
-    .cert-row:last-child{border-bottom:none}
-    .cert-row:hover{background:var(--bg2)}
-    .cert-name-wrap{display:flex;align-items:center;gap:10px}
-    .cert-logo{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--bg3);border:1px solid var(--border);flex-shrink:0}
-    .cert-name{font-family:var(--mono);font-size:12px;font-weight:600}
-    .cert-body{font-size:12.5px;color:var(--muted);font-weight:300;line-height:1.55}
-    .cert-badge{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;padding:4px 10px;border-radius:2px;text-align:center;white-space:nowrap}
-    .cb-live{background:rgba(61,255,170,.08);border:1px solid rgba(61,255,170,.2);color:var(--green)}
-    .cb-progress{background:rgba(255,179,64,.07);border:1px solid rgba(255,179,64,.18);color:var(--amber)}
-    .cb-planned{background:rgba(255,255,255,.04);border:1px solid var(--border2);color:var(--muted2)}
-    .cb-gold{background:rgba(255,209,102,.07);border:1px solid rgba(255,209,102,.18);color:var(--gold)}
+    .cert-section {
+      padding: 64px 48px
+    }
+
+    .cert-inner {
+      max-width: 1100px;
+      margin: 0 auto
+    }
+
+    .cert-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 32px
+    }
+
+    .cert-row {
+      display: grid;
+      grid-template-columns: 200px 1fr 140px;
+      align-items: center;
+      gap: 24px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border2);
+      background: var(--bg1);
+      transition: background .15s
+    }
+
+    .cert-row:last-child {
+      border-bottom: none
+    }
+
+    .cert-row:hover {
+      background: var(--bg2)
+    }
+
+    .cert-name-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .cert-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .cert-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600
+    }
+
+    .cert-body {
+      font-size: 12.5px;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.55
+    }
+
+    .cert-badge {
+      font-family: var(--mono);
+      font-size: 8.5px;
+      letter-spacing: .12em;
+      padding: 4px 10px;
+      border-radius: 2px;
+      text-align: center;
+      white-space: nowrap
+    }
+
+    .cb-live {
+      background: rgba(61, 255, 170, .08);
+      border: 1px solid rgba(61, 255, 170, .2);
+      color: var(--green)
+    }
+
+    .cb-progress {
+      background: rgba(255, 179, 64, .07);
+      border: 1px solid rgba(255, 179, 64, .18);
+      color: var(--amber)
+    }
+
+    .cb-planned {
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid var(--border2);
+      color: var(--muted2)
+    }
+
+    .cb-gold {
+      background: rgba(255, 209, 102, .07);
+      border: 1px solid rgba(255, 209, 102, .18);
+      color: var(--gold)
+    }
 
     /* SUBPROCESSORS */
-    .subproc-section{background:var(--bg1);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:64px 48px}
-    .subproc-inner{max-width:1100px;margin:0 auto}
-    .subproc-table{width:100%;border-collapse:collapse;margin-top:32px}
-    .subproc-table th{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);text-align:left;padding:10px 16px;border-bottom:1px solid var(--border)}
-    .subproc-table td{font-size:13px;padding:13px 16px;border-bottom:1px solid var(--border2);vertical-align:top}
-    .subproc-table tr:last-child td{border-bottom:none}
-    .subproc-table tr:hover td{background:rgba(255,255,255,.012)}
-    .sp-name{font-family:var(--mono);font-size:12px;color:var(--text);font-weight:500}
-    .sp-purpose{font-size:12.5px;color:var(--muted);font-weight:300}
-    .sp-location{font-family:var(--mono);font-size:10.5px;color:var(--muted2)}
-    .sp-data{font-size:11.5px;color:var(--muted);font-weight:300;line-height:1.5}
-    .sp-cert{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;padding:2px 7px;border-radius:2px;background:rgba(61,255,170,.06);border:1px solid rgba(61,255,170,.14);color:var(--green)}
+    .subproc-section {
+      background: var(--bg1);
+      border-top: 1px solid var(--border2);
+      border-bottom: 1px solid var(--border2);
+      padding: 64px 48px
+    }
+
+    .subproc-inner {
+      max-width: 1100px;
+      margin: 0 auto
+    }
+
+    .subproc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 32px
+    }
+
+    .subproc-table th {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      text-align: left;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .subproc-table td {
+      font-size: 13px;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border2);
+      vertical-align: top
+    }
+
+    .subproc-table tr:last-child td {
+      border-bottom: none
+    }
+
+    .subproc-table tr:hover td {
+      background: rgba(255, 255, 255, .012)
+    }
+
+    .sp-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 500
+    }
+
+    .sp-purpose {
+      font-size: 12.5px;
+      color: var(--muted);
+      font-weight: 300
+    }
+
+    .sp-location {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted2)
+    }
+
+    .sp-data {
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.5
+    }
+
+    .sp-cert {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--mono);
+      font-size: 8.5px;
+      letter-spacing: .08em;
+      padding: 2px 7px;
+      border-radius: 2px;
+      background: rgba(61, 255, 170, .06);
+      border: 1px solid rgba(61, 255, 170, .14);
+      color: var(--green)
+    }
 
     /* DATA RESIDENCY */
-    .residency-section{padding:64px 48px}
-    .residency-inner{max-width:1100px;margin:0 auto}
-    .residency-map{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border2);border:1px solid var(--border);border-radius:5px;overflow:hidden;margin-top:32px}
-    .region-card{background:var(--bg1);padding:24px 22px;transition:background .2s}
-    .region-card:hover{background:var(--bg2)}
-    .region-flag{font-size:22px;margin-bottom:10px}
-    .region-name{font-family:var(--mono);font-size:13px;font-weight:600;margin-bottom:4px}
-    .region-provider{font-family:var(--mono);font-size:10px;color:var(--muted2);margin-bottom:10px}
-    .region-desc{font-size:12.5px;color:var(--muted);line-height:1.6;font-weight:300}
-    .region-status{display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:3px 8px;border-radius:2px}
-    .rs-live{background:rgba(61,255,170,.07);border:1px solid rgba(61,255,170,.15);color:var(--green)}
-    .rs-coming{background:rgba(255,179,64,.06);border:1px solid rgba(255,179,64,.14);color:var(--amber)}
+    .residency-section {
+      padding: 64px 48px
+    }
+
+    .residency-inner {
+      max-width: 1100px;
+      margin: 0 auto
+    }
+
+    .residency-map {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 32px
+    }
+
+    .region-card {
+      background: var(--bg1);
+      padding: 24px 22px;
+      transition: background .2s
+    }
+
+    .region-card:hover {
+      background: var(--bg2)
+    }
+
+    .region-flag {
+      font-size: 22px;
+      margin-bottom: 10px
+    }
+
+    .region-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px
+    }
+
+    .region-provider {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted2);
+      margin-bottom: 10px
+    }
+
+    .region-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-weight: 300
+    }
+
+    .region-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .1em;
+      padding: 3px 8px;
+      border-radius: 2px
+    }
+
+    .rs-live {
+      background: rgba(61, 255, 170, .07);
+      border: 1px solid rgba(61, 255, 170, .15);
+      color: var(--green)
+    }
+
+    .rs-coming {
+      background: rgba(255, 179, 64, .06);
+      border: 1px solid rgba(255, 179, 64, .14);
+      color: var(--amber)
+    }
 
     /* DOCUMENTS */
-    .docs-section{background:var(--bg1);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:64px 48px}
-    .docs-inner{max-width:1100px;margin:0 auto}
-    .docs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border2);border:1px solid var(--border);border-radius:5px;overflow:hidden;margin-top:32px}
-    .doc-card{background:var(--bg);padding:24px 22px;transition:background .2s;cursor:pointer;text-decoration:none;display:flex;flex-direction:column;gap:10px}
-    .doc-card:hover{background:var(--bg2)}
-    .doc-icon{font-size:22px}
-    .doc-name{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)}
-    .doc-desc{font-size:12.5px;color:var(--muted);line-height:1.6;font-weight:300;flex:1}
-    .doc-action{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--acid);display:flex;align-items:center;gap:5px;margin-top:auto;transition:gap .2s}
-    .doc-card:hover .doc-action{gap:8px}
-    .doc-locked{opacity:.5}
-    .doc-locked .doc-action{color:var(--muted2)}
+    .docs-section {
+      background: var(--bg1);
+      border-top: 1px solid var(--border2);
+      border-bottom: 1px solid var(--border2);
+      padding: 64px 48px
+    }
+
+    .docs-inner {
+      max-width: 1100px;
+      margin: 0 auto
+    }
+
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 32px
+    }
+
+    .doc-card {
+      background: var(--bg);
+      padding: 24px 22px;
+      transition: background .2s;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .doc-card:hover {
+      background: var(--bg2)
+    }
+
+    .doc-icon {
+      font-size: 22px
+    }
+
+    .doc-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text)
+    }
+
+    .doc-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-weight: 300;
+      flex: 1
+    }
+
+    .doc-action {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      color: var(--acid);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: auto;
+      transition: gap .2s
+    }
+
+    .doc-card:hover .doc-action {
+      gap: 8px
+    }
+
+    .doc-locked {
+      opacity: .5
+    }
+
+    .doc-locked .doc-action {
+      color: var(--muted2)
+    }
 
     /* INCIDENT LOG */
-    .incident-section{padding:64px 48px}
-    .incident-inner{max-width:1100px;margin:0 auto}
-    .incident-list{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:5px;overflow:hidden;margin-top:32px}
-    .incident-row{display:grid;grid-template-columns:100px 80px 1fr;gap:20px;padding:16px 22px;border-bottom:1px solid var(--border2);background:var(--bg1);align-items:start;transition:background .15s}
-    .incident-row:last-child{border-bottom:none}
-    .incident-row:hover{background:var(--bg2)}
-    .inc-date{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted2)}
-    .inc-sev{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;padding:3px 8px;border-radius:2px;text-align:center}
-    .sev-none{background:rgba(61,255,170,.07);border:1px solid rgba(61,255,170,.15);color:var(--green)}
-    .sev-low{background:rgba(77,184,255,.07);border:1px solid rgba(77,184,255,.15);color:var(--blue)}
-    .inc-body h4{font-family:var(--mono);font-size:12px;font-weight:600;margin-bottom:3px}
-    .inc-body p{font-size:12px;color:var(--muted);font-weight:300;line-height:1.5}
-    .no-incidents{text-align:center;padding:48px;color:var(--muted2);font-family:var(--mono);font-size:13px}
+    .incident-section {
+      padding: 64px 48px
+    }
+
+    .incident-inner {
+      max-width: 1100px;
+      margin: 0 auto
+    }
+
+    .incident-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 32px
+    }
+
+    .incident-row {
+      display: grid;
+      grid-template-columns: 100px 80px 1fr;
+      gap: 20px;
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border2);
+      background: var(--bg1);
+      align-items: start;
+      transition: background .15s
+    }
+
+    .incident-row:last-child {
+      border-bottom: none
+    }
+
+    .incident-row:hover {
+      background: var(--bg2)
+    }
+
+    .inc-date {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .06em;
+      color: var(--muted2)
+    }
+
+    .inc-sev {
+      font-family: var(--mono);
+      font-size: 8.5px;
+      letter-spacing: .12em;
+      padding: 3px 8px;
+      border-radius: 2px;
+      text-align: center
+    }
+
+    .sev-none {
+      background: rgba(61, 255, 170, .07);
+      border: 1px solid rgba(61, 255, 170, .15);
+      color: var(--green)
+    }
+
+    .sev-low {
+      background: rgba(77, 184, 255, .07);
+      border: 1px solid rgba(77, 184, 255, .15);
+      color: var(--blue)
+    }
+
+    .inc-body h4 {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 3px
+    }
+
+    .inc-body p {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.5
+    }
+
+    .no-incidents {
+      text-align: center;
+      padding: 48px;
+      color: var(--muted2);
+      font-family: var(--mono);
+      font-size: 13px
+    }
 
     /* CTA */
-    .cta{text-align:center;padding:80px 48px;border-top:1px solid var(--border2);position:relative;overflow:hidden}
-    .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(184,255,87,.04) 0%,transparent 70%);pointer-events:none}
-    .cta h2{font-family:var(--mono);font-size:clamp(22px,3vw,36px);font-weight:700;letter-spacing:-.025em;margin-bottom:10px}
-    .cta p{font-size:14px;color:var(--muted);margin-bottom:28px;font-weight:300}
-    .cta-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
-    .btn-primary{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;background:var(--acid);color:#000;border:none;padding:12px 26px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .25s}
-    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(184,255,87,.28)}
-    .btn-outline{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--text);background:none;border:1px solid var(--border);padding:12px 22px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .25s}
-    .btn-outline:hover{border-color:rgba(255,255,255,.2);transform:translateY(-2px)}
+    .cta {
+      text-align: center;
+      padding: 80px 48px;
+      border-top: 1px solid var(--border2);
+      position: relative;
+      overflow: hidden
+    }
 
-    footer{background:var(--bg);border-top:1px solid var(--border2);padding:28px 48px;display:flex;align-items:center;justify-content:space-between}
-    .footer-left{font-family:var(--mono);font-size:10.5px;color:var(--muted2)}
-    .footer-links{display:flex;gap:22px}
-    .footer-links a{font-family:var(--mono);font-size:10.5px;color:var(--muted2);text-decoration:none;transition:color .2s}
-    .footer-links a:hover{color:var(--acid)}
+    .cta-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 300px;
+      background: radial-gradient(ellipse, rgba(184, 255, 87, .04) 0%, transparent 70%);
+      pointer-events: none
+    }
 
-    @media(max-width:900px){nav{padding:0 20px}.nav-links{display:none}.hero,.status-overview,.uptime-section,.cert-section,.subproc-section,.residency-section,.docs-section,.incident-section,.cta{padding-left:20px;padding-right:20px}.status-grid{grid-template-columns:repeat(2,1fr)}.residency-map,.docs-grid{grid-template-columns:1fr}.cert-row{grid-template-columns:1fr;gap:10px}.uptime-row{grid-template-columns:120px 1fr 50px}.uptime-months{padding-left:136px}}
-    @media(max-width:600px){footer{flex-direction:column;gap:14px;text-align:center;padding:24px}.status-grid{grid-template-columns:1fr}.uptime-row{grid-template-columns:1fr;gap:6px}.uptime-months{display:none}.uptime-pct{display:none}}
+    .cta h2 {
+      font-family: var(--mono);
+      font-size: clamp(22px, 3vw, 36px);
+      font-weight: 700;
+      letter-spacing: -.025em;
+      margin-bottom: 10px
+    }
+
+    .cta p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      font-weight: 300
+    }
+
+    .cta-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .btn-primary {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      background: var(--acid);
+      color: #000;
+      border: none;
+      padding: 12px 26px;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .25s
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(184, 255, 87, .28)
+    }
+
+    .btn-outline {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .1em;
+      color: var(--text);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 12px 22px;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .25s
+    }
+
+    .btn-outline:hover {
+      border-color: rgba(255, 255, 255, .2);
+      transform: translateY(-2px)
+    }
+
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border2);
+      padding: 28px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .footer-left {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted2)
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 22px
+    }
+
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted2);
+      text-decoration: none;
+      transition: color .2s
+    }
+
+    .footer-links a:hover {
+      color: var(--acid)
+    }
+
+    @media(max-width:900px) {
+      nav {
+        padding: 0 20px
+      }
+
+      .nav-links {
+        display: none
+      }
+
+      .hero,
+      .status-overview,
+      .uptime-section,
+      .cert-section,
+      .subproc-section,
+      .residency-section,
+      .docs-section,
+      .incident-section,
+      .cta {
+        padding-left: 20px;
+        padding-right: 20px
+      }
+
+      .status-grid {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .residency-map,
+      .docs-grid {
+        grid-template-columns: 1fr
+      }
+
+      .cert-row {
+        grid-template-columns: 1fr;
+        gap: 10px
+      }
+
+      .uptime-row {
+        grid-template-columns: 120px 1fr 50px
+      }
+
+      .uptime-months {
+        padding-left: 136px
+      }
+    }
+
+    @media(max-width:600px) {
+      footer {
+        flex-direction: column;
+        gap: 14px;
+        text-align: center;
+        padding: 24px
+      }
+
+      .status-grid {
+        grid-template-columns: 1fr
+      }
+
+      .uptime-row {
+        grid-template-columns: 1fr;
+        gap: 6px
+      }
+
+      .uptime-months {
+        display: none
+      }
+
+      .uptime-pct {
+        display: none
+      }
+    }
+
+    /* ── Neon logo ── */
+    .nav-logo-mark {
+      animation: neonBoxPulse 2s ease-in-out infinite;
+      position: relative;
+    }
+
+    .nav-logo-mark::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 1px solid rgba(184, 255, 87, .25);
+      animation: expandRing 2s ease-out infinite;
+      pointer-events: none;
+    }
+
+    .nsq {
+      fill: #b8ff57;
+    }
+
+    .nsq1 {
+      animation: neonSqSeq 2.4s ease-in-out infinite 0s;
+    }
+
+    .nsq2 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .3s;
+    }
+
+    .nsq3 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .6s;
+    }
+
+    .nsq4 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .9s;
+    }
+
+    .ndot1 {
+      fill: #b8ff57;
+      animation: neonDotPulse 1.2s ease-in-out infinite 0s;
+    }
+
+    .ndot2 {
+      fill: #b8ff57;
+      animation: neonDotPulse 1.2s ease-in-out infinite .5s;
+    }
+
+    @keyframes neonBoxPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 8px rgba(184, 255, 87, .4), 0 0 20px rgba(184, 255, 87, .15), inset 0 0 10px rgba(184, 255, 87, .04);
+        border-color: rgba(184, 255, 87, .9);
+      }
+
+      50% {
+        box-shadow: 0 0 16px rgba(184, 255, 87, .7), 0 0 40px rgba(184, 255, 87, .3), 0 0 80px rgba(184, 255, 87, .1), inset 0 0 20px rgba(184, 255, 87, .08);
+        border-color: #d4ff8a;
+      }
+    }
+
+    @keyframes expandRing {
+      0% {
+        transform: scale(1);
+        opacity: .7;
+      }
+
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    @keyframes neonSqSeq {
+
+      0%,
+      100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 3px rgba(184, 255, 87, .9)) drop-shadow(0 0 7px rgba(184, 255, 87, .5));
+      }
+
+      40%,
+      60% {
+        opacity: .08;
+        filter: none;
+      }
+    }
+
+    @keyframes neonDotPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 4px #b8ff57) drop-shadow(0 0 8px rgba(184, 255, 87, .6));
+      }
+
+      50% {
+        opacity: .1;
+        filter: none;
+      }
+    }
   </style>
 </head>
+
 <body>
-<nav>
-  <a href="index.html" class="nav-logo">
-    <div class="nav-logo-mark"><svg viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" fill="#000"/><rect x="8" y="1" width="5" height="5" fill="#000"/><rect x="1" y="8" width="5" height="5" fill="#000"/><rect x="8" y="10" width="2" height="2" fill="#000"/><rect x="11" y="10" width="2" height="2" fill="#000"/></svg></div>
-    VULN<em>RA</em>
-  </a>
-  <div class="nav-links">
-    <a href="index.html#features">Features</a>
-    <a href="security.html">Security</a>
-    <a href="enterprise.html">Enterprise</a>
-    <a href="pricing.html">Pricing</a>
-    <a href="docs.html">Docs</a>
-  </div>
-  <div class="nav-right">
-    <a href="signin.html" class="btn-ghost">Sign In</a>
-    <a href="signup.html" class="btn-acid">Get Started →</a>
-  </div>
-</nav>
 
-<main>
-  <div class="hero">
-    <div class="page-eyebrow">Trust Center</div>
-    <h1 class="hero-title">Everything your<br>procurement team <span class="accent">needs.</span></h1>
-    <p class="hero-sub">SOC 2 status, live uptime, subprocessors, data residency, and downloadable security documentation. We make vendor review fast because we're a security company — we understand what teams need before they trust a tool.</p>
-    <div class="last-updated">
-      <span class="live-dot"></span>
-      Last updated: March 9, 2026 · Next scheduled review: June 1, 2026
+  <!-- VULNRA Loader -->
+  <div id="vLoader" style="
+    position:fixed;inset:0;background:#060608;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    z-index:9990;transition:opacity .5s ease,visibility .5s ease;
+    font-family:'IBM Plex Mono',monospace;gap:0;
+  ">
+    <!-- corners -->
+    <div style="position:absolute;top:28px;left:28px;width:24px;height:24px;border-top:1px solid rgba(184,255,87,.35);border-left:1px solid rgba(184,255,87,.35)"></div>
+    <div style="position:absolute;top:28px;right:28px;width:24px;height:24px;border-top:1px solid rgba(184,255,87,.35);border-right:1px solid rgba(184,255,87,.35)"></div>
+    <div style="position:absolute;bottom:28px;left:28px;width:24px;height:24px;border-bottom:1px solid rgba(184,255,87,.35);border-left:1px solid rgba(184,255,87,.35)"></div>
+    <div style="position:absolute;bottom:28px;right:28px;width:24px;height:24px;border-bottom:1px solid rgba(184,255,87,.35);border-right:1px solid rgba(184,255,87,.35)"></div>
+
+    <!-- mark -->
+    <div style="position:relative;margin-bottom:36px;">
+      <div style="position:absolute;inset:-20px;border-radius:50%;border:1px solid transparent;border-top-color:rgba(184,255,87,.6);border-right-color:rgba(184,255,87,.12);animation:vOrbit 2s linear infinite;"></div>
+      <div style="position:absolute;inset:-12px;border-radius:50%;border:1px solid transparent;border-bottom-color:rgba(184,255,87,.35);border-left-color:rgba(184,255,87,.08);animation:vOrbit 3.2s linear infinite reverse;"></div>
+      <div style="width:72px;height:72px;border-radius:13px;background:#060608;border:1.5px solid #b8ff57;display:flex;align-items:center;justify-content:center;animation:neonBoxPulse 2s ease-in-out infinite;position:relative;">
+        <div style="position:absolute;inset:-1px;border-radius:inherit;border:1px solid rgba(184,255,87,.25);animation:expandRing 2s ease-out infinite;pointer-events:none;"></div>
+        <svg width="38" height="38" viewBox="0 0 20 20" fill="none">
+          <rect class="nsq nsq1" x="1"    y="1"    width="7.5" height="7.5" rx=".8"/>
+          <rect class="nsq nsq2" x="11.5" y="1"    width="7.5" height="7.5" rx=".8"/>
+          <rect class="nsq nsq3" x="1"    y="11.5" width="7.5" height="7.5" rx=".8"/>
+          <rect class="nsq nsq4" x="11.5" y="11.5" width="7.5" height="7.5" rx=".8"/>
+          <circle class="ndot1" cx="14.25" cy="16.75" r="1.1"/>
+          <circle class="ndot2" cx="17.25" cy="16.75" r="1.1"/>
+        </svg>
+      </div>
     </div>
-  </div>
 
-  <!-- STATUS OVERVIEW -->
-  <div class="status-overview">
-    <div class="status-grid">
-      <div class="status-card">
-        <div class="sc-label">API Uptime (90d)</div>
-        <div class="sc-val" style="color:var(--green)">99.8%</div>
-        <div class="sc-desc">Railway-hosted backend. Last incident: none in 90 days.</div>
-        <div class="sc-status"><span class="sc-dot green"></span><span class="sc-status-text" style="color:var(--green)">Operational</span></div>
+    <!-- title + status -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:32px;">
+      <div style="font-size:13px;font-weight:700;letter-spacing:.2em;color:#b8ff57;text-shadow:0 0 12px rgba(184,255,87,.5)">VULNRA</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.14em;color:rgba(184,255,87,.45);">
+        <span id="vLoaderStatus">INITIALISING</span>
+        <span style="display:inline-block;width:7px;height:11px;background:#b8ff57;animation:vBlink .7s steps(1) infinite;box-shadow:0 0 6px #b8ff57;"></span>
       </div>
-      <div class="status-card">
-        <div class="sc-label">SOC 2 Type II</div>
-        <div class="sc-val" style="color:var(--amber)">In Progress</div>
-        <div class="sc-desc">Vanta evidence collection started. Target certification Q3 2026.</div>
-        <div class="sc-status"><span class="sc-dot amber"></span><span class="sc-status-text" style="color:var(--amber)">Q3 2026</span></div>
+    </div>
+
+    <!-- progress -->
+    <div style="width:220px;display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;justify-content:space-between;font-size:9px;letter-spacing:.14em;color:rgba(184,255,87,.3);">
+        <span>BOOT SEQUENCE</span>
+        <span id="vLoaderPct">0%</span>
       </div>
-      <div class="status-card">
-        <div class="sc-label">Data Encryption</div>
-        <div class="sc-val" style="color:var(--green)">AES-256</div>
-        <div class="sc-desc">At rest via Supabase Postgres. In transit via TLS 1.2+ enforced.</div>
-        <div class="sc-status"><span class="sc-dot green"></span><span class="sc-status-text" style="color:var(--green)">Live</span></div>
-      </div>
-      <div class="status-card">
-        <div class="sc-label">Disclosure Response</div>
-        <div class="sc-val" style="color:var(--green)">&lt; 24h</div>
-        <div class="sc-desc">Responsible disclosure programme active. PGP key available.</div>
-        <div class="sc-status"><span class="sc-dot green"></span><span class="sc-status-text" style="color:var(--green)">Active</span></div>
+      <div style="height:2px;background:rgba(184,255,87,.1);border-radius:1px;overflow:hidden;">
+        <div id="vLoaderBar" style="height:100%;width:0%;background:#b8ff57;border-radius:1px;box-shadow:0 0 8px rgba(184,255,87,.7);transition:width .2s ease;"></div>
       </div>
     </div>
   </div>
 
-  <!-- UPTIME -->
-  <div class="uptime-section">
-    <div class="uptime-inner">
-      <div class="section-eyebrow">Uptime</div>
-      <h2 class="section-title">Service availability</h2>
-      <p class="section-sub">90-day uptime across all VULNRA services. Each bar represents one week — green is ≥99.9%, amber is 99.0–99.9%, red is below 99.0%.</p>
-      <div class="uptime-bars">
-        <!-- API Backend -->
-        <div class="uptime-row">
-          <div class="uptime-label">API (Railway)</div>
-          <div class="uptime-bar-wrap">
-            <div class="uptime-bar-dots" id="barApi"></div>
-          </div>
-          <div class="uptime-pct" style="color:var(--green)">99.8%</div>
-        </div>
-        <!-- Database -->
-        <div class="uptime-row">
-          <div class="uptime-label">Database (Supabase)</div>
-          <div class="uptime-bar-wrap">
-            <div class="uptime-bar-dots" id="barDb"></div>
-          </div>
-          <div class="uptime-pct" style="color:var(--green)">100%</div>
-        </div>
-        <!-- Cache -->
-        <div class="uptime-row">
-          <div class="uptime-label">Cache (Upstash Redis)</div>
-          <div class="uptime-bar-wrap">
-            <div class="uptime-bar-dots" id="barCache"></div>
-          </div>
-          <div class="uptime-pct" style="color:var(--green)">99.9%</div>
-        </div>
-        <!-- Auth -->
-        <div class="uptime-row">
-          <div class="uptime-label">Auth (Supabase Auth)</div>
-          <div class="uptime-bar-wrap">
-            <div class="uptime-bar-dots" id="barAuth"></div>
-          </div>
-          <div class="uptime-pct" style="color:var(--green)">100%</div>
-        </div>
-      </div>
-      <div class="uptime-months" id="uptimeMonths"></div>
-    </div>
-  </div>
+  <style>
+  @keyframes vOrbit { to { transform: rotate(360deg); } }
+  @keyframes vBlink { 0%,50%{opacity:1}51%,100%{opacity:0} }
+  </style>
 
-  <!-- CERTIFICATIONS -->
-  <div class="cert-section">
-    <div class="cert-inner">
-      <div class="section-eyebrow">Certifications & Controls</div>
-      <h2 class="section-title">Security posture timeline</h2>
-      <div class="cert-timeline">
-        <div class="cert-row">
-          <div class="cert-name-wrap">
-            <div class="cert-logo">🔐</div>
-            <div class="cert-name">Encryption (AES-256 + TLS)</div>
-          </div>
-          <div class="cert-body">All data at rest encrypted via Supabase Postgres AES-256. All API traffic enforces TLS 1.2+. No unencrypted channels exist in production.</div>
-          <span class="cert-badge cb-live">Live</span>
+  <script>
+  (function(){
+    const msgs = ['INITIALISING','LOADING PROBES','MAPPING FRAMEWORKS','VERIFYING AUTH','READY'];
+    const bar = document.getElementById('vLoaderBar');
+    const pct = document.getElementById('vLoaderPct');
+    const status = document.getElementById('vLoaderStatus');
+    const loader = document.getElementById('vLoader');
+    let p = 0, mi = 0;
+    const iv = setInterval(() => {
+      p = Math.min(100, p + 1.4 + Math.random());
+      bar.style.width = p + '%';
+      pct.textContent = Math.floor(p) + '%';
+      mi = Math.floor((p / 100) * (msgs.length - 1));
+      status.textContent = msgs[mi];
+      if (p >= 100) {
+        clearInterval(iv);
+        bar.style.width = '100%';
+        pct.textContent = '100%';
+        status.textContent = 'READY';
+        setTimeout(() => {
+          loader.style.opacity = '0';
+          loader.style.visibility = 'hidden';
+        }, 300);
+      }
+    }, 28);
+  })();
+  </script>
+  <!-- END Loader -->
+
+  <nav>
+    <a href="index.html" class="nav-logo">
+      <div class="nav-logo-mark" style="
+        width: 28px;
+        height: 28px;
+        border-radius: 5px;
+        background: #060608;
+        border: 1.5px solid #b8ff57;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: neonBoxPulse 2s ease-in-out infinite;
+        flex-shrink: 0;
+        position: relative;
+      ">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+          <rect class="nsq nsq1" x="1" y="1" width="7.5" height="7.5" rx=".8" />
+          <rect class="nsq nsq2" x="11.5" y="1" width="7.5" height="7.5" rx=".8" />
+          <rect class="nsq nsq3" x="1" y="11.5" width="7.5" height="7.5" rx=".8" />
+          <rect class="nsq nsq4" x="11.5" y="11.5" width="7.5" height="7.5" rx=".8" />
+          <circle class="ndot1" cx="14.25" cy="16.75" r="1.1" />
+          <circle class="ndot2" cx="17.25" cy="16.75" r="1.1" />
+        </svg>
+      </div>
+      VULN<em>RA</em>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="how-it-works.html">How it works</a>
+      <a href="compliance.html">Compliance</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="docs.html">Docs</a>
+    </div>
+    <div class="nav-right">
+      <a href="signin.html" class="btn-ghost">Sign In</a>
+      <a href="signup.html" class="btn-acid">Get Started →</a>
+    </div>
+  </nav>
+
+
+  <main>
+    <div class="hero">
+      <div class="page-eyebrow">Trust Center</div>
+      <h1 class="hero-title">Everything your<br>procurement team <span class="accent">needs.</span></h1>
+      <p class="hero-sub">SOC 2 status, live uptime, subprocessors, data residency, and downloadable security
+        documentation. We make vendor review fast because we're a security company — we understand what teams need
+        before they trust a tool.</p>
+      <div class="last-updated">
+        <span class="live-dot"></span>
+        Last updated: March 9, 2026 · Next scheduled review: June 1, 2026
+      </div>
+    </div>
+
+    <!-- STATUS OVERVIEW -->
+    <div class="status-overview">
+      <div class="status-grid">
+        <div class="status-card">
+          <div class="sc-label">API Uptime (90d)</div>
+          <div class="sc-val" style="color:var(--green)">99.8%</div>
+          <div class="sc-desc">Railway-hosted backend. Last incident: none in 90 days.</div>
+          <div class="sc-status"><span class="sc-dot green"></span><span class="sc-status-text"
+              style="color:var(--green)">Operational</span></div>
         </div>
-        <div class="cert-row">
-          <div class="cert-name-wrap">
-            <div class="cert-logo">🛡</div>
-            <div class="cert-name">Private IP Blocklist</div>
-          </div>
-          <div class="cert-body">Scan engine rejects RFC 1918 ranges, localhost, and cloud metadata endpoints (169.254.169.254) before any probe fires. HTTP 400 with error code returned.</div>
-          <span class="cert-badge cb-live">Live</span>
+        <div class="status-card">
+          <div class="sc-label">SOC 2 Type II</div>
+          <div class="sc-val" style="color:var(--amber)">In Progress</div>
+          <div class="sc-desc">Vanta evidence collection started. Target certification Q3 2026.</div>
+          <div class="sc-status"><span class="sc-dot amber"></span><span class="sc-status-text"
+              style="color:var(--amber)">Q3 2026</span></div>
         </div>
-        <div class="cert-row">
-          <div class="cert-name-wrap">
-            <div class="cert-logo">👤</div>
-            <div class="cert-name">Authentication (Supabase Auth)</div>
-          </div>
-          <div class="cert-body">JWTs with short expiry, Google + GitHub OAuth 2.0, bcrypt password hashing, email verification required. No plain-text credentials stored anywhere.</div>
-          <span class="cert-badge cb-live">Live</span>
+        <div class="status-card">
+          <div class="sc-label">Data Encryption</div>
+          <div class="sc-val" style="color:var(--green)">AES-256</div>
+          <div class="sc-desc">At rest via Supabase Postgres. In transit via TLS 1.2+ enforced.</div>
+          <div class="sc-status"><span class="sc-dot green"></span><span class="sc-status-text"
+              style="color:var(--green)">Live</span></div>
         </div>
-        <div class="cert-row">
-          <div class="cert-name-wrap">
-            <div class="cert-logo">📋</div>
-            <div class="cert-name">GDPR Compliance</div>
-          </div>
-          <div class="cert-body">Privacy policy published. Data Processing Agreement available on request for enterprise customers. 90-day scan data retention policy enforced. Right to erasure honoured within 30 days.</div>
-          <span class="cert-badge cb-live">Live</span>
-        </div>
-        <div class="cert-row">
-          <div class="cert-name-wrap">
-            <div class="cert-logo">🇮🇳</div>
-            <div class="cert-name">India DPDP Compliance</div>
-          </div>
-          <div class="cert-body">Processing of personal data complies with DPDP Act 2023. Consent mechanisms implemented. Cross-border data transfer disclosures included in privacy policy.</div>
-          <span class="cert-badge cb-live">Live</span>
-        </div>
-        <div class="cert-row">
-          <div class="cert-name-wrap">
-            <div class="cert-logo">🔎</div>
-            <div class="cert-name">Dependency Scanning</div>
-          </div>
-          <div class="cert-body">Dependabot enabled on all repositories. GitHub Advanced Security active. CVEs in direct dependencies patched within 48 hours of disclosure. Weekly automated scans.</div>
-          <span class="cert-badge cb-progress">In Progress</span>
-        </div>
-        <div class="cert-row">
-          <div class="cert-name-wrap">
-            <div class="cert-logo">🏆</div>
-            <div class="cert-name">SOC 2 Type II</div>
-          </div>
-          <div class="cert-body">Vanta-automated evidence collection underway. Covers Security, Availability, and Confidentiality Trust Services Criteria. External auditor to be engaged Q2 2026.</div>
-          <span class="cert-badge cb-gold">Q3 2026</span>
-        </div>
-        <div class="cert-row">
-          <div class="cert-name-wrap">
-            <div class="cert-logo">🎯</div>
-            <div class="cert-name">External VAPT</div>
-          </div>
-          <div class="cert-body">Third-party vulnerability assessment and penetration testing by an accredited firm. Scoped to cover API, authentication, data isolation, and injection surfaces.</div>
-          <span class="cert-badge cb-planned">Q2 2026</span>
-        </div>
-        <div class="cert-row">
-          <div class="cert-name-wrap">
-            <div class="cert-logo">📁</div>
-            <div class="cert-name">ISO 27001</div>
-          </div>
-          <div class="cert-body">Information Security Management System aligned with ISO 27001 Annex A controls. Formal certification roadmap follows SOC 2 completion.</div>
-          <span class="cert-badge cb-planned">2027</span>
+        <div class="status-card">
+          <div class="sc-label">Disclosure Response</div>
+          <div class="sc-val" style="color:var(--green)">&lt; 24h</div>
+          <div class="sc-desc">Responsible disclosure programme active. PGP key available.</div>
+          <div class="sc-status"><span class="sc-dot green"></span><span class="sc-status-text"
+              style="color:var(--green)">Active</span></div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- SUBPROCESSORS -->
-  <div class="subproc-section">
-    <div class="subproc-inner">
-      <div class="section-eyebrow">Subprocessors</div>
-      <h2 class="section-title">Third-party data processors</h2>
-      <p class="section-sub">All subprocessors are listed here. Enterprise customers are notified 30 days in advance of any new subprocessor addition.</p>
-      <table class="subproc-table">
-        <tr>
-          <th>Subprocessor</th>
-          <th>Purpose</th>
-          <th>Data Location</th>
-          <th>Data Processed</th>
-          <th>Certifications</th>
-        </tr>
-        <tr>
-          <td><span class="sp-name">Supabase</span></td>
-          <td><span class="sp-purpose">Database & Authentication</span></td>
-          <td><span class="sp-location">US East (AWS)</span></td>
-          <td><span class="sp-data">User accounts, scan results, API keys (hashed)</span></td>
-          <td><span class="sp-cert">SOC 2</span></td>
-        </tr>
-        <tr>
-          <td><span class="sp-name">Upstash</span></td>
-          <td><span class="sp-purpose">Redis Cache & Task Queue</span></td>
-          <td><span class="sp-location">US East</span></td>
-          <td><span class="sp-data">Temporary scan state (TTL-limited, no PII)</span></td>
-          <td><span class="sp-cert">SOC 2</span></td>
-        </tr>
-        <tr>
-          <td><span class="sp-name">Railway</span></td>
-          <td><span class="sp-purpose">Backend API Hosting</span></td>
-          <td><span class="sp-location">US East</span></td>
-          <td><span class="sp-data">API traffic, environment variables, logs</span></td>
-          <td><span class="sp-cert">SOC 2</span></td>
-        </tr>
-        <tr>
-          <td><span class="sp-name">Anthropic</span></td>
-          <td><span class="sp-purpose">LLM-as-Judge Scoring (Pro+)</span></td>
-          <td><span class="sp-location">US</span></td>
-          <td><span class="sp-data">Anonymised probe + response pairs for scoring only. No user PII transmitted.</span></td>
-          <td><span class="sp-cert">SOC 2</span></td>
-        </tr>
-        <tr>
-          <td><span class="sp-name">Google (OAuth)</span></td>
-          <td><span class="sp-purpose">Social Authentication</span></td>
-          <td><span class="sp-location">Global</span></td>
-          <td><span class="sp-data">Email address, display name (OAuth token exchange only)</span></td>
-          <td><span class="sp-cert">ISO 27001</span></td>
-        </tr>
-        <tr>
-          <td><span class="sp-name">GitHub (OAuth)</span></td>
-          <td><span class="sp-purpose">Social Authentication</span></td>
-          <td><span class="sp-location">US</span></td>
-          <td><span class="sp-data">GitHub username, email (OAuth token exchange only)</span></td>
-          <td><span class="sp-cert">SOC 2</span></td>
-        </tr>
-        <tr>
-          <td><span class="sp-name">Vanta</span></td>
-          <td><span class="sp-purpose">SOC 2 Evidence Collection</span></td>
-          <td><span class="sp-location">US</span></td>
-          <td><span class="sp-data">Infrastructure configuration, access logs for audit evidence</span></td>
-          <td><span class="sp-cert">SOC 2</span></td>
-        </tr>
-      </table>
+    <!-- UPTIME -->
+    <div class="uptime-section">
+      <div class="uptime-inner">
+        <div class="section-eyebrow">Uptime</div>
+        <h2 class="section-title">Service availability</h2>
+        <p class="section-sub">90-day uptime across all VULNRA services. Each bar represents one week — green is ≥99.9%,
+          amber is 99.0–99.9%, red is below 99.0%.</p>
+        <div class="uptime-bars">
+          <!-- API Backend -->
+          <div class="uptime-row">
+            <div class="uptime-label">API (Railway)</div>
+            <div class="uptime-bar-wrap">
+              <div class="uptime-bar-dots" id="barApi"></div>
+            </div>
+            <div class="uptime-pct" style="color:var(--green)">99.8%</div>
+          </div>
+          <!-- Database -->
+          <div class="uptime-row">
+            <div class="uptime-label">Database (Supabase)</div>
+            <div class="uptime-bar-wrap">
+              <div class="uptime-bar-dots" id="barDb"></div>
+            </div>
+            <div class="uptime-pct" style="color:var(--green)">100%</div>
+          </div>
+          <!-- Cache -->
+          <div class="uptime-row">
+            <div class="uptime-label">Cache (Upstash Redis)</div>
+            <div class="uptime-bar-wrap">
+              <div class="uptime-bar-dots" id="barCache"></div>
+            </div>
+            <div class="uptime-pct" style="color:var(--green)">99.9%</div>
+          </div>
+          <!-- Auth -->
+          <div class="uptime-row">
+            <div class="uptime-label">Auth (Supabase Auth)</div>
+            <div class="uptime-bar-wrap">
+              <div class="uptime-bar-dots" id="barAuth"></div>
+            </div>
+            <div class="uptime-pct" style="color:var(--green)">100%</div>
+          </div>
+        </div>
+        <div class="uptime-months" id="uptimeMonths"></div>
+      </div>
     </div>
-  </div>
 
-  <!-- DATA RESIDENCY -->
-  <div class="residency-section">
-    <div class="residency-inner">
-      <div class="section-eyebrow">Data Residency</div>
-      <h2 class="section-title">Where your data lives</h2>
-      <p class="section-sub">Current data residency options. Enterprise customers on custom contracts can request EU or India data residency.</p>
-      <div class="residency-map">
-        <div class="region-card">
-          <div class="region-flag">🇺🇸</div>
-          <div class="region-name">United States East</div>
-          <div class="region-provider">AWS us-east-1 · Railway · Supabase</div>
-          <div class="region-desc">Default data residency for all tiers. Supabase Postgres, Upstash Redis, and Railway API hosted in US East.</div>
-          <span class="region-status rs-live">● Default</span>
+    <!-- CERTIFICATIONS -->
+    <div class="cert-section">
+      <div class="cert-inner">
+        <div class="section-eyebrow">Certifications & Controls</div>
+        <h2 class="section-title">Security posture timeline</h2>
+        <div class="cert-timeline">
+          <div class="cert-row">
+            <div class="cert-name-wrap">
+              <div class="cert-logo">🔐</div>
+              <div class="cert-name">Encryption (AES-256 + TLS)</div>
+            </div>
+            <div class="cert-body">All data at rest encrypted via Supabase Postgres AES-256. All API traffic enforces
+              TLS 1.2+. No unencrypted channels exist in production.</div>
+            <span class="cert-badge cb-live">Live</span>
+          </div>
+          <div class="cert-row">
+            <div class="cert-name-wrap">
+              <div class="cert-logo">🛡</div>
+              <div class="cert-name">Private IP Blocklist</div>
+            </div>
+            <div class="cert-body">Scan engine rejects RFC 1918 ranges, localhost, and cloud metadata endpoints
+              (169.254.169.254) before any probe fires. HTTP 400 with error code returned.</div>
+            <span class="cert-badge cb-live">Live</span>
+          </div>
+          <div class="cert-row">
+            <div class="cert-name-wrap">
+              <div class="cert-logo">👤</div>
+              <div class="cert-name">Authentication (Supabase Auth)</div>
+            </div>
+            <div class="cert-body">JWTs with short expiry, Google + GitHub OAuth 2.0, bcrypt password hashing, email
+              verification required. No plain-text credentials stored anywhere.</div>
+            <span class="cert-badge cb-live">Live</span>
+          </div>
+          <div class="cert-row">
+            <div class="cert-name-wrap">
+              <div class="cert-logo">📋</div>
+              <div class="cert-name">GDPR Compliance</div>
+            </div>
+            <div class="cert-body">Privacy policy published. Data Processing Agreement available on request for
+              enterprise customers. 90-day scan data retention policy enforced. Right to erasure honoured within 30
+              days.</div>
+            <span class="cert-badge cb-live">Live</span>
+          </div>
+          <div class="cert-row">
+            <div class="cert-name-wrap">
+              <div class="cert-logo">🇮🇳</div>
+              <div class="cert-name">India DPDP Compliance</div>
+            </div>
+            <div class="cert-body">Processing of personal data complies with DPDP Act 2023. Consent mechanisms
+              implemented. Cross-border data transfer disclosures included in privacy policy.</div>
+            <span class="cert-badge cb-live">Live</span>
+          </div>
+          <div class="cert-row">
+            <div class="cert-name-wrap">
+              <div class="cert-logo">🔎</div>
+              <div class="cert-name">Dependency Scanning</div>
+            </div>
+            <div class="cert-body">Dependabot enabled on all repositories. GitHub Advanced Security active. CVEs in
+              direct dependencies patched within 48 hours of disclosure. Weekly automated scans.</div>
+            <span class="cert-badge cb-progress">In Progress</span>
+          </div>
+          <div class="cert-row">
+            <div class="cert-name-wrap">
+              <div class="cert-logo">🏆</div>
+              <div class="cert-name">SOC 2 Type II</div>
+            </div>
+            <div class="cert-body">Vanta-automated evidence collection underway. Covers Security, Availability, and
+              Confidentiality Trust Services Criteria. External auditor to be engaged Q2 2026.</div>
+            <span class="cert-badge cb-gold">Q3 2026</span>
+          </div>
+          <div class="cert-row">
+            <div class="cert-name-wrap">
+              <div class="cert-logo">🎯</div>
+              <div class="cert-name">External VAPT</div>
+            </div>
+            <div class="cert-body">Third-party vulnerability assessment and penetration testing by an accredited firm.
+              Scoped to cover API, authentication, data isolation, and injection surfaces.</div>
+            <span class="cert-badge cb-planned">Q2 2026</span>
+          </div>
+          <div class="cert-row">
+            <div class="cert-name-wrap">
+              <div class="cert-logo">📁</div>
+              <div class="cert-name">ISO 27001</div>
+            </div>
+            <div class="cert-body">Information Security Management System aligned with ISO 27001 Annex A controls.
+              Formal certification roadmap follows SOC 2 completion.</div>
+            <span class="cert-badge cb-planned">2027</span>
+          </div>
         </div>
-        <div class="region-card">
-          <div class="region-flag">🇪🇺</div>
-          <div class="region-name">European Union</div>
-          <div class="region-provider">AWS eu-west-1 · On request</div>
-          <div class="region-desc">EU data residency available for enterprise customers requiring GDPR data localisation. Contact enterprise@vulnra.ai to configure.</div>
-          <span class="region-status rs-coming">● Enterprise Only</span>
-        </div>
-        <div class="region-card">
-          <div class="region-flag">🇮🇳</div>
-          <div class="region-name">India</div>
-          <div class="region-provider">AWS ap-south-1 · On roadmap</div>
-          <div class="region-desc">India data residency for DPDP compliance — processing personal data of Indian citizens within Indian territory. Planned Q4 2026.</div>
-          <span class="region-status rs-coming">● Q4 2026</span>
+      </div>
+    </div>
+
+    <!-- SUBPROCESSORS -->
+    <div class="subproc-section">
+      <div class="subproc-inner">
+        <div class="section-eyebrow">Subprocessors</div>
+        <h2 class="section-title">Third-party data processors</h2>
+        <p class="section-sub">All subprocessors are listed here. Enterprise customers are notified 30 days in advance
+          of any new subprocessor addition.</p>
+        <table class="subproc-table">
+          <tr>
+            <th>Subprocessor</th>
+            <th>Purpose</th>
+            <th>Data Location</th>
+            <th>Data Processed</th>
+            <th>Certifications</th>
+          </tr>
+          <tr>
+            <td><span class="sp-name">Supabase</span></td>
+            <td><span class="sp-purpose">Database & Authentication</span></td>
+            <td><span class="sp-location">US East (AWS)</span></td>
+            <td><span class="sp-data">User accounts, scan results, API keys (hashed)</span></td>
+            <td><span class="sp-cert">SOC 2</span></td>
+          </tr>
+          <tr>
+            <td><span class="sp-name">Upstash</span></td>
+            <td><span class="sp-purpose">Redis Cache & Task Queue</span></td>
+            <td><span class="sp-location">US East</span></td>
+            <td><span class="sp-data">Temporary scan state (TTL-limited, no PII)</span></td>
+            <td><span class="sp-cert">SOC 2</span></td>
+          </tr>
+          <tr>
+            <td><span class="sp-name">Railway</span></td>
+            <td><span class="sp-purpose">Backend API Hosting</span></td>
+            <td><span class="sp-location">US East</span></td>
+            <td><span class="sp-data">API traffic, environment variables, logs</span></td>
+            <td><span class="sp-cert">SOC 2</span></td>
+          </tr>
+          <tr>
+            <td><span class="sp-name">Anthropic</span></td>
+            <td><span class="sp-purpose">LLM-as-Judge Scoring (Pro+)</span></td>
+            <td><span class="sp-location">US</span></td>
+            <td><span class="sp-data">Anonymised probe + response pairs for scoring only. No user PII
+                transmitted.</span></td>
+            <td><span class="sp-cert">SOC 2</span></td>
+          </tr>
+          <tr>
+            <td><span class="sp-name">Google (OAuth)</span></td>
+            <td><span class="sp-purpose">Social Authentication</span></td>
+            <td><span class="sp-location">Global</span></td>
+            <td><span class="sp-data">Email address, display name (OAuth token exchange only)</span></td>
+            <td><span class="sp-cert">ISO 27001</span></td>
+          </tr>
+          <tr>
+            <td><span class="sp-name">GitHub (OAuth)</span></td>
+            <td><span class="sp-purpose">Social Authentication</span></td>
+            <td><span class="sp-location">US</span></td>
+            <td><span class="sp-data">GitHub username, email (OAuth token exchange only)</span></td>
+            <td><span class="sp-cert">SOC 2</span></td>
+          </tr>
+          <tr>
+            <td><span class="sp-name">Vanta</span></td>
+            <td><span class="sp-purpose">SOC 2 Evidence Collection</span></td>
+            <td><span class="sp-location">US</span></td>
+            <td><span class="sp-data">Infrastructure configuration, access logs for audit evidence</span></td>
+            <td><span class="sp-cert">SOC 2</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- DATA RESIDENCY -->
+    <div class="residency-section">
+      <div class="residency-inner">
+        <div class="section-eyebrow">Data Residency</div>
+        <h2 class="section-title">Where your data lives</h2>
+        <p class="section-sub">Current data residency options. Enterprise customers on custom contracts can request EU
+          or India data residency.</p>
+        <div class="residency-map">
+          <div class="region-card">
+            <div class="region-flag">🇺🇸</div>
+            <div class="region-name">United States East</div>
+            <div class="region-provider">AWS us-east-1 · Railway · Supabase</div>
+            <div class="region-desc">Default data residency for all tiers. Supabase Postgres, Upstash Redis, and Railway
+              API hosted in US East.</div>
+            <span class="region-status rs-live">● Default</span>
+          </div>
+          <div class="region-card">
+            <div class="region-flag">🇪🇺</div>
+            <div class="region-name">European Union</div>
+            <div class="region-provider">AWS eu-west-1 · On request</div>
+            <div class="region-desc">EU data residency available for enterprise customers requiring GDPR data
+              localisation. Contact enterprise@vulnra.ai to configure.</div>
+            <span class="region-status rs-coming">● Enterprise Only</span>
+          </div>
+          <div class="region-card">
+            <div class="region-flag">🇮🇳</div>
+            <div class="region-name">India</div>
+            <div class="region-provider">AWS ap-south-1 · On roadmap</div>
+            <div class="region-desc">India data residency for DPDP compliance — processing personal data of Indian
+              citizens within Indian territory. Planned Q4 2026.</div>
+            <span class="region-status rs-coming">● Q4 2026</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- DOCUMENTS -->
-  <div class="docs-section">
-    <div class="docs-inner">
-      <div class="section-eyebrow">Documentation</div>
-      <h2 class="section-title">Security & compliance documents</h2>
-      <p class="section-sub">Download or request security documentation for your vendor review process.</p>
-      <div class="docs-grid">
-        <a href="privacy.html" class="doc-card">
-          <span class="doc-icon">🔒</span>
-          <div class="doc-name">Privacy Policy</div>
-          <div class="doc-desc">GDPR and DPDP compliant. Data collection, retention, processing, and your rights under applicable law.</div>
-          <div class="doc-action">View Policy →</div>
-        </a>
-        <a href="terms.html" class="doc-card">
-          <span class="doc-icon">📄</span>
-          <div class="doc-name">Terms of Service</div>
-          <div class="doc-desc">Governing terms for use of VULNRA platform. Liability, IP ownership, acceptable use.</div>
-          <div class="doc-action">View Terms →</div>
-        </a>
-        <a href="acceptable-use.html" class="doc-card">
-          <span class="doc-icon">⚠</span>
-          <div class="doc-name">Acceptable Use Policy</div>
-          <div class="doc-desc">What you may and may not scan using VULNRA. Protects you and us from misuse liability.</div>
-          <div class="doc-action">View AUP →</div>
-        </a>
-        <a href="security.html" class="doc-card">
-          <span class="doc-icon">🛡</span>
-          <div class="doc-name">Security Practices</div>
-          <div class="doc-desc">Infrastructure security controls, encryption, responsible disclosure programme, and bug bounty.</div>
-          <div class="doc-action">View Details →</div>
-        </a>
-        <a href="mailto:enterprise@vulnra.ai?subject=DPA Request" class="doc-card doc-locked">
-          <span class="doc-icon">🤝</span>
-          <div class="doc-name">Data Processing Agreement</div>
-          <div class="doc-desc">Standard DPA available for enterprise customers. GDPR Article 28 compliant. Request via email.</div>
-          <div class="doc-action">Request via Email →</div>
-        </a>
-        <a href="mailto:enterprise@vulnra.ai?subject=SOC 2 Bridge Letter" class="doc-card doc-locked">
-          <span class="doc-icon">🏆</span>
-          <div class="doc-name">SOC 2 Bridge Letter</div>
-          <div class="doc-desc">Pre-certification security control documentation under NDA. Available for enterprise customers during procurement.</div>
-          <div class="doc-action">Request under NDA →</div>
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- INCIDENT LOG -->
-  <div class="incident-section">
-    <div class="incident-inner">
-      <div class="section-eyebrow">Incident History</div>
-      <h2 class="section-title">Past 90 days</h2>
-      <div class="incident-list">
-        <div class="no-incidents">
-          ✓ No incidents in the past 90 days
+    <!-- DOCUMENTS -->
+    <div class="docs-section">
+      <div class="docs-inner">
+        <div class="section-eyebrow">Documentation</div>
+        <h2 class="section-title">Security & compliance documents</h2>
+        <p class="section-sub">Download or request security documentation for your vendor review process.</p>
+        <div class="docs-grid">
+          <a href="privacy.html" class="doc-card">
+            <span class="doc-icon">🔒</span>
+            <div class="doc-name">Privacy Policy</div>
+            <div class="doc-desc">GDPR and DPDP compliant. Data collection, retention, processing, and your rights under
+              applicable law.</div>
+            <div class="doc-action">View Policy →</div>
+          </a>
+          <a href="terms.html" class="doc-card">
+            <span class="doc-icon">📄</span>
+            <div class="doc-name">Terms of Service</div>
+            <div class="doc-desc">Governing terms for use of VULNRA platform. Liability, IP ownership, acceptable use.
+            </div>
+            <div class="doc-action">View Terms →</div>
+          </a>
+          <a href="acceptable-use.html" class="doc-card">
+            <span class="doc-icon">⚠</span>
+            <div class="doc-name">Acceptable Use Policy</div>
+            <div class="doc-desc">What you may and may not scan using VULNRA. Protects you and us from misuse liability.
+            </div>
+            <div class="doc-action">View AUP →</div>
+          </a>
+          <a href="security.html" class="doc-card">
+            <span class="doc-icon">🛡</span>
+            <div class="doc-name">Security Practices</div>
+            <div class="doc-desc">Infrastructure security controls, encryption, responsible disclosure programme, and
+              bug bounty.</div>
+            <div class="doc-action">View Details →</div>
+          </a>
+          <a href="mailto:enterprise@vulnra.ai?subject=DPA Request" class="doc-card doc-locked">
+            <span class="doc-icon">🤝</span>
+            <div class="doc-name">Data Processing Agreement</div>
+            <div class="doc-desc">Standard DPA available for enterprise customers. GDPR Article 28 compliant. Request
+              via email.</div>
+            <div class="doc-action">Request via Email →</div>
+          </a>
+          <a href="mailto:enterprise@vulnra.ai?subject=SOC 2 Bridge Letter" class="doc-card doc-locked">
+            <span class="doc-icon">🏆</span>
+            <div class="doc-name">SOC 2 Bridge Letter</div>
+            <div class="doc-desc">Pre-certification security control documentation under NDA. Available for enterprise
+              customers during procurement.</div>
+            <div class="doc-action">Request under NDA →</div>
+          </a>
         </div>
       </div>
-      <p style="font-size:12.5px;color:var(--muted2);font-family:var(--mono);margin-top:14px;font-weight:300">All historical incidents are published here within 24 hours of resolution. Subscribe to incident updates via the <a href="changelog.html" style="color:var(--acid);text-decoration:none">changelog</a>.</p>
     </div>
-  </div>
 
-  <section class="cta">
-    <div class="cta-glow"></div>
-    <div style="position:relative;z-index:1">
-      <h2>Questions for your security team?</h2>
-      <p>We respond to security and compliance enquiries within 4 hours.</p>
-      <div class="cta-actions">
-        <a href="mailto:security@vulnra.ai" class="btn-primary">security@vulnra.ai →</a>
-        <a href="enterprise.html" class="btn-outline">Enterprise plans</a>
+    <!-- INCIDENT LOG -->
+    <div class="incident-section">
+      <div class="incident-inner">
+        <div class="section-eyebrow">Incident History</div>
+        <h2 class="section-title">Past 90 days</h2>
+        <div class="incident-list">
+          <div class="no-incidents">
+            ✓ No incidents in the past 90 days
+          </div>
+        </div>
+        <p style="font-size:12.5px;color:var(--muted2);font-family:var(--mono);margin-top:14px;font-weight:300">All
+          historical incidents are published here within 24 hours of resolution. Subscribe to incident updates via the
+          <a href="changelog.html" style="color:var(--acid);text-decoration:none">changelog</a>.
+        </p>
       </div>
     </div>
-  </section>
-</main>
 
-<footer>
-  <div class="footer-left">© 2025 VULNRA. MIT Licensed. Built on NVIDIA Garak.</div>
-  <div class="footer-links">
-    <a href="privacy.html">Privacy</a>
-    <a href="security.html">Security</a>
-    <a href="enterprise.html">Enterprise</a>
-    <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
-    <a href="mailto:hello@vulnra.ai">hello@vulnra.ai</a>
-  </div>
-</footer>
+    <section class="cta">
+      <div class="cta-glow"></div>
+      <div style="position:relative;z-index:1">
+        <h2>Questions for your security team?</h2>
+        <p>We respond to security and compliance enquiries within 4 hours.</p>
+        <div class="cta-actions">
+          <a href="mailto:security@vulnra.ai" class="btn-primary">security@vulnra.ai →</a>
+          <a href="enterprise.html" class="btn-outline">Enterprise plans</a>
+        </div>
+      </div>
+    </section>
+  </main>
 
-<script>
-  // Render uptime bars
-  function renderBars(containerId, pattern) {
-    const el = document.getElementById(containerId);
-    if (!el) return;
-    const weeks = 13;
-    let html = '';
-    for (let i = 0; i < weeks; i++) {
-      const status = pattern[i % pattern.length];
-      const color = status === 'green' ? 'var(--green)' : status === 'amber' ? 'var(--amber)' : 'var(--red)';
-      html += `<div style="flex:1;height:8px;border-radius:1px;background:${color};opacity:${0.7 + Math.random() * 0.3}" title="Week ${i+1}: Operational"></div>`;
+  <footer>
+    <div class="footer-left">© 2025 VULNRA. MIT Licensed. Built on NVIDIA Garak.</div>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy</a>
+      <a href="security.html">Security</a>
+      <a href="enterprise.html">Enterprise</a>
+      <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+      <a href="mailto:hello@vulnra.ai">hello@vulnra.ai</a>
+    </div>
+  </footer>
+
+  <script>
+    // Render uptime bars
+    function renderBars(containerId, pattern) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      const weeks = 13;
+      let html = '';
+      for (let i = 0; i < weeks; i++) {
+        const status = pattern[i % pattern.length];
+        const color = status === 'green' ? 'var(--green)' : status === 'amber' ? 'var(--amber)' : 'var(--red)';
+        html += `<div style="flex:1;height:8px;border-radius:1px;background:${color};opacity:${0.7 + Math.random() * 0.3}" title="Week ${i + 1}: Operational"></div>`;
+      }
+      el.innerHTML = html;
     }
-    el.innerHTML = html;
-  }
-  renderBars('barApi',    ['green','green','green','green','green','green','green','green','green','green','green','amber','green']);
-  renderBars('barDb',     ['green','green','green','green','green','green','green','green','green','green','green','green','green']);
-  renderBars('barCache',  ['green','green','green','green','green','green','green','green','green','green','amber','green','green']);
-  renderBars('barAuth',   ['green','green','green','green','green','green','green','green','green','green','green','green','green']);
+    renderBars('barApi', ['green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'amber', 'green']);
+    renderBars('barDb', ['green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green']);
+    renderBars('barCache', ['green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'amber', 'green', 'green']);
+    renderBars('barAuth', ['green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green']);
 
-  // Month labels
-  const months = ['Dec','Dec','Dec','Jan','Jan','Jan','Jan','Feb','Feb','Feb','Feb','Mar','Mar'];
-  const monthEl = document.getElementById('uptimeMonths');
-  if (monthEl) {
-    monthEl.innerHTML = months.map(m => `<span class="uptime-month" style="flex:1;font-family:var(--mono);font-size:8px;color:rgba(232,237,244,.22);text-align:center">${m}</span>`).join('');
-  }
-</script>
+    // Month labels
+    const months = ['Dec', 'Dec', 'Dec', 'Jan', 'Jan', 'Jan', 'Jan', 'Feb', 'Feb', 'Feb', 'Feb', 'Mar', 'Mar'];
+    const monthEl = document.getElementById('uptimeMonths');
+    if (monthEl) {
+      monthEl.innerHTML = months.map(m => `<span class="uptime-month" style="flex:1;font-family:var(--mono);font-size:8px;color:rgba(232,237,244,.22);text-align:center">${m}</span>`).join('');
+    }
+  </script>
 </body>
+
 </html>

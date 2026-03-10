@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Security — VULNRA's Security Practices & Responsible Disclosure</title>
-  <meta name="description" content="VULNRA's security practices, responsible disclosure policy, and bug bounty program. How we protect your data, our infrastructure security, and how to report vulnerabilities.">
+  <meta name="description"
+    content="VULNRA's security practices, responsible disclosure policy, and bug bounty program. How we protect your data, our infrastructure security, and how to report vulnerabilities.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://vulnra.ai/security.html">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Security at VULNRA — Practices, Disclosure & Bug Bounty">
-  <meta property="og:description" content="How VULNRA secures your data, our infrastructure, and how to report vulnerabilities responsibly.">
+  <meta property="og:description"
+    content="How VULNRA secures your data, our infrastructure, and how to report vulnerabilities responsibly.">
   <meta property="og:url" content="https://vulnra.ai/security.html">
   <link rel="alternate" hreflang="en" href="https://vulnra.ai/security.html">
   <link rel="alternate" hreflang="x-default" href="https://vulnra.ai/security.html">
@@ -49,522 +52,1854 @@
     ]
   }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="loader.css">
   <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --bg:#060608;--bg1:#0a0b0f;--bg2:#0f1117;--bg3:#13151c;
-      --acid:#b8ff57;--acid2:rgba(184,255,87,.07);--acid3:rgba(184,255,87,.14);
-      --red:#ff3c5a;--red2:rgba(255,60,90,.08);--amber:#ffb340;--blue:#4db8ff;--green:#3dffaa;
-      --text:#e8edf4;--muted:rgba(232,237,244,.44);--muted2:rgba(232,237,244,.22);
-      --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.04);
-      --mono:'IBM Plex Mono',monospace;--sans:'DM Sans',sans-serif
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
     }
-    html{scroll-behavior:smooth}
-    body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
-    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.025) 2px,rgba(0,0,0,.025) 4px);pointer-events:none;z-index:9998}
-    body::after{content:'';position:fixed;inset:-200%;width:400%;height:400%;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9997;animation:grain .4s steps(1) infinite}
-    @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,-4%)}40%{transform:translate(-6%,3%)}60%{transform:translate(3%,-2%)}80%{transform:translate(-4%,6%)}100%{transform:translate(5%,-3%)}}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-    @keyframes scanline{0%{top:-4px}100%{top:100%}}
-    ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--acid)}
-    ::selection{background:var(--acid);color:#000}
+
+    :root {
+      --bg: #060608;
+      --bg1: #0a0b0f;
+      --bg2: #0f1117;
+      --bg3: #13151c;
+      --acid: #b8ff57;
+      --acid2: rgba(184, 255, 87, .07);
+      --acid3: rgba(184, 255, 87, .14);
+      --red: #ff3c5a;
+      --red2: rgba(255, 60, 90, .08);
+      --amber: #ffb340;
+      --blue: #4db8ff;
+      --green: #3dffaa;
+      --text: #e8edf4;
+      --muted: rgba(232, 237, 244, .44);
+      --muted2: rgba(232, 237, 244, .22);
+      --border: rgba(255, 255, 255, .07);
+      --border2: rgba(255, 255, 255, .04);
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'DM Sans', sans-serif
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      overflow-x: hidden
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, .025) 2px, rgba(0, 0, 0, .025) 4px);
+      pointer-events: none;
+      z-index: 9998
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: -200%;
+      width: 400%;
+      height: 400%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9997;
+      animation: grain .4s steps(1) infinite
+    }
+
+    @keyframes grain {
+      0% {
+        transform: translate(0, 0)
+      }
+
+      20% {
+        transform: translate(-3%, -4%)
+      }
+
+      40% {
+        transform: translate(-6%, 3%)
+      }
+
+      60% {
+        transform: translate(3%, -2%)
+      }
+
+      80% {
+        transform: translate(-4%, 6%)
+      }
+
+      100% {
+        transform: translate(5%, -3%)
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .35
+      }
+    }
+
+    @keyframes scanline {
+      0% {
+        top: -4px
+      }
+
+      100% {
+        top: 100%
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 3px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg)
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--acid)
+    }
+
+    ::selection {
+      background: var(--acid);
+      color: #000
+    }
 
     /* NAV */
-    nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px;background:rgba(6,6,8,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2)}
-    nav::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(184,255,87,.25),transparent)}
-    .nav-logo{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.1em;color:var(--text);text-decoration:none}
-    .nav-logo-mark{width:28px;height:28px;border-radius:5px;background:var(--acid);display:flex;align-items:center;justify-content:center}
-    .nav-logo-mark svg{width:14px;height:14px}
-    .nav-logo em{font-style:normal;color:var(--acid)}
-    .nav-links{display:flex;align-items:center;gap:36px}
-    .nav-links a{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted);text-decoration:none;transition:color .2s}
-    .nav-links a:hover,.nav-links a.active{color:var(--acid)}
-    .nav-right{display:flex;align-items:center;gap:12px}
-    .btn-ghost{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:none;transition:color .2s}
-    .btn-ghost:hover{color:var(--text)}
-    .btn-acid{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.12em;background:var(--acid);color:#000;border:none;padding:8px 18px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .25s;display:inline-flex;align-items:center;gap:6px}
-    .btn-acid:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(184,255,87,.28)}
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 60px;
+      background: rgba(6, 6, 8, .92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border2)
+    }
+
+    nav::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(184, 255, 87, .25), transparent)
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--text);
+      text-decoration: none
+    }
+
+    .nav-logo-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      background: #060608;
+      border: 1.5px solid #b8ff57;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: neonBoxPulse 2s ease-in-out infinite;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .nav-logo-mark::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 1px solid rgba(184, 255, 87, .25);
+      animation: expandRing 2s ease-out infinite;
+      pointer-events: none;
+    }
+
+    .nsq {
+      fill: #b8ff57;
+    }
+
+    .nsq1 {
+      animation: neonSqSeq 2.4s ease-in-out infinite 0s;
+    }
+
+    .nsq2 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .3s;
+    }
+
+    .nsq3 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .6s;
+    }
+
+    .nsq4 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .9s;
+    }
+
+    .ndot1 {
+      fill: #b8ff57;
+      animation: neonDotPulse 1.2s ease-in-out infinite 0s;
+    }
+
+    .ndot2 {
+      fill: #b8ff57;
+      animation: neonDotPulse 1.2s ease-in-out infinite .5s;
+    }
+
+    @keyframes neonBoxPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 8px rgba(184, 255, 87, .4), 0 0 20px rgba(184, 255, 87, .15), inset 0 0 10px rgba(184, 255, 87, .04);
+        border-color: rgba(184, 255, 87, .9);
+      }
+
+      50% {
+        box-shadow: 0 0 16px rgba(184, 255, 87, .7), 0 0 40px rgba(184, 255, 87, .3), 0 0 80px rgba(184, 255, 87, .1), inset 0 0 20px rgba(184, 255, 87, .08);
+        border-color: #d4ff8a;
+      }
+    }
+
+    @keyframes expandRing {
+      0% {
+        transform: scale(1);
+        opacity: .7;
+      }
+
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    @keyframes neonSqSeq {
+
+      0%,
+      100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 3px rgba(184, 255, 87, .9)) drop-shadow(0 0 7px rgba(184, 255, 87, .5));
+      }
+
+      40%,
+      60% {
+        opacity: .08;
+        filter: none;
+      }
+    }
+
+    @keyframes neonDotPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 4px #b8ff57) drop-shadow(0 0 8px rgba(184, 255, 87, .6));
+      }
+
+      50% {
+        opacity: .1;
+        filter: none;
+      }
+    }
+
+    .nav-logo-mark svg {
+      width: 14px;
+      height: 14px
+    }
+
+    .nav-logo em {
+      font-style: normal;
+      color: var(--acid)
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .1em;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--acid)
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .btn-ghost {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .1em;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color .2s
+    }
+
+    .btn-ghost:hover {
+      color: var(--text)
+    }
+
+    .btn-acid {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      background: var(--acid);
+      color: #000;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .25s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .btn-acid:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(184, 255, 87, .28)
+    }
 
     /* HERO */
-    .hero{padding:100px 48px 72px;max-width:1100px;margin:0 auto;position:relative}
-    .hero-glow{position:absolute;top:60px;right:0;width:500px;height:400px;background:radial-gradient(ellipse at 70% 40%,rgba(255,60,90,.04) 0%,transparent 65%);pointer-events:none}
-    .page-eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--acid);margin-bottom:18px;animation:fadeUp .5s ease forwards;opacity:0}
-    .page-eyebrow::before,.page-eyebrow::after{content:'';display:block;width:20px;height:1px;background:var(--acid);opacity:.35}
-    .hero-title{font-family:var(--mono);font-size:clamp(32px,5vw,58px);font-weight:700;letter-spacing:-.03em;line-height:1.06;margin-bottom:20px;animation:fadeUp .5s ease forwards .1s;opacity:0}
-    .hero-title .accent{color:var(--acid)}
-    .hero-title .red{color:var(--red)}
-    .hero-sub{font-size:16px;color:var(--muted);line-height:1.76;font-weight:300;max-width:560px;animation:fadeUp .5s ease forwards .2s;opacity:0;margin-bottom:36px}
-    .hero-meta{display:flex;align-items:center;gap:24px;flex-wrap:wrap;animation:fadeUp .5s ease forwards .3s;opacity:0}
-    .hero-badge{display:flex;align-items:center;gap:8px;background:var(--bg1);border:1px solid var(--border);border-radius:3px;padding:8px 14px}
-    .badge-dot{width:6px;height:6px;border-radius:50%;animation:pulse 2s ease infinite}
-    .badge-dot.green{background:var(--green)}
-    .badge-dot.amber{background:var(--amber)}
-    .badge-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted)}
-    .badge-val{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text)}
+    .hero {
+      padding: 100px 48px 72px;
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: 60px;
+      right: 0;
+      width: 500px;
+      height: 400px;
+      background: radial-gradient(ellipse at 70% 40%, rgba(255, 60, 90, .04) 0%, transparent 65%);
+      pointer-events: none
+    }
+
+    .page-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: var(--acid);
+      margin-bottom: 18px;
+      animation: fadeUp .5s ease forwards;
+      opacity: 0
+    }
+
+    .page-eyebrow::before,
+    .page-eyebrow::after {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 1px;
+      background: var(--acid);
+      opacity: .35
+    }
+
+    .hero-title {
+      font-family: var(--mono);
+      font-size: clamp(32px, 5vw, 58px);
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1.06;
+      margin-bottom: 20px;
+      animation: fadeUp .5s ease forwards .1s;
+      opacity: 0
+    }
+
+    .hero-title .accent {
+      color: var(--acid)
+    }
+
+    .hero-title .red {
+      color: var(--red)
+    }
+
+    .hero-sub {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.76;
+      font-weight: 300;
+      max-width: 560px;
+      animation: fadeUp .5s ease forwards .2s;
+      opacity: 0;
+      margin-bottom: 36px
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      animation: fadeUp .5s ease forwards .3s;
+      opacity: 0
+    }
+
+    .hero-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 8px 14px
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      animation: pulse 2s ease infinite
+    }
+
+    .badge-dot.green {
+      background: var(--green)
+    }
+
+    .badge-dot.amber {
+      background: var(--amber)
+    }
+
+    .badge-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      color: var(--muted)
+    }
+
+    .badge-val {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text)
+    }
 
     /* DISCLOSURE BANNER */
-    .disclosure-banner{max-width:1100px;margin:0 auto 0;padding:0 48px 64px}
-    .db-inner{background:var(--bg1);border:1px solid rgba(255,60,90,.18);border-radius:5px;padding:32px 36px;position:relative;overflow:hidden}
-    .db-scan{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,60,90,.3),transparent);animation:scanline 3s linear infinite}
-    .db-header{display:flex;align-items:flex-start;gap:20px}
-    .db-icon{font-size:28px;flex-shrink:0;margin-top:2px}
-    .db-content h2{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:8px}
-    .db-content p{font-size:14px;color:var(--muted);line-height:1.72;font-weight:300;margin-bottom:14px}
-    .db-email{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--acid);text-decoration:none;border:1px solid rgba(184,255,87,.2);border-radius:3px;padding:8px 16px;transition:all .2s;background:var(--acid2)}
-    .db-email:hover{background:var(--acid3);border-color:rgba(184,255,87,.35)}
-    .db-steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-    .db-step{font-family:var(--mono);font-size:9px;letter-spacing:.12em;padding:4px 10px;border-radius:2px;background:rgba(255,60,90,.07);border:1px solid rgba(255,60,90,.14);color:rgba(255,120,120,.8)}
+    .disclosure-banner {
+      max-width: 1100px;
+      margin: 0 auto 0;
+      padding: 0 48px 64px
+    }
+
+    .db-inner {
+      background: var(--bg1);
+      border: 1px solid rgba(255, 60, 90, .18);
+      border-radius: 5px;
+      padding: 32px 36px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .db-scan {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255, 60, 90, .3), transparent);
+      animation: scanline 3s linear infinite
+    }
+
+    .db-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px
+    }
+
+    .db-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+      margin-top: 2px
+    }
+
+    .db-content h2 {
+      font-family: var(--mono);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      margin-bottom: 8px
+    }
+
+    .db-content p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.72;
+      font-weight: 300;
+      margin-bottom: 14px
+    }
+
+    .db-email {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--acid);
+      text-decoration: none;
+      border: 1px solid rgba(184, 255, 87, .2);
+      border-radius: 3px;
+      padding: 8px 16px;
+      transition: all .2s;
+      background: var(--acid2)
+    }
+
+    .db-email:hover {
+      background: var(--acid3);
+      border-color: rgba(184, 255, 87, .35)
+    }
+
+    .db-steps {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px
+    }
+
+    .db-step {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .12em;
+      padding: 4px 10px;
+      border-radius: 2px;
+      background: rgba(255, 60, 90, .07);
+      border: 1px solid rgba(255, 60, 90, .14);
+      color: rgba(255, 120, 120, .8)
+    }
 
     /* SECTION LAYOUT */
-    .content-wrap{max-width:1100px;margin:0 auto;padding:0 48px 80px}
-    .section-eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--acid);margin-bottom:14px}
-    .section-eyebrow::before,.section-eyebrow::after{content:'';display:block;width:18px;height:1px;background:var(--acid);opacity:.35}
-    .section-title{font-family:var(--mono);font-size:clamp(20px,2.8vw,30px);font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
-    .section-sub{font-size:14.5px;color:var(--muted);line-height:1.7;font-weight:300;max-width:520px;margin-bottom:40px}
-    .divider{height:1px;background:var(--border2);margin:72px 0}
+    .content-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 48px 80px
+    }
+
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+      color: var(--acid);
+      margin-bottom: 14px
+    }
+
+    .section-eyebrow::before,
+    .section-eyebrow::after {
+      content: '';
+      display: block;
+      width: 18px;
+      height: 1px;
+      background: var(--acid);
+      opacity: .35
+    }
+
+    .section-title {
+      font-family: var(--mono);
+      font-size: clamp(20px, 2.8vw, 30px);
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: 10px
+    }
+
+    .section-sub {
+      font-size: 14.5px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 300;
+      max-width: 520px;
+      margin-bottom: 40px
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border2);
+      margin: 72px 0
+    }
 
     /* SECURITY GRID */
-    .sec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border2);border:1px solid var(--border);border-radius:5px;overflow:hidden;margin-bottom:48px}
-    .sec-card{background:var(--bg1);padding:28px 24px;transition:background .2s;position:relative;overflow:hidden}
-    .sec-card:hover{background:var(--bg2)}
-    .sec-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:transparent;transition:background .2s}
-    .sec-card:hover::before{background:linear-gradient(90deg,transparent,var(--acid),transparent)}
-    .sec-icon{font-size:22px;margin-bottom:14px;display:block}
-    .sec-card-title{font-family:var(--mono);font-size:13px;font-weight:600;margin-bottom:8px;letter-spacing:-.01em}
-    .sec-card-desc{font-size:12.5px;color:var(--muted);line-height:1.68;font-weight:300}
-    .sec-tag{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.14em;padding:2px 7px;border-radius:2px;margin-top:10px}
-    .tag-live{background:rgba(61,255,170,.08);border:1px solid rgba(61,255,170,.18);color:var(--green)}
-    .tag-planned{background:rgba(255,179,64,.07);border:1px solid rgba(255,179,64,.15);color:var(--amber)}
-    .tag-process{background:rgba(77,184,255,.07);border:1px solid rgba(77,184,255,.14);color:var(--blue)}
+    .sec-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 48px
+    }
+
+    .sec-card {
+      background: var(--bg1);
+      padding: 28px 24px;
+      transition: background .2s;
+      position: relative;
+      overflow: hidden
+    }
+
+    .sec-card:hover {
+      background: var(--bg2)
+    }
+
+    .sec-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: transparent;
+      transition: background .2s
+    }
+
+    .sec-card:hover::before {
+      background: linear-gradient(90deg, transparent, var(--acid), transparent)
+    }
+
+    .sec-icon {
+      font-size: 22px;
+      margin-bottom: 14px;
+      display: block
+    }
+
+    .sec-card-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: -.01em
+    }
+
+    .sec-card-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.68;
+      font-weight: 300
+    }
+
+    .sec-tag {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .14em;
+      padding: 2px 7px;
+      border-radius: 2px;
+      margin-top: 10px
+    }
+
+    .tag-live {
+      background: rgba(61, 255, 170, .08);
+      border: 1px solid rgba(61, 255, 170, .18);
+      color: var(--green)
+    }
+
+    .tag-planned {
+      background: rgba(255, 179, 64, .07);
+      border: 1px solid rgba(255, 179, 64, .15);
+      color: var(--amber)
+    }
+
+    .tag-process {
+      background: rgba(77, 184, 255, .07);
+      border: 1px solid rgba(77, 184, 255, .14);
+      color: var(--blue)
+    }
 
     /* INFRA TABLE */
-    .infra-table{width:100%;border-collapse:collapse;margin-bottom:40px}
-    .infra-table th{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);text-align:left;padding:9px 14px;border-bottom:1px solid var(--border)}
-    .infra-table td{font-size:13px;padding:12px 14px;border-bottom:1px solid var(--border2);vertical-align:top}
-    .infra-table tr:last-child td{border-bottom:none}
-    .infra-table tr:hover td{background:rgba(255,255,255,.015)}
-    .it-component{font-family:var(--mono);font-size:11.5px;color:var(--text)}
-    .it-detail{font-size:12.5px;color:var(--muted);font-weight:300;line-height:1.5}
-    .it-status{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:3px 8px;border-radius:2px}
-    .s-encrypted{background:rgba(61,255,170,.07);border:1px solid rgba(61,255,170,.15);color:var(--green)}
-    .s-isolated{background:rgba(77,184,255,.07);border:1px solid rgba(77,184,255,.15);color:var(--blue)}
-    .s-monitored{background:rgba(184,255,87,.07);border:1px solid rgba(184,255,87,.15);color:var(--acid)}
-    .s-planned{background:rgba(255,179,64,.07);border:1px solid rgba(255,179,64,.15);color:var(--amber)}
+    .infra-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 40px
+    }
+
+    .infra-table th {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      text-align: left;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .infra-table td {
+      font-size: 13px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border2);
+      vertical-align: top
+    }
+
+    .infra-table tr:last-child td {
+      border-bottom: none
+    }
+
+    .infra-table tr:hover td {
+      background: rgba(255, 255, 255, .015)
+    }
+
+    .it-component {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--text)
+    }
+
+    .it-detail {
+      font-size: 12.5px;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.5
+    }
+
+    .it-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .1em;
+      padding: 3px 8px;
+      border-radius: 2px
+    }
+
+    .s-encrypted {
+      background: rgba(61, 255, 170, .07);
+      border: 1px solid rgba(61, 255, 170, .15);
+      color: var(--green)
+    }
+
+    .s-isolated {
+      background: rgba(77, 184, 255, .07);
+      border: 1px solid rgba(77, 184, 255, .15);
+      color: var(--blue)
+    }
+
+    .s-monitored {
+      background: rgba(184, 255, 87, .07);
+      border: 1px solid rgba(184, 255, 87, .15);
+      color: var(--acid)
+    }
+
+    .s-planned {
+      background: rgba(255, 179, 64, .07);
+      border: 1px solid rgba(255, 179, 64, .15);
+      color: var(--amber)
+    }
 
     /* TIMELINE */
-    .disclosure-timeline{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:5px;overflow:hidden;margin-bottom:40px}
-    .dt-step{display:flex;align-items:flex-start;gap:20px;padding:20px 24px;border-bottom:1px solid var(--border2);background:var(--bg1);transition:background .2s}
-    .dt-step:last-child{border-bottom:none}
-    .dt-step:hover{background:var(--bg2)}
-    .dt-num{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--acid);background:var(--acid2);border:1px solid rgba(184,255,87,.18);border-radius:3px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .dt-content h4{font-family:var(--mono);font-size:13px;font-weight:600;margin-bottom:4px}
-    .dt-content p{font-size:12.5px;color:var(--muted);line-height:1.6;font-weight:300}
-    .dt-time{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted2);margin-top:4px}
+    .disclosure-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 40px
+    }
+
+    .dt-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border2);
+      background: var(--bg1);
+      transition: background .2s
+    }
+
+    .dt-step:last-child {
+      border-bottom: none
+    }
+
+    .dt-step:hover {
+      background: var(--bg2)
+    }
+
+    .dt-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--acid);
+      background: var(--acid2);
+      border: 1px solid rgba(184, 255, 87, .18);
+      border-radius: 3px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0
+    }
+
+    .dt-content h4 {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px
+    }
+
+    .dt-content p {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-weight: 300
+    }
+
+    .dt-time {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .1em;
+      color: var(--muted2);
+      margin-top: 4px
+    }
 
     /* BOUNTY TABLE */
-    .bounty-table{width:100%;border-collapse:collapse;margin-bottom:32px}
-    .bounty-table th{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);text-align:left;padding:9px 14px;border-bottom:1px solid var(--border)}
-    .bounty-table td{font-size:13px;padding:12px 14px;border-bottom:1px solid var(--border2)}
-    .bounty-table tr:last-child td{border-bottom:none}
-    .bounty-table tr:hover td{background:rgba(255,255,255,.015)}
-    .sev-critical{color:var(--red);font-family:var(--mono);font-size:11px;font-weight:700}
-    .sev-high{color:var(--amber);font-family:var(--mono);font-size:11px;font-weight:600}
-    .sev-medium{color:var(--blue);font-family:var(--mono);font-size:11px}
-    .sev-low{color:var(--muted);font-family:var(--mono);font-size:11px}
-    .reward{font-family:var(--mono);font-size:12.5px;color:var(--acid)}
-    .reward-none{font-family:var(--mono);font-size:12.5px;color:var(--muted2)}
+    .bounty-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 32px
+    }
+
+    .bounty-table th {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      text-align: left;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .bounty-table td {
+      font-size: 13px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border2)
+    }
+
+    .bounty-table tr:last-child td {
+      border-bottom: none
+    }
+
+    .bounty-table tr:hover td {
+      background: rgba(255, 255, 255, .015)
+    }
+
+    .sev-critical {
+      color: var(--red);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700
+    }
+
+    .sev-high {
+      color: var(--amber);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600
+    }
+
+    .sev-medium {
+      color: var(--blue);
+      font-family: var(--mono);
+      font-size: 11px
+    }
+
+    .sev-low {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px
+    }
+
+    .reward {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--acid)
+    }
+
+    .reward-none {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--muted2)
+    }
 
     /* FAQ */
-    .faq-list{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:5px;overflow:hidden;margin-bottom:40px}
-    .faq-item{border-bottom:1px solid var(--border2)}
-    .faq-item:last-child{border-bottom:none}
-    .faq-q{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;transition:background .15s;font-family:var(--mono);font-size:13px;font-weight:500;background:var(--bg1);gap:16px}
-    .faq-q:hover{background:var(--bg2)}
-    .faq-chevron{color:var(--acid);font-size:11px;flex-shrink:0;transition:transform .2s}
-    .faq-a{font-size:13.5px;color:var(--muted);line-height:1.75;font-weight:300;padding:0 22px 18px;display:none}
-    .faq-a.open{display:block}
-    .faq-chevron.open{transform:rotate(180deg)}
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 40px
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border2)
+    }
+
+    .faq-item:last-child {
+      border-bottom: none
+    }
+
+    .faq-q {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      cursor: pointer;
+      transition: background .15s;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--bg1);
+      gap: 16px
+    }
+
+    .faq-q:hover {
+      background: var(--bg2)
+    }
+
+    .faq-chevron {
+      color: var(--acid);
+      font-size: 11px;
+      flex-shrink: 0;
+      transition: transform .2s
+    }
+
+    .faq-a {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.75;
+      font-weight: 300;
+      padding: 0 22px 18px;
+      display: none
+    }
+
+    .faq-a.open {
+      display: block
+    }
+
+    .faq-chevron.open {
+      transform: rotate(180deg)
+    }
 
     /* PGP */
-    .pgp-block{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.8;margin-bottom:12px;position:relative;overflow:hidden}
-    .pgp-shimmer{position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(184,255,87,.03) 50%,transparent 60%);pointer-events:none}
-    .copy-pgp{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--muted2);background:none;border:1px solid var(--border);border-radius:2px;padding:4px 10px;cursor:pointer;transition:all .15s;margin-top:6px;display:inline-block}
-    .copy-pgp:hover{border-color:rgba(255,255,255,.15);color:var(--text)}
+    .pgp-block {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .pgp-shimmer {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(184, 255, 87, .03) 50%, transparent 60%);
+      pointer-events: none
+    }
+
+    .copy-pgp {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .1em;
+      color: var(--muted2);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: all .15s;
+      margin-top: 6px;
+      display: inline-block
+    }
+
+    .copy-pgp:hover {
+      border-color: rgba(255, 255, 255, .15);
+      color: var(--text)
+    }
 
     /* CTA */
-    .cta{background:var(--bg1);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);text-align:center;padding:80px 48px;position:relative;overflow:hidden}
-    .cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(255,60,90,.04) 0%,transparent 70%);pointer-events:none}
-    .cta h2{font-family:var(--mono);font-size:clamp(22px,3.5vw,36px);font-weight:700;letter-spacing:-.025em;margin-bottom:10px}
-    .cta p{font-size:14px;color:var(--muted);margin-bottom:28px;font-weight:300;line-height:1.6}
-    .cta-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
-    .btn-primary{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;background:var(--acid);color:#000;border:none;padding:12px 24px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .25s}
-    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(184,255,87,.28)}
-    .btn-outline{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--text);background:none;border:1px solid var(--border);padding:12px 22px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .25s}
-    .btn-outline:hover{border-color:rgba(255,255,255,.2);transform:translateY(-2px)}
+    .cta {
+      background: var(--bg1);
+      border-top: 1px solid var(--border2);
+      border-bottom: 1px solid var(--border2);
+      text-align: center;
+      padding: 80px 48px;
+      position: relative;
+      overflow: hidden
+    }
 
-    footer{background:var(--bg);border-top:1px solid var(--border2);padding:28px 48px;display:flex;align-items:center;justify-content:space-between}
-    .footer-left{font-family:var(--mono);font-size:10.5px;color:var(--muted2)}
-    .footer-links{display:flex;gap:22px}
-    .footer-links a{font-family:var(--mono);font-size:10.5px;color:var(--muted2);text-decoration:none;transition:color .2s}
-    .footer-links a:hover{color:var(--acid)}
+    .cta-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 300px;
+      background: radial-gradient(ellipse, rgba(255, 60, 90, .04) 0%, transparent 70%);
+      pointer-events: none
+    }
 
-    @media(max-width:960px){nav{padding:0 20px}.nav-links{display:none}.hero,.disclosure-banner,.content-wrap{padding-left:20px;padding-right:20px}.sec-grid{grid-template-columns:1fr 1fr}.hero-glow{display:none}}
-    @media(max-width:640px){.sec-grid{grid-template-columns:1fr}.hero-meta{flex-direction:column;align-items:flex-start}.db-header{flex-direction:column}footer{flex-direction:column;gap:14px;text-align:center;padding:24px}}
+    .cta h2 {
+      font-family: var(--mono);
+      font-size: clamp(22px, 3.5vw, 36px);
+      font-weight: 700;
+      letter-spacing: -.025em;
+      margin-bottom: 10px
+    }
+
+    .cta p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      font-weight: 300;
+      line-height: 1.6
+    }
+
+    .cta-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .btn-primary {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      background: var(--acid);
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .25s
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(184, 255, 87, .28)
+    }
+
+    .btn-outline {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .1em;
+      color: var(--text);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 12px 22px;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .25s
+    }
+
+    .btn-outline:hover {
+      border-color: rgba(255, 255, 255, .2);
+      transform: translateY(-2px)
+    }
+
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border2);
+      padding: 28px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .footer-left {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted2)
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 22px
+    }
+
+    .footer-links a {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--muted2);
+      text-decoration: none;
+      transition: color .2s
+    }
+
+    .footer-links a:hover {
+      color: var(--acid)
+    }
+
+    @media(max-width:960px) {
+      nav {
+        padding: 0 20px
+      }
+
+      .nav-links {
+        display: none
+      }
+
+      .hero,
+      .disclosure-banner,
+      .content-wrap {
+        padding-left: 20px;
+        padding-right: 20px
+      }
+
+      .sec-grid {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .hero-glow {
+        display: none
+      }
+    }
+
+    @media(max-width:640px) {
+      .sec-grid {
+        grid-template-columns: 1fr
+      }
+
+      .hero-meta {
+        flex-direction: column;
+        align-items: flex-start
+      }
+
+      .db-header {
+        flex-direction: column
+      }
+
+      footer {
+        flex-direction: column;
+        gap: 14px;
+        text-align: center;
+        padding: 24px
+      }
+    }
+
+    /* ── Neon logo ── */
+    .nav-logo-mark {
+      animation: neonBoxPulse 2s ease-in-out infinite;
+      position: relative;
+    }
+
+    .nav-logo-mark::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 1px solid rgba(184, 255, 87, .25);
+      animation: expandRing 2s ease-out infinite;
+      pointer-events: none;
+    }
+
+    .nsq {
+      fill: #b8ff57;
+    }
+
+    .nsq1 {
+      animation: neonSqSeq 2.4s ease-in-out infinite 0s;
+    }
+
+    .nsq2 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .3s;
+    }
+
+    .nsq3 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .6s;
+    }
+
+    .nsq4 {
+      animation: neonSqSeq 2.4s ease-in-out infinite .9s;
+    }
+
+    .ndot1 {
+      fill: #b8ff57;
+      animation: neonDotPulse 1.2s ease-in-out infinite 0s;
+    }
+
+    .ndot2 {
+      fill: #b8ff57;
+      animation: neonDotPulse 1.2s ease-in-out infinite .5s;
+    }
+
+    @keyframes neonBoxPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 8px rgba(184, 255, 87, .4), 0 0 20px rgba(184, 255, 87, .15), inset 0 0 10px rgba(184, 255, 87, .04);
+        border-color: rgba(184, 255, 87, .9);
+      }
+
+      50% {
+        box-shadow: 0 0 16px rgba(184, 255, 87, .7), 0 0 40px rgba(184, 255, 87, .3), 0 0 80px rgba(184, 255, 87, .1), inset 0 0 20px rgba(184, 255, 87, .08);
+        border-color: #d4ff8a;
+      }
+    }
+
+    @keyframes expandRing {
+      0% {
+        transform: scale(1);
+        opacity: .7;
+      }
+
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    @keyframes neonSqSeq {
+
+      0%,
+      100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 3px rgba(184, 255, 87, .9)) drop-shadow(0 0 7px rgba(184, 255, 87, .5));
+      }
+
+      40%,
+      60% {
+        opacity: .08;
+        filter: none;
+      }
+    }
+
+    @keyframes neonDotPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 4px #b8ff57) drop-shadow(0 0 8px rgba(184, 255, 87, .6));
+      }
+
+      50% {
+        opacity: .1;
+        filter: none;
+      }
+    }
   </style>
 </head>
-<body>
-<nav>
-  <a href="index.html" class="nav-logo">
-    <div class="nav-logo-mark"><svg viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" fill="#000"/><rect x="8" y="1" width="5" height="5" fill="#000"/><rect x="1" y="8" width="5" height="5" fill="#000"/><rect x="8" y="10" width="2" height="2" fill="#000"/><rect x="11" y="10" width="2" height="2" fill="#000"/></svg></div>
-    VULN<em>RA</em>
-  </a>
-  <div class="nav-links">
-    <a href="index.html#features">Features</a>
-    <a href="how-it-works.html">How it works</a>
-    <a href="compliance.html">Compliance</a>
-    <a href="pricing.html">Pricing</a>
-    <a href="docs.html">Docs</a>
-  </div>
-  <div class="nav-right">
-    <a href="signin.html" class="btn-ghost">Sign In</a>
-    <a href="signup.html" class="btn-acid">Get Started →</a>
-  </div>
-</nav>
 
-<main>
-  <div class="hero">
-    <div class="hero-glow"></div>
-    <div class="page-eyebrow">Security</div>
-    <h1 class="hero-title">We scan AI.<br>We secure <span class="accent">ourselves</span><span class="red">.</span></h1>
-    <p class="hero-sub">VULNRA is a security product. That means our own security posture is held to the same standard we expect of the systems we test. Here's exactly how we protect your data, our infrastructure, and what to do if you find a vulnerability in us.</p>
-    <div class="hero-meta">
-      <div class="hero-badge">
-        <span class="badge-dot green"></span>
-        <span class="badge-label">Disclosure inbox</span>
-        <span class="badge-val">security@vulnra.ai</span>
+<body>
+
+  <!-- VULNRA Loader -->
+  <div id="vLoader" style="
+    position:fixed;inset:0;background:#060608;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    z-index:9990;transition:opacity .5s ease,visibility .5s ease;
+    font-family:'IBM Plex Mono',monospace;gap:0;
+  ">
+    <!-- corners -->
+    <div style="position:absolute;top:28px;left:28px;width:24px;height:24px;border-top:1px solid rgba(184,255,87,.35);border-left:1px solid rgba(184,255,87,.35)"></div>
+    <div style="position:absolute;top:28px;right:28px;width:24px;height:24px;border-top:1px solid rgba(184,255,87,.35);border-right:1px solid rgba(184,255,87,.35)"></div>
+    <div style="position:absolute;bottom:28px;left:28px;width:24px;height:24px;border-bottom:1px solid rgba(184,255,87,.35);border-left:1px solid rgba(184,255,87,.35)"></div>
+    <div style="position:absolute;bottom:28px;right:28px;width:24px;height:24px;border-bottom:1px solid rgba(184,255,87,.35);border-right:1px solid rgba(184,255,87,.35)"></div>
+
+    <!-- mark -->
+    <div style="position:relative;margin-bottom:36px;">
+      <div style="position:absolute;inset:-20px;border-radius:50%;border:1px solid transparent;border-top-color:rgba(184,255,87,.6);border-right-color:rgba(184,255,87,.12);animation:vOrbit 2s linear infinite;"></div>
+      <div style="position:absolute;inset:-12px;border-radius:50%;border:1px solid transparent;border-bottom-color:rgba(184,255,87,.35);border-left-color:rgba(184,255,87,.08);animation:vOrbit 3.2s linear infinite reverse;"></div>
+      <div style="width:72px;height:72px;border-radius:13px;background:#060608;border:1.5px solid #b8ff57;display:flex;align-items:center;justify-content:center;animation:neonBoxPulse 2s ease-in-out infinite;position:relative;">
+        <div style="position:absolute;inset:-1px;border-radius:inherit;border:1px solid rgba(184,255,87,.25);animation:expandRing 2s ease-out infinite;pointer-events:none;"></div>
+        <svg width="38" height="38" viewBox="0 0 20 20" fill="none">
+          <rect class="nsq nsq1" x="1"    y="1"    width="7.5" height="7.5" rx=".8"/>
+          <rect class="nsq nsq2" x="11.5" y="1"    width="7.5" height="7.5" rx=".8"/>
+          <rect class="nsq nsq3" x="1"    y="11.5" width="7.5" height="7.5" rx=".8"/>
+          <rect class="nsq nsq4" x="11.5" y="11.5" width="7.5" height="7.5" rx=".8"/>
+          <circle class="ndot1" cx="14.25" cy="16.75" r="1.1"/>
+          <circle class="ndot2" cx="17.25" cy="16.75" r="1.1"/>
+        </svg>
       </div>
-      <div class="hero-badge">
-        <span class="badge-dot green"></span>
-        <span class="badge-label">Response SLA</span>
-        <span class="badge-val">&lt; 24 hours</span>
+    </div>
+
+    <!-- title + status -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:32px;">
+      <div style="font-size:13px;font-weight:700;letter-spacing:.2em;color:#b8ff57;text-shadow:0 0 12px rgba(184,255,87,.5)">VULNRA</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.14em;color:rgba(184,255,87,.45);">
+        <span id="vLoaderStatus">INITIALISING</span>
+        <span style="display:inline-block;width:7px;height:11px;background:#b8ff57;animation:vBlink .7s steps(1) infinite;box-shadow:0 0 6px #b8ff57;"></span>
       </div>
-      <div class="hero-badge">
-        <span class="badge-dot amber"></span>
-        <span class="badge-label">SOC 2 Type II</span>
-        <span class="badge-val">In progress (Q3 2026)</span>
+    </div>
+
+    <!-- progress -->
+    <div style="width:220px;display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;justify-content:space-between;font-size:9px;letter-spacing:.14em;color:rgba(184,255,87,.3);">
+        <span>BOOT SEQUENCE</span>
+        <span id="vLoaderPct">0%</span>
+      </div>
+      <div style="height:2px;background:rgba(184,255,87,.1);border-radius:1px;overflow:hidden;">
+        <div id="vLoaderBar" style="height:100%;width:0%;background:#b8ff57;border-radius:1px;box-shadow:0 0 8px rgba(184,255,87,.7);transition:width .2s ease;"></div>
       </div>
     </div>
   </div>
 
-  <!-- DISCLOSURE BANNER -->
-  <div class="disclosure-banner">
-    <div class="db-inner">
-      <div class="db-scan"></div>
-      <div class="db-header">
-        <div class="db-icon">⚠</div>
-        <div class="db-content">
-          <h2>Found a vulnerability in VULNRA?</h2>
-          <p>We operate a coordinated disclosure programme. If you discover a security vulnerability in our platform, API, or infrastructure, please report it to us privately before public disclosure. We acknowledge all reports within 24 hours and commit to a 90-day resolution + disclosure timeline.</p>
-          <a href="mailto:security@vulnra.ai" class="db-email">→ security@vulnra.ai</a>
-          <div class="db-steps">
-            <span class="db-step">1. Email us the details</span>
-            <span class="db-step">2. We acknowledge in &lt;24h</span>
-            <span class="db-step">3. We investigate + fix</span>
-            <span class="db-step">4. Coordinated disclosure at 90 days</span>
-            <span class="db-step">5. Credit in our Hall of Fame</span>
+  <style>
+  @keyframes vOrbit { to { transform: rotate(360deg); } }
+  @keyframes vBlink { 0%,50%{opacity:1}51%,100%{opacity:0} }
+  </style>
+
+  <script>
+  (function(){
+    const msgs = ['INITIALISING','LOADING PROBES','MAPPING FRAMEWORKS','VERIFYING AUTH','READY'];
+    const bar = document.getElementById('vLoaderBar');
+    const pct = document.getElementById('vLoaderPct');
+    const status = document.getElementById('vLoaderStatus');
+    const loader = document.getElementById('vLoader');
+    let p = 0, mi = 0;
+    const iv = setInterval(() => {
+      p = Math.min(100, p + 1.4 + Math.random());
+      bar.style.width = p + '%';
+      pct.textContent = Math.floor(p) + '%';
+      mi = Math.floor((p / 100) * (msgs.length - 1));
+      status.textContent = msgs[mi];
+      if (p >= 100) {
+        clearInterval(iv);
+        bar.style.width = '100%';
+        pct.textContent = '100%';
+        status.textContent = 'READY';
+        setTimeout(() => {
+          loader.style.opacity = '0';
+          loader.style.visibility = 'hidden';
+        }, 300);
+      }
+    }, 28);
+  })();
+  </script>
+  <!-- END Loader -->
+
+  <nav>
+    <a href="index.html" class="nav-logo">
+      <div class="nav-logo-mark" style="
+        width: 28px;
+        height: 28px;
+        border-radius: 5px;
+        background: #060608;
+        border: 1.5px solid #b8ff57;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: neonBoxPulse 2s ease-in-out infinite;
+        flex-shrink: 0;
+        position: relative;
+      ">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+          <rect class="nsq nsq1" x="1" y="1" width="7.5" height="7.5" rx=".8" />
+          <rect class="nsq nsq2" x="11.5" y="1" width="7.5" height="7.5" rx=".8" />
+          <rect class="nsq nsq3" x="1" y="11.5" width="7.5" height="7.5" rx=".8" />
+          <rect class="nsq nsq4" x="11.5" y="11.5" width="7.5" height="7.5" rx=".8" />
+          <circle class="ndot1" cx="14.25" cy="16.75" r="1.1" />
+          <circle class="ndot2" cx="17.25" cy="16.75" r="1.1" />
+        </svg>
+      </div>
+      VULN<em>RA</em>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="how-it-works.html">How it works</a>
+      <a href="compliance.html">Compliance</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="docs.html">Docs</a>
+    </div>
+    <div class="nav-right">
+      <a href="signin.html" class="btn-ghost">Sign In</a>
+      <a href="signup.html" class="btn-acid">Get Started →</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <div class="hero-glow"></div>
+      <div class="page-eyebrow">Security</div>
+      <h1 class="hero-title">We scan AI.<br>We secure <span class="accent">ourselves</span><span class="red">.</span>
+      </h1>
+      <p class="hero-sub">VULNRA is a security product. That means our own security posture is held to the same standard
+        we expect of the systems we test. Here's exactly how we protect your data, our infrastructure, and what to do if
+        you find a vulnerability in us.</p>
+      <div class="hero-meta">
+        <div class="hero-badge">
+          <span class="badge-dot green"></span>
+          <span class="badge-label">Disclosure inbox</span>
+          <span class="badge-val">security@vulnra.ai</span>
+        </div>
+        <div class="hero-badge">
+          <span class="badge-dot green"></span>
+          <span class="badge-label">Response SLA</span>
+          <span class="badge-val">&lt; 24 hours</span>
+        </div>
+        <div class="hero-badge">
+          <span class="badge-dot amber"></span>
+          <span class="badge-label">SOC 2 Type II</span>
+          <span class="badge-val">In progress (Q3 2026)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISCLOSURE BANNER -->
+    <div class="disclosure-banner">
+      <div class="db-inner">
+        <div class="db-scan"></div>
+        <div class="db-header">
+          <div class="db-icon">⚠</div>
+          <div class="db-content">
+            <h2>Found a vulnerability in VULNRA?</h2>
+            <p>We operate a coordinated disclosure programme. If you discover a security vulnerability in our platform,
+              API, or infrastructure, please report it to us privately before public disclosure. We acknowledge all
+              reports within 24 hours and commit to a 90-day resolution + disclosure timeline.</p>
+            <a href="mailto:security@vulnra.ai" class="db-email">→ security@vulnra.ai</a>
+            <div class="db-steps">
+              <span class="db-step">1. Email us the details</span>
+              <span class="db-step">2. We acknowledge in &lt;24h</span>
+              <span class="db-step">3. We investigate + fix</span>
+              <span class="db-step">4. Coordinated disclosure at 90 days</span>
+              <span class="db-step">5. Credit in our Hall of Fame</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- OUR SECURITY PRACTICES -->
-  <div class="content-wrap">
-    <div class="section-eyebrow">Our Practices</div>
-    <h2 class="section-title">How we secure VULNRA</h2>
-    <p class="section-sub">Every security control we enforce on customer data. We don't hide behind vague assurances — here's the specific implementation.</p>
+    <!-- OUR SECURITY PRACTICES -->
+    <div class="content-wrap">
+      <div class="section-eyebrow">Our Practices</div>
+      <h2 class="section-title">How we secure VULNRA</h2>
+      <p class="section-sub">Every security control we enforce on customer data. We don't hide behind vague assurances —
+        here's the specific implementation.</p>
 
-    <div class="sec-grid">
-      <div class="sec-card">
-        <span class="sec-icon">🔐</span>
-        <div class="sec-card-title">Encryption at Rest</div>
-        <div class="sec-card-desc">All scan results and user data stored in Supabase Postgres are encrypted at rest using AES-256. Redis cache entries use TLS-encrypted Upstash connections.</div>
-        <span class="sec-tag tag-live">Live</span>
+      <div class="sec-grid">
+        <div class="sec-card">
+          <span class="sec-icon">🔐</span>
+          <div class="sec-card-title">Encryption at Rest</div>
+          <div class="sec-card-desc">All scan results and user data stored in Supabase Postgres are encrypted at rest
+            using AES-256. Redis cache entries use TLS-encrypted Upstash connections.</div>
+          <span class="sec-tag tag-live">Live</span>
+        </div>
+        <div class="sec-card">
+          <span class="sec-icon">🔒</span>
+          <div class="sec-card-title">Encryption in Transit</div>
+          <div class="sec-card-desc">All API traffic enforces TLS 1.2+. HSTS headers set on all endpoints. Mixed content
+            blocked. Certificate managed via Railway's auto-provisioned Let's Encrypt.</div>
+          <span class="sec-tag tag-live">Live</span>
+        </div>
+        <div class="sec-card">
+          <span class="sec-icon">🛡</span>
+          <div class="sec-card-title">Private IP Blocklist</div>
+          <div class="sec-card-desc">Scan engine blocks RFC 1918 ranges (10.x, 172.16.x, 192.168.x), localhost (127.x),
+            and cloud metadata endpoints (169.254.169.254) before any probe fires.</div>
+          <span class="sec-tag tag-live">Live</span>
+        </div>
+        <div class="sec-card">
+          <span class="sec-icon">🔑</span>
+          <div class="sec-card-title">API Key Scoping</div>
+          <div class="sec-card-desc">API keys are scoped to account tier and enforced at middleware. Keys never appear
+            in logs. Rotation available instantly from the dashboard. Keys use <code
+              style="font-family:var(--mono);font-size:10.5px;color:var(--acid)">vk_</code> prefix for easy scanning.
+          </div>
+          <span class="sec-tag tag-live">Live</span>
+        </div>
+        <div class="sec-card">
+          <span class="sec-icon">⏱</span>
+          <div class="sec-card-title">Data Retention Policy</div>
+          <div class="sec-card-desc">Scan results are retained for 90 days maximum then purged. Target URLs are never
+            passed to third-party analytics. No scan data is used for model training.</div>
+          <span class="sec-tag tag-live">Live</span>
+        </div>
+        <div class="sec-card">
+          <span class="sec-icon">🔍</span>
+          <div class="sec-card-title">Rate Limiting</div>
+          <div class="sec-card-desc">All scan endpoints are rate-limited per API key using slowapi. Free: 1/day. Pro:
+            100/day. Enterprise: unlimited. Abuse patterns trigger automatic key suspension.</div>
+          <span class="sec-tag tag-live">Live</span>
+        </div>
+        <div class="sec-card">
+          <span class="sec-icon">🏢</span>
+          <div class="sec-card-title">SOC 2 Type II</div>
+          <div class="sec-card-desc">Vanta-automated evidence collection is underway. SOC 2 Type II certification target
+            Q3 2026. Current security controls align with Trust Services Criteria.</div>
+          <span class="sec-tag tag-planned">Q3 2026</span>
+        </div>
+        <div class="sec-card">
+          <span class="sec-icon">🔄</span>
+          <div class="sec-card-title">Dependency Scanning</div>
+          <div class="sec-card-desc">Python dependencies scanned via Dependabot on every push. GitHub Advanced Security
+            enabled. CVEs in direct dependencies are patched within 48 hours of disclosure.</div>
+          <span class="sec-tag tag-process">In progress</span>
+        </div>
+        <div class="sec-card">
+          <span class="sec-icon">📋</span>
+          <div class="sec-card-title">Audit Logging</div>
+          <div class="sec-card-desc">All API key usage, scan initiations, and report downloads are logged with timestamp
+            and IP. Logs retained for 12 months. Available to Enterprise customers on request.</div>
+          <span class="sec-tag tag-planned">Enterprise</span>
+        </div>
       </div>
-      <div class="sec-card">
-        <span class="sec-icon">🔒</span>
-        <div class="sec-card-title">Encryption in Transit</div>
-        <div class="sec-card-desc">All API traffic enforces TLS 1.2+. HSTS headers set on all endpoints. Mixed content blocked. Certificate managed via Railway's auto-provisioned Let's Encrypt.</div>
-        <span class="sec-tag tag-live">Live</span>
+
+      <!-- INFRA TABLE -->
+      <div class="section-eyebrow">Infrastructure</div>
+      <h2 class="section-title">Our stack, secured</h2>
+      <p class="section-sub">Where your data lives and what protects it.</p>
+
+      <table class="infra-table">
+        <tr>
+          <th>Component</th>
+          <th>Provider</th>
+          <th>Security Controls</th>
+          <th>Status</th>
+        </tr>
+        <tr>
+          <td class="it-component">API Backend</td>
+          <td>
+            <div class="it-detail">Railway (US East)</div>
+          </td>
+          <td>
+            <div class="it-detail">TLS enforced, env vars isolated per service, no secrets in git, auto-deploy from
+              signed commits only</div>
+          </td>
+          <td><span class="it-status s-monitored">Monitored</span></td>
+        </tr>
+        <tr>
+          <td class="it-component">Database</td>
+          <td>
+            <div class="it-detail">Supabase Postgres</div>
+          </td>
+          <td>
+            <div class="it-detail">AES-256 at rest, TLS in transit, row-level security (RLS) policies, no direct public
+              access</div>
+          </td>
+          <td><span class="it-status s-encrypted">Encrypted</span></td>
+        </tr>
+        <tr>
+          <td class="it-component">Cache / Queue</td>
+          <td>
+            <div class="it-detail">Upstash Redis</div>
+          </td>
+          <td>
+            <div class="it-detail">TLS-only connections, eviction policy set, no PII stored in cache, TTL enforced on
+              all keys</div>
+          </td>
+          <td><span class="it-status s-encrypted">Encrypted</span></td>
+        </tr>
+        <tr>
+          <td class="it-component">Authentication</td>
+          <td>
+            <div class="it-detail">Supabase Auth</div>
+          </td>
+          <td>
+            <div class="it-detail">JWTs with short expiry, OAuth 2.0 via Google + GitHub, bcrypt password hashing, email
+              verification required</div>
+          </td>
+          <td><span class="it-status s-monitored">Monitored</span></td>
+        </tr>
+        <tr>
+          <td class="it-component">Frontend CDN</td>
+          <td>
+            <div class="it-detail">Railway Static</div>
+          </td>
+          <td>
+            <div class="it-detail">HTTPS-only, CSP headers, no inline scripts, SRI for external CDN resources</div>
+          </td>
+          <td><span class="it-status s-isolated">Isolated</span></td>
+        </tr>
+        <tr>
+          <td class="it-component">Secrets Management</td>
+          <td>
+            <div class="it-detail">Railway Env Vars</div>
+          </td>
+          <td>
+            <div class="it-detail">No secrets in .env committed to git. All secrets injected at runtime via Railway
+              environment. .gitignore enforced via pre-commit hook.</div>
+          </td>
+          <td><span class="it-status s-isolated">Isolated</span></td>
+        </tr>
+      </table>
+
+      <div class="divider"></div>
+
+      <!-- DISCLOSURE PROGRAMME -->
+      <div class="section-eyebrow">Responsible Disclosure</div>
+      <h2 class="section-title">How our disclosure programme works</h2>
+      <p class="section-sub">We follow industry-standard coordinated disclosure. Here's the exact process from report to
+        resolution.</p>
+
+      <div class="disclosure-timeline">
+        <div class="dt-step">
+          <div class="dt-num">01</div>
+          <div class="dt-content">
+            <h4>You send a report</h4>
+            <p>Email <a href="mailto:security@vulnra.ai"
+                style="color:var(--acid);text-decoration:none">security@vulnra.ai</a> with: vulnerability description,
+              reproduction steps, affected URL or endpoint, impact assessment, and your contact details. PGP encryption
+              available — see key below.</p>
+            <div class="dt-time">Day 0</div>
+          </div>
+        </div>
+        <div class="dt-step">
+          <div class="dt-num">02</div>
+          <div class="dt-content">
+            <h4>We acknowledge receipt</h4>
+            <p>We reply with a case number, confirmation of scope, and an initial severity assessment. We do not request
+              that you wait indefinitely — you will hear from a human, not an autoresponder.</p>
+            <div class="dt-time">Within 24 hours</div>
+          </div>
+        </div>
+        <div class="dt-step">
+          <div class="dt-num">03</div>
+          <div class="dt-content">
+            <h4>We investigate and reproduce</h4>
+            <p>Our team reproduces the issue and assesses severity using CVSS 3.1 scoring. We keep you updated on
+              progress. For critical vulnerabilities, we begin work immediately.</p>
+            <div class="dt-time">Days 1–14</div>
+          </div>
+        </div>
+        <div class="dt-step">
+          <div class="dt-num">04</div>
+          <div class="dt-content">
+            <h4>We fix and verify</h4>
+            <p>We deploy the fix and verify the vulnerability is resolved. We may ask you to retest if you're willing.
+              We notify you of the fix date and planned disclosure timeline.</p>
+            <div class="dt-time">Days 7–45 depending on severity</div>
+          </div>
+        </div>
+        <div class="dt-step">
+          <div class="dt-num">05</div>
+          <div class="dt-content">
+            <h4>Coordinated public disclosure</h4>
+            <p>We publish a security advisory in the <a href="changelog.html"
+                style="color:var(--acid);text-decoration:none">changelog</a> and credit you by name (or anonymously if
+              you prefer). Maximum disclosure timeline is 90 days from initial report.</p>
+            <div class="dt-time">Day 90 maximum</div>
+          </div>
+        </div>
       </div>
-      <div class="sec-card">
-        <span class="sec-icon">🛡</span>
-        <div class="sec-card-title">Private IP Blocklist</div>
-        <div class="sec-card-desc">Scan engine blocks RFC 1918 ranges (10.x, 172.16.x, 192.168.x), localhost (127.x), and cloud metadata endpoints (169.254.169.254) before any probe fires.</div>
-        <span class="sec-tag tag-live">Live</span>
+
+      <!-- SCOPE -->
+      <div class="section-eyebrow">Scope & Bounty</div>
+      <h2 class="section-title">Bug bounty programme</h2>
+      <p class="section-sub">We offer recognition and rewards for valid, in-scope vulnerability reports. We do not offer
+        monetary rewards yet — that changes when we hit $10K MRR.</p>
+
+      <table class="bounty-table">
+        <tr>
+          <th>Severity</th>
+          <th>Examples</th>
+          <th>Reward</th>
+        </tr>
+        <tr>
+          <td><span class="sev-critical">Critical</span></td>
+          <td style="font-size:12.5px;color:var(--muted);font-weight:300">RCE, SQL injection, full account takeover,
+            scan data exfiltration across accounts</td>
+          <td><span class="reward">Hall of Fame + ∞ Pro access</span></td>
+        </tr>
+        <tr>
+          <td><span class="sev-high">High</span></td>
+          <td style="font-size:12.5px;color:var(--muted);font-weight:300">Auth bypass, IDOR exposing other users' scan
+            results, API key leakage</td>
+          <td><span class="reward">Hall of Fame + 1yr Pro access</span></td>
+        </tr>
+        <tr>
+          <td><span class="sev-medium">Medium</span></td>
+          <td style="font-size:12.5px;color:var(--muted);font-weight:300">CSRF, rate limit bypass, stored XSS,
+            information disclosure</td>
+          <td><span class="reward">Hall of Fame + 3mo Pro access</span></td>
+        </tr>
+        <tr>
+          <td><span class="sev-low">Low</span></td>
+          <td style="font-size:12.5px;color:var(--muted);font-weight:300">Open redirect, missing security headers,
+            low-impact info disclosure</td>
+          <td><span class="reward-none">Hall of Fame</span></td>
+        </tr>
+      </table>
+
+      <p style="font-size:13px;color:var(--muted);font-weight:300;line-height:1.7;margin-bottom:40px"><strong
+          style="color:var(--text)">Out of scope:</strong> DDoS attacks, social engineering, physical attacks, attacks
+        against third-party services (Railway, Supabase, Upstash), automated scanning tools fired against our production
+        endpoints without prior permission, and vulnerabilities in software we don't maintain.</p>
+
+      <div class="divider"></div>
+
+      <!-- PGP KEY -->
+      <div class="section-eyebrow">PGP Key</div>
+      <h2 class="section-title">Encrypt your report</h2>
+      <p class="section-sub" style="margin-bottom:24px">For sensitive vulnerability reports, use our PGP public key to
+        encrypt your message before sending to security@vulnra.ai.</p>
+
+      <div class="pgp-block">
+        <div class="pgp-shimmer"></div>
+        -----BEGIN PGP PUBLIC KEY BLOCK-----
+        Key ID: VULNRA Security Team &lt;security@vulnra.ai&gt;
+        Fingerprint: A4F2 9B17 3C8E 1D05 6F2A B34C 7E91 0F28 D56A 3B1C
+
+        [PGP public key will be published here at launch]
+        [Contact security@vulnra.ai to request key fingerprint verification]
+        -----END PGP PUBLIC KEY BLOCK-----
       </div>
-      <div class="sec-card">
-        <span class="sec-icon">🔑</span>
-        <div class="sec-card-title">API Key Scoping</div>
-        <div class="sec-card-desc">API keys are scoped to account tier and enforced at middleware. Keys never appear in logs. Rotation available instantly from the dashboard. Keys use <code style="font-family:var(--mono);font-size:10.5px;color:var(--acid)">vk_</code> prefix for easy scanning.</div>
-        <span class="sec-tag tag-live">Live</span>
-      </div>
-      <div class="sec-card">
-        <span class="sec-icon">⏱</span>
-        <div class="sec-card-title">Data Retention Policy</div>
-        <div class="sec-card-desc">Scan results are retained for 90 days maximum then purged. Target URLs are never passed to third-party analytics. No scan data is used for model training.</div>
-        <span class="sec-tag tag-live">Live</span>
-      </div>
-      <div class="sec-card">
-        <span class="sec-icon">🔍</span>
-        <div class="sec-card-title">Rate Limiting</div>
-        <div class="sec-card-desc">All scan endpoints are rate-limited per API key using slowapi. Free: 1/day. Pro: 100/day. Enterprise: unlimited. Abuse patterns trigger automatic key suspension.</div>
-        <span class="sec-tag tag-live">Live</span>
-      </div>
-      <div class="sec-card">
-        <span class="sec-icon">🏢</span>
-        <div class="sec-card-title">SOC 2 Type II</div>
-        <div class="sec-card-desc">Vanta-automated evidence collection is underway. SOC 2 Type II certification target Q3 2026. Current security controls align with Trust Services Criteria.</div>
-        <span class="sec-tag tag-planned">Q3 2026</span>
-      </div>
-      <div class="sec-card">
-        <span class="sec-icon">🔄</span>
-        <div class="sec-card-title">Dependency Scanning</div>
-        <div class="sec-card-desc">Python dependencies scanned via Dependabot on every push. GitHub Advanced Security enabled. CVEs in direct dependencies are patched within 48 hours of disclosure.</div>
-        <span class="sec-tag tag-process">In progress</span>
-      </div>
-      <div class="sec-card">
-        <span class="sec-icon">📋</span>
-        <div class="sec-card-title">Audit Logging</div>
-        <div class="sec-card-desc">All API key usage, scan initiations, and report downloads are logged with timestamp and IP. Logs retained for 12 months. Available to Enterprise customers on request.</div>
-        <span class="sec-tag tag-planned">Enterprise</span>
+      <button class="copy-pgp"
+        onclick="this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy PGP Key',2000)">Copy PGP Key</button>
+
+      <div class="divider"></div>
+
+      <!-- FAQ -->
+      <div class="section-eyebrow">FAQ</div>
+      <h2 class="section-title">Security questions</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            Does VULNRA store the content of my LLM's responses?
+            <span class="faq-chevron">▾</span>
+          </div>
+          <div class="faq-a">VULNRA stores the probe results (pass/fail status, risk score, finding categories) for 90
+            days. The raw LLM response text is retained for up to 7 days to support PDF report generation, then purged.
+            Response content is never passed to third-party analytics or used for model training.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            Can VULNRA scans be detected by the target LLM?
+            <span class="faq-chevron">▾</span>
+          </div>
+          <div class="faq-a">Yes — VULNRA scans appear as API traffic to the target endpoint. We do not attempt to
+            disguise probe traffic. If you are scanning a production endpoint, ensure you have authorisation and that
+            rate limits won't be triggered by the scan volume. Pro tier scans run approximately 40 API calls against the
+            target.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            Is my API key to the target LLM ever logged or stored?
+            <span class="faq-chevron">▾</span>
+          </div>
+          <div class="faq-a">VULNRA does not ask for or store API keys to your target LLM endpoint. You provide the
+            endpoint URL. If your endpoint requires authentication, you should configure VULNRA to use a dedicated test
+            key with minimal permissions — not your production key.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            Can I scan a competitor's LLM with VULNRA?
+            <span class="faq-chevron">▾</span>
+          </div>
+          <div class="faq-a">No. VULNRA's Acceptable Use Policy requires that you only scan endpoints you own or have
+            explicit written authorisation to test. Scanning third-party services without authorisation violates our AUP
+            and may violate computer misuse laws. Violations result in immediate account termination.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            When will VULNRA achieve SOC 2 Type II certification?
+            <span class="faq-chevron">▾</span>
+          </div>
+          <div class="faq-a">We are currently in the evidence collection phase using Vanta. We are targeting Q3 2026 for
+            SOC 2 Type II certification. Enterprise customers requiring SOC 2 before that date should contact us
+            directly — we can share our current control documentation under NDA.</div>
+        </div>
       </div>
     </div>
 
-    <!-- INFRA TABLE -->
-    <div class="section-eyebrow">Infrastructure</div>
-    <h2 class="section-title">Our stack, secured</h2>
-    <p class="section-sub">Where your data lives and what protects it.</p>
+    <section class="cta">
+      <div class="cta-glow"></div>
+      <div style="position:relative;z-index:1">
+        <h2>Questions about security?</h2>
+        <p>Our security team responds to all enquiries within 24 hours.</p>
+        <div class="cta-actions">
+          <a href="mailto:security@vulnra.ai" class="btn-primary">Email security@vulnra.ai →</a>
+          <a href="docs.html" class="btn-outline">Read the API docs</a>
+        </div>
+      </div>
+    </section>
+  </main>
 
-    <table class="infra-table">
-      <tr><th>Component</th><th>Provider</th><th>Security Controls</th><th>Status</th></tr>
-      <tr>
-        <td class="it-component">API Backend</td>
-        <td><div class="it-detail">Railway (US East)</div></td>
-        <td><div class="it-detail">TLS enforced, env vars isolated per service, no secrets in git, auto-deploy from signed commits only</div></td>
-        <td><span class="it-status s-monitored">Monitored</span></td>
-      </tr>
-      <tr>
-        <td class="it-component">Database</td>
-        <td><div class="it-detail">Supabase Postgres</div></td>
-        <td><div class="it-detail">AES-256 at rest, TLS in transit, row-level security (RLS) policies, no direct public access</div></td>
-        <td><span class="it-status s-encrypted">Encrypted</span></td>
-      </tr>
-      <tr>
-        <td class="it-component">Cache / Queue</td>
-        <td><div class="it-detail">Upstash Redis</div></td>
-        <td><div class="it-detail">TLS-only connections, eviction policy set, no PII stored in cache, TTL enforced on all keys</div></td>
-        <td><span class="it-status s-encrypted">Encrypted</span></td>
-      </tr>
-      <tr>
-        <td class="it-component">Authentication</td>
-        <td><div class="it-detail">Supabase Auth</div></td>
-        <td><div class="it-detail">JWTs with short expiry, OAuth 2.0 via Google + GitHub, bcrypt password hashing, email verification required</div></td>
-        <td><span class="it-status s-monitored">Monitored</span></td>
-      </tr>
-      <tr>
-        <td class="it-component">Frontend CDN</td>
-        <td><div class="it-detail">Railway Static</div></td>
-        <td><div class="it-detail">HTTPS-only, CSP headers, no inline scripts, SRI for external CDN resources</div></td>
-        <td><span class="it-status s-isolated">Isolated</span></td>
-      </tr>
-      <tr>
-        <td class="it-component">Secrets Management</td>
-        <td><div class="it-detail">Railway Env Vars</div></td>
-        <td><div class="it-detail">No secrets in .env committed to git. All secrets injected at runtime via Railway environment. .gitignore enforced via pre-commit hook.</div></td>
-        <td><span class="it-status s-isolated">Isolated</span></td>
-      </tr>
-    </table>
-
-    <div class="divider"></div>
-
-    <!-- DISCLOSURE PROGRAMME -->
-    <div class="section-eyebrow">Responsible Disclosure</div>
-    <h2 class="section-title">How our disclosure programme works</h2>
-    <p class="section-sub">We follow industry-standard coordinated disclosure. Here's the exact process from report to resolution.</p>
-
-    <div class="disclosure-timeline">
-      <div class="dt-step">
-        <div class="dt-num">01</div>
-        <div class="dt-content">
-          <h4>You send a report</h4>
-          <p>Email <a href="mailto:security@vulnra.ai" style="color:var(--acid);text-decoration:none">security@vulnra.ai</a> with: vulnerability description, reproduction steps, affected URL or endpoint, impact assessment, and your contact details. PGP encryption available — see key below.</p>
-          <div class="dt-time">Day 0</div>
-        </div>
-      </div>
-      <div class="dt-step">
-        <div class="dt-num">02</div>
-        <div class="dt-content">
-          <h4>We acknowledge receipt</h4>
-          <p>We reply with a case number, confirmation of scope, and an initial severity assessment. We do not request that you wait indefinitely — you will hear from a human, not an autoresponder.</p>
-          <div class="dt-time">Within 24 hours</div>
-        </div>
-      </div>
-      <div class="dt-step">
-        <div class="dt-num">03</div>
-        <div class="dt-content">
-          <h4>We investigate and reproduce</h4>
-          <p>Our team reproduces the issue and assesses severity using CVSS 3.1 scoring. We keep you updated on progress. For critical vulnerabilities, we begin work immediately.</p>
-          <div class="dt-time">Days 1–14</div>
-        </div>
-      </div>
-      <div class="dt-step">
-        <div class="dt-num">04</div>
-        <div class="dt-content">
-          <h4>We fix and verify</h4>
-          <p>We deploy the fix and verify the vulnerability is resolved. We may ask you to retest if you're willing. We notify you of the fix date and planned disclosure timeline.</p>
-          <div class="dt-time">Days 7–45 depending on severity</div>
-        </div>
-      </div>
-      <div class="dt-step">
-        <div class="dt-num">05</div>
-        <div class="dt-content">
-          <h4>Coordinated public disclosure</h4>
-          <p>We publish a security advisory in the <a href="changelog.html" style="color:var(--acid);text-decoration:none">changelog</a> and credit you by name (or anonymously if you prefer). Maximum disclosure timeline is 90 days from initial report.</p>
-          <div class="dt-time">Day 90 maximum</div>
-        </div>
-      </div>
+  <footer>
+    <div class="footer-left">© 2025 VULNRA. MIT Licensed. Built on NVIDIA Garak.</div>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="acceptable-use.html">AUP</a>
+      <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+      <a href="mailto:hello@vulnra.ai">hello@vulnra.ai</a>
     </div>
+  </footer>
 
-    <!-- SCOPE -->
-    <div class="section-eyebrow">Scope & Bounty</div>
-    <h2 class="section-title">Bug bounty programme</h2>
-    <p class="section-sub">We offer recognition and rewards for valid, in-scope vulnerability reports. We do not offer monetary rewards yet — that changes when we hit $10K MRR.</p>
-
-    <table class="bounty-table">
-      <tr><th>Severity</th><th>Examples</th><th>Reward</th></tr>
-      <tr>
-        <td><span class="sev-critical">Critical</span></td>
-        <td style="font-size:12.5px;color:var(--muted);font-weight:300">RCE, SQL injection, full account takeover, scan data exfiltration across accounts</td>
-        <td><span class="reward">Hall of Fame + ∞ Pro access</span></td>
-      </tr>
-      <tr>
-        <td><span class="sev-high">High</span></td>
-        <td style="font-size:12.5px;color:var(--muted);font-weight:300">Auth bypass, IDOR exposing other users' scan results, API key leakage</td>
-        <td><span class="reward">Hall of Fame + 1yr Pro access</span></td>
-      </tr>
-      <tr>
-        <td><span class="sev-medium">Medium</span></td>
-        <td style="font-size:12.5px;color:var(--muted);font-weight:300">CSRF, rate limit bypass, stored XSS, information disclosure</td>
-        <td><span class="reward">Hall of Fame + 3mo Pro access</span></td>
-      </tr>
-      <tr>
-        <td><span class="sev-low">Low</span></td>
-        <td style="font-size:12.5px;color:var(--muted);font-weight:300">Open redirect, missing security headers, low-impact info disclosure</td>
-        <td><span class="reward-none">Hall of Fame</span></td>
-      </tr>
-    </table>
-
-    <p style="font-size:13px;color:var(--muted);font-weight:300;line-height:1.7;margin-bottom:40px"><strong style="color:var(--text)">Out of scope:</strong> DDoS attacks, social engineering, physical attacks, attacks against third-party services (Railway, Supabase, Upstash), automated scanning tools fired against our production endpoints without prior permission, and vulnerabilities in software we don't maintain.</p>
-
-    <div class="divider"></div>
-
-    <!-- PGP KEY -->
-    <div class="section-eyebrow">PGP Key</div>
-    <h2 class="section-title">Encrypt your report</h2>
-    <p class="section-sub" style="margin-bottom:24px">For sensitive vulnerability reports, use our PGP public key to encrypt your message before sending to security@vulnra.ai.</p>
-
-    <div class="pgp-block">
-      <div class="pgp-shimmer"></div>
------BEGIN PGP PUBLIC KEY BLOCK-----
-Key ID: VULNRA Security Team &lt;security@vulnra.ai&gt;
-Fingerprint: A4F2 9B17 3C8E 1D05 6F2A  B34C 7E91 0F28 D56A 3B1C
-
-[PGP public key will be published here at launch]
-[Contact security@vulnra.ai to request key fingerprint verification]
------END PGP PUBLIC KEY BLOCK-----
-    </div>
-    <button class="copy-pgp" onclick="this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy PGP Key',2000)">Copy PGP Key</button>
-
-    <div class="divider"></div>
-
-    <!-- FAQ -->
-    <div class="section-eyebrow">FAQ</div>
-    <h2 class="section-title">Security questions</h2>
-    <div class="faq-list">
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          Does VULNRA store the content of my LLM's responses?
-          <span class="faq-chevron">▾</span>
-        </div>
-        <div class="faq-a">VULNRA stores the probe results (pass/fail status, risk score, finding categories) for 90 days. The raw LLM response text is retained for up to 7 days to support PDF report generation, then purged. Response content is never passed to third-party analytics or used for model training.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          Can VULNRA scans be detected by the target LLM?
-          <span class="faq-chevron">▾</span>
-        </div>
-        <div class="faq-a">Yes — VULNRA scans appear as API traffic to the target endpoint. We do not attempt to disguise probe traffic. If you are scanning a production endpoint, ensure you have authorisation and that rate limits won't be triggered by the scan volume. Pro tier scans run approximately 40 API calls against the target.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          Is my API key to the target LLM ever logged or stored?
-          <span class="faq-chevron">▾</span>
-        </div>
-        <div class="faq-a">VULNRA does not ask for or store API keys to your target LLM endpoint. You provide the endpoint URL. If your endpoint requires authentication, you should configure VULNRA to use a dedicated test key with minimal permissions — not your production key.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          Can I scan a competitor's LLM with VULNRA?
-          <span class="faq-chevron">▾</span>
-        </div>
-        <div class="faq-a">No. VULNRA's Acceptable Use Policy requires that you only scan endpoints you own or have explicit written authorisation to test. Scanning third-party services without authorisation violates our AUP and may violate computer misuse laws. Violations result in immediate account termination.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          When will VULNRA achieve SOC 2 Type II certification?
-          <span class="faq-chevron">▾</span>
-        </div>
-        <div class="faq-a">We are currently in the evidence collection phase using Vanta. We are targeting Q3 2026 for SOC 2 Type II certification. Enterprise customers requiring SOC 2 before that date should contact us directly — we can share our current control documentation under NDA.</div>
-      </div>
-    </div>
-  </div>
-
-  <section class="cta">
-    <div class="cta-glow"></div>
-    <div style="position:relative;z-index:1">
-      <h2>Questions about security?</h2>
-      <p>Our security team responds to all enquiries within 24 hours.</p>
-      <div class="cta-actions">
-        <a href="mailto:security@vulnra.ai" class="btn-primary">Email security@vulnra.ai →</a>
-        <a href="docs.html" class="btn-outline">Read the API docs</a>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer>
-  <div class="footer-left">© 2025 VULNRA. MIT Licensed. Built on NVIDIA Garak.</div>
-  <div class="footer-links">
-    <a href="privacy.html">Privacy</a>
-    <a href="terms.html">Terms</a>
-    <a href="acceptable-use.html">AUP</a>
-    <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
-    <a href="mailto:hello@vulnra.ai">hello@vulnra.ai</a>
-  </div>
-</footer>
-
-<script>
-  function toggleFaq(el) {
-    const ans = el.nextElementSibling;
-    const chevron = el.querySelector('.faq-chevron');
-    const isOpen = ans.classList.contains('open');
-    document.querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
-    document.querySelectorAll('.faq-chevron').forEach(c => c.classList.remove('open'));
-    if (!isOpen) { ans.classList.add('open'); chevron.classList.add('open'); }
-  }
-</script>
+  <script>
+    function toggleFaq(el) {
+      const ans = el.nextElementSibling;
+      const chevron = el.querySelector('.faq-chevron');
+      const isOpen = ans.classList.contains('open');
+      document.querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
+      document.querySelectorAll('.faq-chevron').forEach(c => c.classList.remove('open'));
+      if (!isOpen) { ans.classList.add('open'); chevron.classList.add('open'); }
+    }
+  </script>
+  <script src="loader.js"></script>
 </body>
+
 </html>
