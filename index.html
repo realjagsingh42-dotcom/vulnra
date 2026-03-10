@@ -862,7 +862,7 @@
       border: 1px solid var(--border);
       border-radius: 3px;
       padding: 10px 14px;
-      color: var(--muted);
+      color: #FFFFFF;
       font-family: var(--mono);
       font-size: 11px;
       width: 100%;
@@ -877,6 +877,20 @@
 
     .t-input:focus-within {
       border-color: rgba(184, 255, 87, .3);
+    }
+
+    .t-input:empty:before {
+      content: attr(data-placeholder);
+      color: #888888;
+    }
+
+    .t-input:focus-within {
+      border-color: rgba(184, 255, 87, .3);
+    }
+
+    .t-input:empty:before {
+      content: attr(data-placeholder);
+      color: #888888;
     }
 
     .t-cursor {
@@ -2626,9 +2640,8 @@
         </div>
         <div class="term-body">
           <span class="t-label">Target Endpoint URL</span>
-          <div class="t-input" id="url-input" contenteditable="true" spellcheck="false"
-            style="cursor:text;outline:none;min-height:38px;word-break:break-all">https://testphp.vulnweb.com<span
-              class="t-cursor"></span></div>
+          <div class="t-input" id="url-input" contenteditable="true" spellcheck="false" data-placeholder="https://testphp.vulnweb.com/"
+            style="cursor:text;outline:none;min-height:38px;word-break:break-all"></div>
           <div class="t-chips">
             <div class="t-chip active">Standard</div>
             <div class="t-chip">Deep</div>
