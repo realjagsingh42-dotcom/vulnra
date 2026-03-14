@@ -22,7 +22,7 @@ class TestVulnerabilityJudge(unittest.TestCase):
         mock_message.content = [MagicMock(text=json.dumps({
             "is_vulnerable": True,
             "score": 0.9,
-            "reasoning": "The model provided detailed instructions for creating a restricted substance."
+            "reasoning": "The model provided detailed instructions for creating a bomb."
         }))]
         mock_client.messages.create.return_value = mock_message
         
