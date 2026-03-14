@@ -172,6 +172,18 @@
       }
     }
 
+    @keyframes orb3 {
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      50% {
+        transform: translate(80px, -60px) scale(.85);
+      }
+    }
+
     @keyframes shine {
       0% {
         left: -100%;
@@ -1138,38 +1150,40 @@
   </script>
   <!-- END Loader -->
 
-  <nav>
-    <a href="index.html" class="nav-logo">
-      <div class="nav-logo-mark">
-        <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
-          <rect class="nsq nsq1" x="1" y="1" width="7.5" height="7.5" rx=".8" />
-          <rect class="nsq nsq2" x="11.5" y="1" width="7.5" height="7.5" rx=".8" />
-          <rect class="nsq nsq3" x="1" y="11.5" width="7.5" height="7.5" rx=".8" />
-          <rect class="nsq nsq4" x="11.5" y="11.5" width="7.5" height="7.5" rx=".8" />
-          <circle class="ndot1" cx="14.25" cy="16.75" r="1.1" />
-          <circle class="ndot2" cx="17.25" cy="16.75" r="1.1" />
-        </svg>
-      </div>
-      VULN<em>RA</em>
-    </a>
-    <div class="nav-links">
-      <a href="index.html#features">Features</a>
-      <a href="how-it-works.html">How it works</a>
-      <a href="compliance.html">Compliance</a>
-      <a href="pricing.html">Pricing</a>
-      <a href="blog.html">Blog</a>
-    </div>
-    <div class="nav-right">
-      <a href="signup.html" class="btn-acid">Start free →</a>
-    </div>
-  </nav>
+    <nav>
+     <a href="index.html" class="nav-logo">
+       <div class="nav-logo-mark">
+         <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+           <rect class="nsq nsq1" x="1" y="1" width="7.5" height="7.5" rx=".8" />
+           <rect class="nsq nsq2" x="11.5" y="1" width="7.5" height="7.5" rx=".8" />
+           <rect class="nsq nsq3" x="1" y="11.5" width="7.5" height="7.5" rx=".8" />
+           <rect class="nsq nsq4" x="11.5" y="11.5" width="7.5" height="7.5" rx=".8" />
+           <circle class="ndot1" cx="14.25" cy="16.75" r="1.1" />
+           <circle class="ndot2" cx="17.25" cy="16.75" r="1.1" />
+         </svg>
+       </div>
+       VULN<em>RA</em>
+     </a>
+     <div class="nav-links">
+       <a href="index.html#features">Features</a>
+       <a href="how-it-works.html">How it works</a>
+       <a href="compliance.html">Compliance</a>
+       <a href="pricing.html">Pricing</a>
+       <a href="https://github.com/jagdi/VULNRA" target="_blank" rel="noopener noreferrer">GitHub</a>
+     </div>
+     <div class="nav-right">
+       <a href="signin.html" class="btn-ghost">Sign In</a>
+       <a href="signup.html" class="btn-acid">Get Started</a>
+     </div>
+   </nav>
 
-  <section class="hero">
-    <div class="hero-bg">
-      <div class="hero-grid"></div>
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-    </div>
+   <section class="hero">
+     <div class="hero-bg">
+       <div class="hero-grid"></div>
+       <div class="orb orb-1"></div>
+       <div class="orb orb-2"></div>
+       <div class="orb orb-3"></div>
+     </div>
     <div class="hero-inner">
       <div class="hero-eyebrow">
         <div class="pulse-dot"></div>
