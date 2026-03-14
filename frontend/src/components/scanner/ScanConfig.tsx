@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Globe, Cpu, Zap, Activity } from "lucide-react";
+import { Globe, Cpu, Zap, Activity, Timer, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ScanConfigProps {
@@ -12,11 +12,21 @@ interface ScanConfigProps {
 export default function ScanConfig({ onStart, isScanning }: ScanConfigProps) {
   const [url, setUrl] = useState("");
   const [tier, setTier] = useState("free");
+  const [attackType, setAttackType] = useState("crescendo");
+  
+  // Rate limit configuration based on tier
+  const rateLimitConfig = {
+    free: { limit: 1, window: 60 },
+    pro: { limit: 10, window: 60 },
+    enterprise: { limit: 100, window: 60 }
+  };
+  
+  const currentLimit = rateLimitConfig[tier as keyof typeof rateLimitConfig] || rateLimitConfig.free;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) return;
-    onStart({ url, tier });
+    onStart({ url, tier, attackType });
   };
 
   return (
@@ -56,7 +66,62 @@ export default function ScanConfig({ onStart, isScanning }: ScanConfigProps) {
         </div>
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[8.5px] font-mono tracking-widest uppercase text-v-muted2">Attack Type</label>
+        <div className="flex gap-1">
+          {["crescendo", "goat"].map((type) => (
+            <button
+              key={type}
+              type="button"
+              disabled={isScanning}
+              onClick={() => setAttackType(type)}
+              className={cn(
+                "flex-1 font-mono text-[9px] tracking-tight bg-v-bg2 border border-v-border rounded-sm py-1.75 text-center transition-all",
+                attackType === type ? "border-acid text-acid bg-acid/10" : "text-v-muted2 hover:border-white/10 hover:text-v-muted"
+              )}
+            >
+              {type.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="h-[1px] bg-v-border2 my-1" />
+
+      {/* Rate Limit Status Panel */}
+      <div className="flex flex-col gap-2 bg-black/20 border border-v-border2 rounded-sm p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Timer className="w-3.5 h-3.5 text-acid" />
+            <span className="text-[8.5px] font-mono tracking-widest uppercase text-v-muted2">Rate Limit Status</span>
+          </div>
+          <span className={cn(
+            "text-[8px] px-1.5 py-0.5 rounded-[2px] border font-bold",
+            tier === "enterprise" ? "bg-v-amber/10 text-v-amber border-v-amber/20" : "bg-acid/10 text-acid border-acid/20"
+          )}>
+            {tier.toUpperCase()}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-[10px] font-mono">
+          <div className="flex items-center gap-1.5">
+            <span className="text-v-muted2">LIMIT:</span>
+            <span className="text-acid">{currentLimit.limit}</span>
+            <span className="text-v-muted2">/min</span>
+          </div>
+          <div className="h-3 w-[1px] bg-v-border" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-v-muted2">WINDOW:</span>
+            <span className="text-acid">{currentLimit.window}</span>
+            <span className="text-v-muted2">sec</span>
+          </div>
+        </div>
+        {tier === "free" && (
+          <div className="flex items-center gap-1.5 text-[9px] text-v-amber/80 mt-1">
+            <AlertTriangle className="w-3 h-3" />
+            <span>Upgrade to Pro for 10x higher limits</span>
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">

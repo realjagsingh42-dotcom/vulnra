@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
-import { Shield, LogOut, BarChart3, Settings, Activity } from "lucide-react";
+import { Shield, LogOut, BarChart3, Settings, Activity, Timer, Zap } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
@@ -13,11 +13,21 @@ export default function ScannerLayout({ user }: { user: User }) {
   const [isScanning, setIsScanning] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [findings, setFindings] = useState<any[]>([]);
+  const [rateLimitInfo, setRateLimitInfo] = useState<{ limit: number; remaining: number; reset: number } | null>(null);
   const supabase = createClient();
 
   const tier = (user.user_metadata?.tier || "free").toLowerCase();
+  
+  // Rate limit configuration based on tier
+  const rateLimitConfig = {
+    free: { limit: 1, window: 60 },
+    pro: { limit: 10, window: 60 },
+    enterprise: { limit: 100, window: 60 }
+  };
+  
+  const currentLimit = rateLimitConfig[tier as keyof typeof rateLimitConfig] || rateLimitConfig.free;
 
-  const handleStartScan = async (config: { url: string; tier: string }) => {
+  const handleStartScan = async (config: { url: string; tier: string; attackType?: string }) => {
     setIsScanning(true);
     setLogs(["+ INITIALIZING_STOCHASTIC_AUDIT...", `+ TARGET: ${config.url}`, `+ PROTOCOL: ${config.tier.toUpperCase()}`]);
     
@@ -29,20 +39,55 @@ export default function ScannerLayout({ user }: { user: User }) {
         return;
       }
 
+      // Determine which endpoint to use based on attackType
+      const endpoint = config.attackType ? "/multi-turn-scan" : "/scan";
+      const payload = config.attackType 
+        ? { url: config.url, tier: config.tier, attack_type: config.attackType }
+        : { url: config.url, tier: config.tier };
+      
+      if (config.attackType) {
+        setLogs(prev => [...prev, `+ ATTACK_TYPE: ${config.attackType.toUpperCase()}`, "+ INITIALIZING_MULTI_TURN_ATTACK..."]);
+      }
+      
       setLogs(prev => [...prev, "+ CONNECTING_TO_NODES...", "+ DISPATCHING_PROBES..."]);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/scan`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${endpoint}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({
-            url: config.url,
-            tier: config.tier
-        })
+        body: JSON.stringify(payload)
       });
 
+      // Handle rate limit response (429)
+      if (response.status === 429) {
+        const rateLimitData = await response.json().catch(() => ({}));
+        const resetTime = response.headers.get("X-RateLimit-Reset");
+        const limit = response.headers.get("X-RateLimit-Limit");
+        
+        let errorMessage = "Rate limit exceeded. Please wait before making another request.";
+        
+        if (resetTime) {
+          const resetTimestamp = parseInt(resetTime, 10) * 1000; // Convert to milliseconds
+          const now = Date.now();
+          const waitTime = Math.ceil((resetTimestamp - now) / 1000);
+          
+          if (waitTime > 0) {
+            errorMessage = `Rate limit exceeded. Please wait ${waitTime} seconds before retrying.`;
+          }
+        }
+        
+        if (rateLimitData.upgrade) {
+          errorMessage += `\nUpgrade to ${config.tier.toUpperCase()} tier for higher limits.`;
+        }
+        
+        setLogs(prev => [...prev, "! ERROR: RATE_LIMIT_EXCEEDED", `! ${errorMessage}`]);
+        setIsScanning(false);
+        return;
+      }
+
+      // Handle other errors
       if (!response.ok) {
           const errData = await response.json();
           throw new Error(errData.detail || errData.error || "SCAN_INIT_FAILED");
@@ -57,19 +102,37 @@ export default function ScannerLayout({ user }: { user: User }) {
         return;
       }
 
-      // Polling Logic
+      // Polling Logic with rate limit handling
       const pollInterval = setInterval(async () => {
         try {
           const pollRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/scan/${scanId}`, {
             headers: { "Authorization": `Bearer ${session.access_token}` }
           });
           
+          // Handle rate limit on polling
+          if (pollRes.status === 429) {
+            console.warn("Rate limited during polling, will retry...");
+            return;
+          }
+          
           if (pollRes.ok) {
             const pollData = await pollRes.json();
             if (pollData.status === "complete") {
               clearInterval(pollInterval);
               setIsScanning(false);
-              setLogs(prev => [...prev, "+ SCAN_COMPLETE. ANALYZING_VULNERABILITIES...", `+ RISK_SCORE: ${pollData.risk_score}`]);
+              
+              // Handle multi-turn scan results
+              if (pollData.conversation) {
+                setLogs(prev => [...prev, "+ MULTI_TURN_COMPLETE", `+ ATTACK_TYPE: ${pollData.attack_type}`]);
+                // Add conversation to logs
+                pollData.conversation.forEach((turn: any) => {
+                  setLogs(prev => [...prev, `+ TURN_${turn.turn + 1}: ${turn.user.substring(0, 50)}...`]);
+                });
+              } else {
+                setLogs(prev => [...prev, "+ SCAN_COMPLETE. ANALYZING_VULNERABILITIES..."]);
+              }
+              
+              setLogs(prev => [...prev, `+ RISK_SCORE: ${pollData.risk_score}`]);
               setFindings(pollData.findings || []);
             } else if (pollData.status === "failed") {
               clearInterval(pollInterval);
@@ -106,17 +169,27 @@ export default function ScannerLayout({ user }: { user: User }) {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-[10px] font-mono text-v-muted bg-white/5 border border-v-border px-2.5 py-1.25 rounded-sm hover:border-white/10 transition-colors cursor-pointer group">
-            <div className="w-4 h-4 rounded-full bg-acid flex items-center justify-center text-[8px] font-bold text-black group-hover:scale-110 transition-transform">
-              {user.email?.[0].toUpperCase()}
-            </div>
-            <span className="max-w-[120px] truncate">{user.email}</span>
+          {/* Rate Limit Indicator */}
+          <div className="flex items-center gap-2 text-[10px] font-mono text-v-muted bg-white/5 border border-v-border px-2.5 py-1.25 rounded-sm hover:border-white/10 transition-colors cursor-pointer group" title="API Rate Limit Status">
+            <Timer className="w-3.5 h-3.5 text-acid" />
+            <span className="text-acid">{currentLimit.limit}</span>
+            <span className="text-v-muted2">/min</span>
+            <div className="h-3 w-[1px] bg-v-border mx-1" />
+            <span className="text-v-muted2">TIER:</span>
             <span className={cn(
               "text-[8px] px-1.25 py-0.25 rounded-[1px] border leading-none font-bold",
               tier === "enterprise" ? "bg-v-amber/10 text-v-amber border-v-amber/20" : "bg-acid/10 text-acid border-acid/20"
             )}>
               {tier.toUpperCase()}
             </span>
+          </div>
+          
+          {/* User Info */}
+          <div className="flex items-center gap-2 text-[10px] font-mono text-v-muted bg-white/5 border border-v-border px-2.5 py-1.25 rounded-sm hover:border-white/10 transition-colors cursor-pointer group">
+            <div className="w-4 h-4 rounded-full bg-acid flex items-center justify-center text-[8px] font-bold text-black group-hover:scale-110 transition-transform">
+              {user.email?.[0].toUpperCase()}
+            </div>
+            <span className="max-w-[120px] truncate">{user.email}</span>
           </div>
           <button 
             onClick={() => signOut()}
