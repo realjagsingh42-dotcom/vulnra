@@ -663,14 +663,51 @@ def generate_audit_pdf(scan_data: Dict[str, Any]) -> bytes:
     if not compliance or compliance.get('blurred'):
         story.append(Paragraph("Full compliance reporting is available in Pro and Enterprise tiers.", styles['Normal']))
     else:
-        # EU AI Act, etc.
+        # EU AI Act, DPDP, NIST AI RMF
         for framework, details in compliance.items():
-            if framework == "blurred": continue
+            if framework == "blurred" or framework == "mitre_atlas": continue
             story.append(Paragraph(framework.replace("_", " ").upper(), styles['Normal']))
-            story.append(Paragraph(f"Critical Articles: {', '.join(details.get('articles', []))}", styles['Normal']))
+            if 'articles' in details:
+                story.append(Paragraph(f"Critical Articles: {', '.join(details.get('articles', []))}", styles['Normal']))
+            if 'sections' in details:
+                story.append(Paragraph(f"Critical Sections: {', '.join(details.get('sections', []))}", styles['Normal']))
+            if 'functions' in details:
+                story.append(Paragraph(f"NIST Functions: {', '.join(details.get('functions', []))}", styles['Normal']))
             if 'fine_eur' in details:
                 story.append(Paragraph(f"Potential Exposure: &euro;{details['fine_eur']:,}", styles['Normal']))
+            if 'fine_inr' in details:
+                story.append(Paragraph(f"Potential Exposure: &inr;{details['fine_inr']:,}", styles['Normal']))
             story.append(Spacer(1, 0.1*inch))
+        
+        # MITRE ATLAS Section
+        if "mitre_atlas" in compliance:
+            story.append(Spacer(1, 0.2*inch))
+            story.append(Paragraph("MITRE ATLAS Tactics & Techniques", styles['SectionHeader']))
+            
+            # Group findings by MITRE ATLAS tactics
+            tactics_map = {}
+            for finding in scan_data.get('findings', []):
+                if 'compliance' in finding and 'mitre_atlas' in finding['compliance']:
+                    atlas = finding['compliance']['mitre_atlas']
+                    for tactic in atlas.get('tactics', []):
+                        if tactic not in tactics_map:
+                            tactics_map[tactic] = []
+                        tactics_map[tactic].append({
+                            'techniques': atlas.get('techniques', []),
+                            'category': finding.get('category', 'Unknown'),
+                            'detail': finding.get('detail', '')[:100] + "..." if len(finding.get('detail', '')) > 100 else finding.get('detail', '')
+                        })
+            
+            # Display tactics and techniques
+            for tactic, items in tactics_map.items():
+                from app.core.compliance import MITRE_ATLAS_TACTICS
+                tactic_name = MITRE_ATLAS_TACTICS.get(tactic, {}).get('name', tactic)
+                story.append(Paragraph(f"<b>{tactic} - {tactic_name}</b>", styles['Normal']))
+                
+                for item in items:
+                    techniques = ", ".join(item['techniques'])
+                    story.append(Paragraph(f"  • {item['category']}: {techniques}", styles['Normal']))
+                story.append(Spacer(1, 0.1*inch))
             
     # 5. Recommendations
     story.append(Paragraph("Recommendations", styles['SectionHeader']))
