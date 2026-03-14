@@ -12,3 +12,12 @@ anthropic==0.49.0
 
 # Garak — core LLM probe engine
 garak==0.14.0
+
+# ── Pin transitive deps to prevent pip backtracking ──────────
+# garak pulls in google-cloud-translate which causes
+# resolution-too-deep without these pins.
+grpcio==1.67.1
+grpcio-status==1.67.1
+grpcio-tools==1.67.1
+protobuf==4.25.8
+googleapis-common-protos==1.63.2

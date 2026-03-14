@@ -35,7 +35,7 @@ RUN groupadd -r vulnra && useradd -r -g vulnra vulnra \
 # torch CPU-only is ~800MB vs ~4GB for full torch — use it.
 COPY requirements-ml.txt .
 RUN pip install --upgrade pip && \
-    pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu && \
+    pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu && \
     pip install -r requirements-ml.txt
 
 # ── LAYER 2: App dependencies (fast, changes often) ──────────
