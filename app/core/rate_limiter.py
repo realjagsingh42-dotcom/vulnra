@@ -72,7 +72,7 @@ def tier_rate_limit():
                 
                 # Apply rate limit check using slowapi
                 # We need to manually check the rate limit
-                from slowapi._strategies import Strategey
+                from slowapi._strategies import Strategy
                 # This is a simplified approach - in production, use the decorator directly
                 
                 # For now, just log and proceed

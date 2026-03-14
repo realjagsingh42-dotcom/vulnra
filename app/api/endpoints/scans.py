@@ -11,11 +11,35 @@ from slowapi.errors import RateLimitExceeded
 from app.core.config import settings, logger
 from app.core.security import get_current_user
 from app.core.utils import is_safe_url
-from app.services.supabase_service import check_scan_quota, get_scan_result, get_user_tier
+from app.services.supabase_service import check_scan_quota, get_scan_result, get_user_tier, get_user_scans, create_share_token, get_scan_by_share_token, get_prev_scan_risk_for_url
 from app.services.scan_service import run_scan_internal
 from app.services.mcp_scanner import scan_mcp_server, MCPScanResult
 
 router = APIRouter()
+
+_CATEGORY_BUCKET: dict = {
+    "PROMPT_INJECTION":      "injection",
+    "JAILBREAK":             "jailbreak",
+    "PII_LEAK":              "leakage",
+    "DATA_EXFIL":            "leakage",
+    "SYSTEM_PROMPT_LEAKAGE": "leakage",
+    "VECTOR_WEAKNESS":       "leakage",
+    "POLICY_BYPASS":         "compliance",
+    "UNBOUNDED_CONSUMPTION": "compliance",
+}
+
+def compute_category_scores(findings: list) -> dict:
+    """Aggregate hit_rate per category bucket into 0-100 scores."""
+    buckets: dict = {"injection": [], "jailbreak": [], "leakage": [], "compliance": []}
+    for f in findings:
+        bucket = _CATEGORY_BUCKET.get(f.get("category", ""))
+        if bucket:
+            buckets[bucket].append(float(f.get("hit_rate", 0)))
+    return {
+        k: round(sum(v) / len(v) * 100) if v else 0
+        for k, v in buckets.items()
+    }
+
 
 # Rate limit limits per tier (per minute)
 # Free: 1 request/minute, Pro: 10 requests/minute, Enterprise: 100 requests/minute
@@ -41,6 +65,113 @@ limiter = Limiter(
     storage_uri=settings.redis_url,
     strategy="fixed-window",
 )
+
+@router.get("/scans")
+async def list_scans(
+    request: Request,
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    current_user: dict = Depends(get_current_user),
+):
+    """Return paginated scan history for the authenticated user."""
+    from fastapi.responses import JSONResponse
+
+    user_id = current_user["id"]
+    scans = get_user_scans(user_id, limit=limit, offset=offset)
+
+    return JSONResponse(content={"scans": scans, "limit": limit, "offset": offset})
+
+
+@router.post("/scan/{scan_id}/share")
+async def share_scan(
+    scan_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Create a public share token for a completed scan."""
+    from fastapi.responses import JSONResponse
+
+    scan_data = get_scan_result(scan_id)
+    if not scan_data:
+        raise HTTPException(status_code=404, detail="Scan not found.")
+    if scan_data.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized.")
+    if scan_data.get("status") != "complete":
+        raise HTTPException(status_code=409, detail="Scan is not yet complete.")
+
+    token = create_share_token(scan_id, current_user["id"])
+    if not token:
+        raise HTTPException(status_code=500, detail="Failed to create share token.")
+
+    public_url = f"{settings.frontend_url}/report/{token}"
+    return JSONResponse(content={"token": token, "url": public_url, "expires_in_days": 30})
+
+
+@router.get("/report/{token}")
+async def get_public_report(token: str):
+    """Public endpoint — returns scan data for a shared report link. No auth required."""
+    from fastapi.responses import JSONResponse
+
+    scan = get_scan_by_share_token(token)
+    if not scan:
+        raise HTTPException(status_code=404, detail="Report not found or link has expired.")
+
+    return JSONResponse(content={
+        "id": scan.get("id"),
+        "target_url": scan.get("target_url"),
+        "status": scan.get("status"),
+        "risk_score": scan.get("risk_score"),
+        "tier": scan.get("tier"),
+        "scan_engine": scan.get("scan_engine"),
+        "findings": scan.get("findings", []),
+        "compliance": scan.get("compliance", {}),
+        "completed_at": scan.get("completed_at"),
+    })
+
+
+@router.get("/scan/{scan_id}/report")
+async def download_scan_report(
+    scan_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Stream a PDF audit report for a completed scan."""
+    from fastapi.responses import StreamingResponse
+    import io
+    from app.pdf_report import generate_audit_pdf
+
+    scan_data = get_scan_result(scan_id)
+    if not scan_data:
+        raise HTTPException(status_code=404, detail="Scan not found.")
+    if scan_data.get("user_id") != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this scan.")
+    if scan_data.get("status") != "complete":
+        raise HTTPException(status_code=409, detail="Scan is not yet complete.")
+
+    # Map DB field names to what generate_audit_pdf expects
+    pdf_input = {
+        "scan_id":    scan_data.get("id"),
+        "url":        scan_data.get("target_url", "—"),
+        "tier":       scan_data.get("tier", "free"),
+        "risk_score": scan_data.get("risk_score", 0.0),
+        "scan_engine":scan_data.get("scan_engine", "garak,deepteam"),
+        "status":     scan_data.get("status"),
+        "completed_at": scan_data.get("completed_at"),
+        "findings":   scan_data.get("findings", []),
+        "compliance": scan_data.get("compliance", {}),
+    }
+
+    try:
+        pdf_bytes = generate_audit_pdf(pdf_input)
+    except Exception as exc:
+        logger.error(f"PDF generation failed for scan {scan_id}: {exc}")
+        raise HTTPException(status_code=500, detail="Report generation failed.")
+
+    filename = f"vulnra-report-{scan_id[:8]}.pdf"
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
 
 @router.get("/scan/{scan_id}")
 async def get_scan_status(
@@ -70,6 +201,16 @@ async def get_scan_status(
     rate_limit_str = RATE_LIMITS.get(user_tier, RATE_LIMITS["free"])
     rate_limit_count = int(rate_limit_str.split("/")[0])
     
+    findings = scan_data.get("findings", [])
+    category_scores = compute_category_scores(findings)
+    prev_risk = None
+    if scan_data.get("status") == "complete":
+        prev_risk = get_prev_scan_risk_for_url(
+            current_user["id"],
+            scan_data.get("target_url", ""),
+            scan_data.get("id", ""),
+        )
+
     return JSONResponse(
         content={
             "scan_id": scan_data.get("id"),
@@ -77,9 +218,11 @@ async def get_scan_status(
             "target_url": scan_data.get("target_url"),
             "tier": scan_data.get("tier"),
             "risk_score": scan_data.get("risk_score"),
-            "findings": scan_data.get("findings", []),
+            "findings": findings,
             "compliance": scan_data.get("compliance", {}),
             "completed_at": scan_data.get("completed_at"),
+            "category_scores": category_scores,
+            "prev_risk_score": prev_risk,
         },
         headers={
             "X-RateLimit-Limit": str(rate_limit_count),

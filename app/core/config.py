@@ -32,8 +32,8 @@ class Settings(BaseSettings):
     redis_url: str = Field(default="redis://localhost:6379/0", env="REDIS_URL")
 
     # Supabase
-    supabase_url: str = Field(default="", alias="SUPABASE_URL")
-    supabase_key: str = Field(default="", alias="SUPABASE_SERVICE_KEY")
+    supabase_url: str = Field(default="", env="SUPABASE_URL")
+    supabase_key: str = Field(default="", env="SUPABASE_SERVICE_KEY")
 
     # Rate Limiting
     rate_limit_free: str = Field(default="1/minute", env="RATE_LIMIT_FREE")
@@ -50,6 +50,13 @@ class Settings(BaseSettings):
     # Frontend URL for redirects
     frontend_url: str = Field(default="http://localhost:3000", env="FRONTEND_URL")
 
+    # Port
+    port: int = Field(default=8000, env="PORT")
+
+    # Resend — email alerts for Sentinel
+    resend_api_key: str = Field(default="", env="RESEND_API_KEY")
+    alert_from_email: str = Field(default="alerts@vulnra.ai", env="ALERT_FROM_EMAIL")
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
@@ -60,11 +67,14 @@ def validate_config():
     missing = []
     if not settings.redis_url:
         missing.append("REDIS_URL")
+    
+    # Supabase credentials are optional for basic operation (health check, etc.)
+    # but required for authenticated endpoints
     if not settings.supabase_url:
-        missing.append("SUPABASE_URL")
+        logger.warning("SUPABASE_URL not set - authenticated endpoints will not work")
     if not settings.supabase_key:
-        missing.append("SUPABASE_SERVICE_KEY")
-        
+        logger.warning("SUPABASE_SERVICE_KEY not set - authenticated endpoints will not work")
+    
     if missing:
         logger.error(f"Missing required environment variables: {missing}")
         raise RuntimeError(f"Missing required environment variables: {missing}")

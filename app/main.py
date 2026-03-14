@@ -9,7 +9,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from app.core.config import settings, validate_config, logger
-from app.api.endpoints import scans, billing
+from app.api.endpoints import scans, billing, api_keys, monitor
 from app.core.rate_limiter import TIER_LIMITS, set_limiter
 from app.core.security import get_current_user
 
@@ -18,11 +18,20 @@ validate_config()
 
 # ── Rate Limiting ─────────────────────────────────────────────────────────────
 # Use Redis for distributed rate limiting if available
-limiter = Limiter(
-    key_func=get_remote_address,
-    storage_uri=settings.redis_url,
-    strategy="fixed-window",
-)
+try:
+    limiter = Limiter(
+        key_func=get_remote_address,
+        storage_uri=settings.redis_url,
+        strategy="fixed-window",
+    )
+    logger.info(f"Rate limiter initialized with Redis storage: {settings.redis_url}")
+except Exception as e:
+    logger.warning(f"Failed to initialize Redis rate limiter: {e}. Falling back to in-memory storage.")
+    limiter = Limiter(
+        key_func=get_remote_address,
+        storage_uri="memory://",
+        strategy="fixed-window",
+    )
 
 # Set the global limiter instance for use in rate_limiter module
 set_limiter(limiter)
@@ -44,7 +53,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -81,18 +90,21 @@ async def set_user_tier_middleware(request: Request, call_next):
         auth_header = request.headers.get("authorization", "")
         if auth_header and auth_header.startswith("Bearer "):
             try:
-                from app.services.supabase_service import get_supabase, get_user_tier
-                sb = get_supabase()
-                if sb:
-                    token = auth_header.split(" ")[1]
-                    user_resp = sb.auth.get_user(token)
-                    if user_resp and user_resp.user:
-                        user_id = user_resp.user.id
-                        request.state.user_tier = get_user_tier(user_id)
+                from app.services.supabase_service import get_supabase, get_user_tier, get_api_key_user
+                token = auth_header.split(" ")[1]
+                if token.startswith("vk_live_"):
+                    user = get_api_key_user(token)
+                    request.state.user_tier = user["tier"] if user else "free"
+                else:
+                    sb = get_supabase()
+                    if sb:
+                        user_resp = sb.auth.get_user(token)
+                        if user_resp and user_resp.user:
+                            request.state.user_tier = get_user_tier(user_resp.user.id)
+                        else:
+                            request.state.user_tier = "free"
                     else:
                         request.state.user_tier = "free"
-                else:
-                    request.state.user_tier = "free"
             except Exception:
                 request.state.user_tier = "free"
         else:
@@ -149,9 +161,12 @@ async def global_exception_handler(request: Request, exc: Exception):
 # ── Routes ────────────────────────────────────────────────────────────────────
 app.include_router(scans.router, tags=["scans"])
 app.include_router(billing.router, prefix="/billing", tags=["billing"])
+app.include_router(api_keys.router, tags=["api-keys"])
+app.include_router(monitor.router, tags=["monitor"])
 
 @app.get("/health")
 def health():
+    logger.info("Health check endpoint called")
     return {"status": "healthy", "version": settings.version}
 
 # ── Static Files (Must be last) ───────────────────────────────────────────────
@@ -162,3 +177,14 @@ try:
     app.mount("/", StaticFiles(directory=str(_project_root), html=True), name="static")
 except Exception as e:
     logger.warning(f"Static mount failed: {e}")
+
+# ── Server Entry Point ────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=settings.port,
+        log_level="info",
+        access_log=True
+    )

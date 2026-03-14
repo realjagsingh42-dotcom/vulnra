@@ -17,6 +17,19 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
         )
 
     token = authorization.split(" ")[1]
+
+    # API key path — vk_live_ prefix
+    if token.startswith("vk_live_"):
+        from app.services.supabase_service import get_api_key_user
+        user = get_api_key_user(token)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or revoked API key",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user
+
     sb = get_supabase()
     if not sb:
         raise HTTPException(
