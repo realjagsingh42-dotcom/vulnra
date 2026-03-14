@@ -1,43 +1,55 @@
-# Use a pinned, slim base image for a smaller attack surface
+# ─────────────────────────────────────────────────────────────
+# VULNRA — Production Dockerfile
+# Strategy: heavy ML deps in a separate cached layer so Railway
+# only reinstalls them when requirements-ml.txt changes.
+# ─────────────────────────────────────────────────────────────
+
 FROM python:3.11.7-slim
 
-# Set environment variables for safer execution
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONFAULTHANDLER=1 \
-    PORT=8000
+    PORT=8000 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
-# Install system dependencies with minimal impact
+# ── System dependencies ───────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
     curl \
+    git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Add a non-root user for security
+# ── Non-root user ─────────────────────────────────────────────
 RUN groupadd -r vulnra && useradd -r -g vulnra vulnra \
     && mkdir -p /app/reports \
     && chown vulnra:vulnra /app/reports
 
-# Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+# ── LAYER 1: Heavy ML dependencies (cached separately) ────────
+# Copy only the ML requirements file first.
+# This layer is only rebuilt when requirements-ml.txt changes.
+# torch CPU-only is ~800MB vs ~4GB for full torch — use it.
+COPY requirements-ml.txt .
+RUN pip install --upgrade pip && \
+    pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu && \
+    pip install -r requirements-ml.txt
 
-# Copy application code
+# ── LAYER 2: App dependencies (fast, changes often) ──────────
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# ── LAYER 3: App code (fastest, changes every deploy) ─────────
 COPY --chown=vulnra:vulnra . .
 
-# Switch to non-root user
 USER vulnra
 
 EXPOSE ${PORT}
 
-# Healthcheck to monitor app status
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD curl --fail http://localhost:${PORT}/health || exit 1
 
-# Production-ready entrypoint (shell form so $PORT is expanded at runtime)
 CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers 2 --proxy-headers --forwarded-allow-ips '*'

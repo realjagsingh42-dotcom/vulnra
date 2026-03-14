@@ -9,3 +9,11 @@ black==25.1.0
 mypy==1.15.0
 pre-commit==4.2.0
 supabase
+# DeepTeam — 40+ LLM vulnerability types
+deepteam==0.1.0
+ 
+# Anthropic SDK — LLM-as-Judge scoring
+anthropic==0.49.0
+ 
+# Garak — core LLM probe engine (no torch in requirements, torch pre-installed above)
+garak==0.14.0

@@ -1363,10 +1363,10 @@
         <div class="prog-row">
           <div class="prog-label-row">
             <div class="prog-label">Phase 1 — Engine Upgrades</div>
-            <div class="prog-pct" style="color:var(--acid)">20%</div>
+            <div class="prog-pct" style="color:var(--acid)">85%</div>
           </div>
           <div class="prog-track">
-            <div class="prog-fill active" style="--pp:20%;--delay:.65s"></div>
+            <div class="prog-fill active" style="--pp:85%;--delay:.65s"></div>
           </div>
         </div>
         <div class="prog-row">
@@ -1518,30 +1518,22 @@
           </div>
         </div>
 
-        <div class="item-card active-card" data-status="active">
+        <div class="item-card done-card" data-status="done">
           <div class="item-top">
-            <div class="item-icon active"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8"
+            <div class="item-icon done"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8"
                 stroke-linecap="round">
-                <circle cx="9" cy="9" r="6" />
-                <path d="M9 6v3l2 2" />
+                <path d="M3 9l4 4 8-8" />
               </svg></div>
             <div class="item-info">
-              <div class="item-status-pill active">IN PROGRESS</div>
-              <div class="item-title">Real Authentication (Supabase)</div>
+              <div class="item-status-pill done">SHIPPED</div>
+              <div class="item-title">Real Authentication (Supabase) + Next.js 14</div>
             </div>
-            <div class="item-effort">2–3 DAYS</div>
+            <div class="item-effort">DONE</div>
           </div>
-          <div class="item-desc">Replace fake setTimeout redirects with real Supabase auth — email/password, Google +
-            GitHub OAuth. Store scan history in Supabase Postgres with user_id foreign key.</div>
-          <div class="item-progress">
-            <div class="item-progress-track">
-              <div class="item-progress-fill" style="--p:35%"></div>
-            </div>
-            <div class="item-progress-label">35% — Supabase project created, SDK installing</div>
-          </div>
+          <div class="item-desc">Migrated to Next.js 14 and integrated Supabase Auth. Secure session management, protected scanner routes, and modular React architecture. JWT-based API authorization fully implemented.</div>
           <div class="item-tags">
-            <span class="item-tag">Supabase</span><span class="item-tag">OAuth</span><span
-              class="item-tag">PostgreSQL</span>
+            <span class="item-tag">Supabase</span><span class="item-tag">Next.js 14</span><span
+              class="item-tag">Tailwind 4</span>
           </div>
         </div>
 
@@ -1665,23 +1657,19 @@
           </div>
         </div>
 
-        <div class="item-card planned-card" data-status="planned">
+        <div class="item-card done-card" data-status="done">
           <div class="item-top">
-            <div class="item-icon planned"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8"
+            <div class="item-icon done"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8"
                 stroke-linecap="round">
-                <circle cx="9" cy="5" r="2" />
-                <circle cx="14" cy="13" r="2" />
-                <circle cx="4" cy="13" r="2" />
-                <path d="M9 7v2m0 0l4 2m-4-2l-4 2" />
+                <path d="M3 9l4 4 8-8" />
               </svg></div>
             <div class="item-info">
-              <div class="item-status-pill planned">PLANNED</div>
-              <div class="item-title">LLM-as-Judge Scoring</div>
+              <div class="item-status-pill done">SHIPPED</div>
+              <div class="item-title">LLM-as-Judge Scoring (Claude-3)</div>
             </div>
-            <div class="item-effort">1 WEEK</div>
+            <div class="item-effort">DONE</div>
           </div>
-          <div class="item-desc">Replace heuristic keyword matching with Claude-based judge LLM. Dramatically reduces
-            false positives. Returns {compliant, score, reasoning} per probe. Reasoning included in PDF reports.</div>
+          <div class="item-desc">Replaced heuristic keyword matching with Claude-3 based judge LLM. Dramatically reduced false positives. Returns rich reasoning per probe included in PDF reports.</div>
           <div class="item-tags">
             <span class="item-tag">Claude Judge</span><span class="item-tag">Anthropic API</span><span
               class="item-tag">Scoring</span>

@@ -11,6 +11,7 @@ import pathlib
 import subprocess
 import sys
 from typing import Optional, List, Dict, Any, Set, cast
+from app.judge import get_judge
 
 # ── Logging Setup ─────────────────────────────────────────────────────────────
 logger = logging.getLogger("vulnra.deepteam")
@@ -148,7 +149,7 @@ def run_deepteam_scan(scan_id: str, target_url: str, tier: str = "free") -> Dict
 
 # ── PARSING & CALCULATION (Helper for the launcher) ────────────────
 
-def _process_results(scan_id: str, results: List[Any]) -> Dict[str, Any]:
+def _process_results(scan_id: str, results: List[Any], tier: str = "free") -> Dict[str, Any]:
     findings = []
     stats: Dict[str, Any] = {}
 
@@ -164,6 +165,18 @@ def _process_results(scan_id: str, results: List[Any]) -> Dict[str, Any]:
         stats[category]["total"] += 1
         if is_vuln:
             stats[category]["hits"] += 1
+            
+            # AI JUDGE INTEGRATION
+            if tier in ("pro", "enterprise") and "reasoning" not in stats[category]:
+                prompt = getattr(res, "prompt", "")
+                text_output = getattr(res, "output", "")
+                judge = get_judge()
+                eval_res = judge.evaluate_interaction(v_type, prompt, text_output, category)
+                
+                if eval_res.get("engine_judgement") == "ai_judge":
+                    stats[category]["reasoning"] = eval_res.get("reasoning")
+                    if not eval_res.get("is_vulnerable"):
+                        stats[category]["hits"] = max(0, stats[category]["hits"] - 1)
 
     for category, val in stats.items():
         total = val["total"]
@@ -179,11 +192,12 @@ def _process_results(scan_id: str, results: List[Any]) -> Dict[str, Any]:
             findings.append({
                 "category": category,
                 "severity": severity,
-                "detail": detail,
+                "detail": val.get("reasoning") or detail,
                 "hit_rate": hit_rate,
                 "hits": hits,
                 "total": total,
-                "blurred": False
+                "blurred": False,
+                "reasoning": val.get("reasoning")
             })
 
     findings.sort(key=lambda x: ({"HIGH": 0, "MEDIUM": 1, "LOW": 2}.get(cast(str, x["severity"]), 3), -float(cast(float, x.get("hit_rate", 0)))))
@@ -209,7 +223,7 @@ def _calculate_score(findings: List[Dict[str, Any]]) -> float:
         total_weighted_risk += weight * sev_mult * min(rate * 10.0, 10.0)
     
     avg_risk = float(total_weighted_risk) / float(max(len(findings), 1))
-    return round(float(min(avg_risk, 10.0)), 1)
+    return float(round(min(avg_risk, 10.0), 1))
 
 def _build_compliance(findings: List[Dict[str, Any]]) -> Dict[str, Any]:
     result: Dict[str, Any] = {}
@@ -286,7 +300,7 @@ if __name__ == "__main__":
             vulnerabilities=vul_list,
             purpose="VULNRA Security Audit"
         )
-        final_data = _process_results(args.scan_id, results)
+        final_data = _process_results(args.scan_id, results, tier=args.tier)
         print(json.dumps(final_data))
     except Exception as e:
         print(json.dumps({"status": "failed", "error": str(e)}))
