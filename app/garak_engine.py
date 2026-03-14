@@ -415,3 +415,91 @@ def _mock_fallback_scan(scan_id: str, url: str, tier: str) -> Dict[str, Any]:
         "status": "complete",
         "completed_at": time.time(),
     }
+
+
+def run_multi_turn_scan(scan_id: str, url: str, attack_type: str = "crescendo", tier: str = "free") -> Dict[str, Any]:
+    """
+    Run multi-turn attack chain against target LLM.
+    
+    Args:
+        scan_id: Unique scan identifier
+        url: Target LLM endpoint URL
+        attack_type: "crescendo" or "goat"
+        tier: User tier for probe selection
+    
+    Returns:
+        Scan results with multi-turn findings
+    """
+    from app.services.attack_chains import CrescendoAttack, GOATAttack
+    import requests
+    
+    logger.info(f"Starting multi-turn scan {scan_id} with {attack_type} attack")
+    
+    # Initialize attack chain
+    if attack_type == "crescendo":
+        attack = CrescendoAttack()
+    elif attack_type == "goat":
+        attack = GOATAttack()
+    else:
+        logger.error(f"Unknown attack type: {attack_type}")
+        return _mock_fallback_scan(scan_id, url, tier)
+    
+    findings = []
+    conversation_history = []
+    
+    # Execute multi-turn attack
+    max_turns = attack.turns if attack_type == "crescendo" else attack.max_turns
+    
+    for turn in range(max_turns):
+        # Get next prompt
+        prompt = attack.get_next_prompt()
+        if not prompt:
+            break
+        
+        # Send prompt to target LLM
+        try:
+            response = requests.post(
+                url,
+                json={"prompt": prompt},
+                timeout=30
+            ).json()
+            
+            response_text = response.get("response") or response.get("text") or str(response)
+            
+        except Exception as e:
+            logger.error(f"Turn {turn} failed: {e}")
+            response_text = str(e)
+        
+        # Process response
+        if attack_type == "crescendo":
+            result = attack.process_response(response_text)
+            if result["is_jailbreak"]:
+                findings.append({
+                    "turn": turn,
+                    "prompt": prompt,
+                    "response": response_text,
+                    "type": "jailbreak_success"
+                })
+        
+        # Store conversation
+        conversation_history.append({
+            "turn": turn,
+            "user": prompt,
+            "assistant": response_text
+        })
+        
+        attack.current_turn += 1
+    
+    # Calculate risk score based on findings
+    risk_score = len(findings) * 2.0  # Simple scoring
+    
+    return {
+        "scan_id": scan_id,
+        "attack_type": attack_type,
+        "risk_score": min(risk_score, 10.0),
+        "findings": findings,
+        "conversation": conversation_history,
+        "scan_engine": f"{attack_type}_multi_turn",
+        "status": "complete",
+        "completed_at": time.time(),
+    }
