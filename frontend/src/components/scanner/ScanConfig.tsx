@@ -5,7 +5,7 @@ import { Globe, Cpu, Zap, Activity, Timer, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ScanConfigProps {
-  onStart: (config: { url: string; tier: string }) => void;
+  onStart: (config: { url: string; tier: string; attackType?: string }) => void;
   isScanning: boolean;
 }
 

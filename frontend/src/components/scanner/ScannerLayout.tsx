@@ -48,7 +48,7 @@ export default function ScannerLayout({ user }: { user: User }) {
         : { url: config.url, tier: config.tier };
       
       if (config.attackType) {
-        setLogs(prev => [...prev, `+ ATTACK_TYPE: ${config.attackType.toUpperCase()}`, "+ INITIALIZING_MULTI_TURN_ATTACK..."]);
+        setLogs(prev => [...prev, `+ ATTACK_TYPE: ${config.attackType?.toUpperCase()}`, "+ INITIALIZING_MULTI_TURN_ATTACK..."]);
       }
       
       setLogs(prev => [...prev, "+ CONNECTING_TO_NODES...", "+ DISPATCHING_PROBES..."]);
