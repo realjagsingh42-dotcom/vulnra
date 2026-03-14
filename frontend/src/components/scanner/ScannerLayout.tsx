@@ -8,11 +8,13 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import ScanConfig from "./ScanConfig";
 import Terminal from "./Terminal";
+import MultiTurnResults from "./MultiTurnResults";
 
 export default function ScannerLayout({ user }: { user: User }) {
   const [isScanning, setIsScanning] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [findings, setFindings] = useState<any[]>([]);
+  const [multiTurnConversation, setMultiTurnConversation] = useState<any[]>([]);
   const [rateLimitInfo, setRateLimitInfo] = useState<{ limit: number; remaining: number; reset: number } | null>(null);
   const supabase = createClient();
 
@@ -134,6 +136,11 @@ export default function ScannerLayout({ user }: { user: User }) {
               
               setLogs(prev => [...prev, `+ RISK_SCORE: ${pollData.risk_score}`]);
               setFindings(pollData.findings || []);
+              
+              // Store multi-turn conversation if present
+              if (pollData.conversation) {
+                setMultiTurnConversation(pollData.conversation);
+              }
             } else if (pollData.status === "failed") {
               clearInterval(pollInterval);
               setIsScanning(false);
@@ -220,44 +227,53 @@ export default function ScannerLayout({ user }: { user: User }) {
             <BarChart3 className="w-3.5 h-3.5 text-v-muted2" />
           </div>
           <div className="p-5 flex flex-col gap-4 overflow-y-auto flex-1 custom-scrollbar">
-             {findings.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full gap-3 opacity-20">
-                   <div className="w-12 h-12 rounded-full border border-dashed border-acid flex items-center justify-center mt-[-40px]">
-                      <Activity className="w-5 h-5" />
-                   </div>
-                   <span className="text-[9px] font-mono tracking-widest uppercase italic {isScanning ? 'animate-pulse text-acid' : ''}">
-                     {isScanning ? 'Awaiting Scan Telemetry...' : 'Waiting for results...'}
-                   </span>
-                </div>
-             ) : (
-                <div className="flex flex-col gap-3 pb-8">
-                  {findings.map((f, i) => (
-                    <div key={i} className="p-3 border border-v-border2 bg-black/20 rounded-sm">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-mono font-bold tracking-wider">{f.category}</span>
-                        <span className={cn(
-                          "text-[9px] font-mono px-1.5 py-0.5 rounded-[2px]",
-                          f.severity === "HIGH" ? "bg-v-red/10 text-v-red border border-v-red/30" :
-                          f.severity === "MEDIUM" ? "bg-v-amber/10 text-v-amber border border-v-amber/30" :
-                          "bg-acid/10 text-acid border border-acid/30"
-                        )}>{f.severity}</span>
-                      </div>
-                      <p className="text-[10.5px] text-v-muted leading-relaxed mb-3">
-                        {f.detail}
-                      </p>
-                      {f.reasoning && (
-                        <div className="mt-2 text-[9px] text-v-muted2 border-t border-v-border2 pt-2 italic">
-                          "{f.reasoning}"
-                        </div>
-                      )}
-                      <div className="mt-3 flex items-center justify-between text-[9px] font-mono text-v-muted2 border-t border-v-border2/50 pt-2 pb-1">
-                        <span>HITS: {f.hits}/{f.total}</span>
-                        <span>RATE: {(f.hit_rate * 100).toFixed(1)}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+             {/* Multi-Turn Results */}
+             {multiTurnConversation.length > 0 && (
+               <MultiTurnResults 
+                 conversation={multiTurnConversation} 
+                 findings={findings.filter(f => f.turn !== undefined)} 
+               />
              )}
+             
+             {/* Regular Findings */}
+             {findings.length === 0 && multiTurnConversation.length === 0 ? (
+                 <div className="flex flex-col items-center justify-center h-full gap-3 opacity-20">
+                    <div className="w-12 h-12 rounded-full border border-dashed border-acid flex items-center justify-center mt-[-40px]">
+                       <Activity className="w-5 h-5" />
+                    </div>
+                    <span className="text-[9px] font-mono tracking-widest uppercase italic {isScanning ? 'animate-pulse text-acid' : ''}">
+                      {isScanning ? 'Awaiting Scan Telemetry...' : 'Waiting for results...'}
+                    </span>
+                 </div>
+             ) : (
+                 <div className="flex flex-col gap-3 pb-8">
+                   {findings.filter(f => f.turn === undefined).map((f, i) => (
+                     <div key={i} className="p-3 border border-v-border2 bg-black/20 rounded-sm">
+                       <div className="flex items-center justify-between mb-2">
+                         <span className="text-[10px] font-mono font-bold tracking-wider">{f.category}</span>
+                         <span className={cn(
+                           "text-[9px] font-mono px-1.5 py-0.5 rounded-[2px]",
+                           f.severity === "HIGH" ? "bg-v-red/10 text-v-red border border-v-red/30" :
+                           f.severity === "MEDIUM" ? "bg-v-amber/10 text-v-amber border border-v-amber/30" :
+                           "bg-acid/10 text-acid border border-acid/30"
+                         )}>{f.severity}</span>
+                       </div>
+                       <p className="text-[10.5px] text-v-muted leading-relaxed mb-3">
+                         {f.detail}
+                       </p>
+                       {f.reasoning && (
+                         <div className="mt-2 text-[9px] text-v-muted2 border-t border-v-border2 pt-2 italic">
+                           "{f.reasoning}"
+                         </div>
+                       )}
+                       <div className="mt-3 flex items-center justify-between text-[9px] font-mono text-v-muted2 border-t border-v-border2/50 pt-2 pb-1">
+                         <span>HITS: {f.hits}/{f.total}</span>
+                         <span>RATE: {(f.hit_rate * 100).toFixed(1)}%</span>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+              )}
           </div>
         </aside>
       </main>
