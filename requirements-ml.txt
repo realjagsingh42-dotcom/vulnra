@@ -14,8 +14,16 @@ anthropic==0.49.0
 # Garak — core LLM probe engine
 garak==0.14.0
 
-# ── Pin transitive deps to prevent pip backtracking ──────────
-# garak → google-cloud-translate causes resolution-too-deep
-# without these pins.
+# ── Pin ENTIRE Google Cloud / gRPC dependency cycle ──────────
+# Without pinning ALL 9 packages, pip spirals through thousands
+# of version combinations and hits resolution-too-deep.
+# These versions are all mutually compatible.
+grpcio==1.71.0
+grpcio-tools==1.71.0
+grpcio-status==1.71.0
 protobuf==4.25.8
 googleapis-common-protos==1.63.2
+google-api-core==2.24.2
+google-cloud-translate==3.24.0
+google-cloud-core==2.5.0
+grpc-google-iam-v1==0.14.0
