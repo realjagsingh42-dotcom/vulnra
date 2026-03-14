@@ -36,7 +36,8 @@ RUN groupadd -r vulnra && useradd -r -g vulnra vulnra \
 COPY requirements-ml.txt .
 RUN pip install --upgrade pip && \
     pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu && \
-    pip install -r requirements-ml.txt
+    pip install -r requirements-ml.txt && \
+    pip install --no-deps deepteam==0.1.0
 
 # ── LAYER 2: App dependencies (fast, changes often) ──────────
 COPY requirements.txt .

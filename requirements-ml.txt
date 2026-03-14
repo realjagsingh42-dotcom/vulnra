@@ -2,10 +2,11 @@
 # requirements-ml.txt — Heavy ML dependencies
 # Installed as a separate Docker layer for faster builds.
 # torch CPU-only is pre-installed in the Dockerfile.
+#
+# NOTE: deepteam is installed separately with --no-deps in the
+# Dockerfile because it hard-pins grpcio==1.67.1 which conflicts
+# with garak's grpcio-tools>=1.71.0.
 # ─────────────────────────────────────────────────────────────
-
-# DeepTeam — 40+ LLM vulnerability types
-deepteam==0.1.0
 
 # Anthropic SDK — LLM-as-Judge scoring
 anthropic==0.49.0
@@ -14,10 +15,7 @@ anthropic==0.49.0
 garak==0.14.0
 
 # ── Pin transitive deps to prevent pip backtracking ──────────
-# garak pulls in google-cloud-translate which causes
-# resolution-too-deep without these pins.
-grpcio==1.67.1
-grpcio-status==1.67.1
-grpcio-tools==1.67.1
+# garak → google-cloud-translate causes resolution-too-deep
+# without these pins.
 protobuf==4.25.8
 googleapis-common-protos==1.63.2
