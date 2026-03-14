@@ -75,6 +75,7 @@ def get_compliance(category: str) -> Dict[str, Any]:
         "eu_ai_act": get_compliance_mapping(owasp_cat, "eu_ai_act"),
         "dpdp": get_compliance_mapping(owasp_cat, "dpdp"),
         "nist_ai_rmf": get_compliance_mapping(owasp_cat, "nist_ai_rmf"),
+        "mitre_atlas": get_compliance_mapping(owasp_cat, "mitre_atlas"),
         "owasp_category": owasp_cat,
         "owasp_name": OWASP_LLM_CATEGORIES.get(owasp_cat, {}).get("name", "Unknown"),
     }
