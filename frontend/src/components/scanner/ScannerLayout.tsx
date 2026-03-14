@@ -246,21 +246,33 @@ export default function ScannerLayout({ user }: { user: User }) {
                     </span>
                  </div>
              ) : (
-                 <div className="flex flex-col gap-3 pb-8">
-                   {findings.filter(f => f.turn === undefined).map((f, i) => (
-                     <div key={i} className="p-3 border border-v-border2 bg-black/20 rounded-sm">
-                       <div className="flex items-center justify-between mb-2">
-                         <span className="text-[10px] font-mono font-bold tracking-wider">{f.category}</span>
-                         <span className={cn(
-                           "text-[9px] font-mono px-1.5 py-0.5 rounded-[2px]",
-                           f.severity === "HIGH" ? "bg-v-red/10 text-v-red border border-v-red/30" :
-                           f.severity === "MEDIUM" ? "bg-v-amber/10 text-v-amber border border-v-amber/30" :
-                           "bg-acid/10 text-acid border border-acid/30"
-                         )}>{f.severity}</span>
-                       </div>
-                       <p className="text-[10.5px] text-v-muted leading-relaxed mb-3">
-                         {f.detail}
-                       </p>
+                  <div className="flex flex-col gap-3 pb-8">
+                    {findings.filter(f => f.turn === undefined).map((f, i) => (
+                      <div key={i} className="p-3 border border-v-border2 bg-black/20 rounded-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono font-bold tracking-wider">{f.category}</span>
+                            {f.owasp_category && (
+                              <span className="text-[8px] px-1.5 py-0.5 bg-blue-100/20 text-blue-300 border border-blue-300/30 rounded font-mono">
+                                {f.owasp_category}
+                              </span>
+                            )}
+                          </div>
+                          <span className={cn(
+                            "text-[9px] font-mono px-1.5 py-0.5 rounded-[2px]",
+                            f.severity === "HIGH" ? "bg-v-red/10 text-v-red border border-v-red/30" :
+                            f.severity === "MEDIUM" ? "bg-v-amber/10 text-v-amber border border-v-amber/30" :
+                            "bg-acid/10 text-acid border border-acid/30"
+                          )}>{f.severity}</span>
+                        </div>
+                        <p className="text-[10.5px] text-v-muted leading-relaxed mb-3">
+                          {f.detail}
+                        </p>
+                        {f.owasp_name && (
+                          <div className="text-[9px] text-blue-300 mb-2 italic">
+                            OWASP: {f.owasp_name}
+                          </div>
+                        )}
                        {f.reasoning && (
                          <div className="mt-2 text-[9px] text-v-muted2 border-t border-v-border2 pt-2 italic">
                            "{f.reasoning}"
