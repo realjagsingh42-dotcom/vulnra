@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { User } from "@supabase/supabase-js";
-import { Shield, LogOut, BarChart3, Settings, Activity, Timer, Server, FileDown, Loader2, History, Link2, CheckCheck, Key, Radio } from "lucide-react";
+import { Shield, LogOut, BarChart3, Settings, Activity, Timer, Server, FileDown, Loader2, History, Link2, CheckCheck, Key, Radio, Database, Building2 } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
@@ -413,12 +413,20 @@ export default function ScannerLayout({ user }: { user: User }) {
             VULNRA <em className="text-acid not-italic tracking-tighter ml-1">PLATFORM</em>
           </div>
           <div className="h-5 w-[1px] bg-v-border mx-2" />
-          <a 
-            href="/mcp-scanner" 
+          <a
+            href="/mcp-scanner"
             className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
           >
             <Server className="w-3.5 h-3.5" />
             AGENT_SECURITY
+          </a>
+          <div className="h-5 w-[1px] bg-v-border mx-2" />
+          <a
+            href="/rag-scanner"
+            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
+          >
+            <Database className="w-3.5 h-3.5" />
+            RAG_SECURITY
           </a>
           <div className="h-5 w-[1px] bg-v-border mx-2" />
           <a
@@ -444,6 +452,18 @@ export default function ScannerLayout({ user }: { user: User }) {
             <Radio className="w-3.5 h-3.5" />
             SENTINEL
           </a>
+          {tier === "enterprise" && (
+            <>
+              <div className="h-5 w-[1px] bg-v-border mx-2" />
+              <a
+                href="/org"
+                className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                ORG
+              </a>
+            </>
+          )}
           <div className="h-5 w-[1px] bg-v-border mx-2" />
           <div className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider">
             SYSTEM_STATUS: <span className="text-acid animate-pulse">OPTIMAL</span>

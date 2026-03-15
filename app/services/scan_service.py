@@ -6,9 +6,9 @@ from typing import List, Optional
 from app.core.config import logger
 from app.services.supabase_service import save_scan_result
 
-# NOTE: garak_engine and deepteam_engine are imported lazily inside
-# run_scan_internal() — avoids loading anthropic SDK + heavy deps at
-# web-server startup, keeping the /health response well under 10s.
+# NOTE: All engine imports are done lazily inside run_scan_internal() —
+# avoids loading anthropic SDK + heavy deps at web-server startup,
+# keeping the /health response well under 10s.
 
 def _merge_compliance_internal(base: dict, new: dict):
     if not new or new.get("blurred"): return
@@ -32,7 +32,7 @@ async def run_scan_internal(scan_id: str, url: str, tier: str, user_id: str) -> 
     compliance = {}
     scan_engines = []
     max_risk = 0.0
-    
+
     # ── 1. Garak Scan ───────────────────────────────────────────
     try:
         from app.garak_engine import run_garak_scan  # lazy import
@@ -59,7 +59,35 @@ async def run_scan_internal(scan_id: str, url: str, tier: str, user_id: str) -> 
     except Exception as e:
         logger.error(f"DeepTeam engine failed: {e}")
 
-    # ── 3. Finalize ──────────────────────────────────────────────
+    # ── 3. PyRIT Converter Engine (Pro / Enterprise) ─────────────
+    if tier in ("pro", "enterprise"):
+        try:
+            from app.pyrit_engine import run_pyrit_scan  # lazy import
+            pyrit_res = run_pyrit_scan(scan_id, url, tier)
+            if pyrit_res.get("status") == "complete":
+                findings.extend(pyrit_res.get("findings", []))
+                _merge_compliance_internal(compliance, pyrit_res.get("compliance", {}))
+                if pyrit_res.get("findings"):
+                    scan_engines.append(pyrit_res.get("scan_engine", "pyrit_converter"))
+                max_risk = max(max_risk, float(pyrit_res.get("risk_score", 0)))
+        except Exception as e:
+            logger.error(f"PyRIT engine failed: {e}")
+
+    # ── 4. EasyJailbreak Engine (Pro / Enterprise) ────────────────
+    if tier in ("pro", "enterprise") and os.environ.get("ANTHROPIC_API_KEY"):
+        try:
+            from app.easyjailbreak_engine import run_easyjailbreak_scan  # lazy import
+            ej_res = run_easyjailbreak_scan(scan_id, url, tier)
+            if ej_res.get("status") in ("complete", "skipped"):
+                findings.extend(ej_res.get("findings", []))
+                _merge_compliance_internal(compliance, ej_res.get("compliance", {}))
+                if ej_res.get("findings"):
+                    scan_engines.append(ej_res.get("scan_engine", "easyjailbreak"))
+                max_risk = max(max_risk, float(ej_res.get("risk_score", 0)))
+        except Exception as e:
+            logger.error(f"EasyJailbreak engine failed: {e}")
+
+    # ── 5. Finalize ──────────────────────────────────────────────
     findings.sort(key=lambda x: ({"HIGH": 0, "MEDIUM": 1, "LOW": 2}.get(x.get("severity"), 3), -float(x.get("hit_rate", 0))))
 
     data = {
@@ -74,11 +102,11 @@ async def run_scan_internal(scan_id: str, url: str, tier: str, user_id: str) -> 
         "scan_engines": scan_engines,
         "completed_at": time.time(),
     }
-    
+
     if not scan_engines:
         data["error"] = "All scan engines failed"
-    
+
     # Save to Supabase
     save_scan_result(scan_id, url, tier, data)
-    
+
     return data

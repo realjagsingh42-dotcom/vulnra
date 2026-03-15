@@ -3,9 +3,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# Start a single uvicorn worker — keeps startup fast.
-# Railway scales via replicas, not in-process workers.
-startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers --forwarded-allow-ips '*'"
+# No startCommand here — the Dockerfile CMD handles startup with proper ${PORT} shell expansion.
+# Railway does NOT expand $VAR in startCommand strings; Dockerfile CMD (exec-shell form) does.
 healthcheckPath = "/health"
 # Allow up to 5 minutes for uvicorn + Python imports to fully initialise.
 healthcheckTimeout = 300
