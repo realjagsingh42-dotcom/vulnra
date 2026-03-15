@@ -1,165 +1,408 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { User } from "@supabase/supabase-js";
-import { Shield, LogOut, BarChart3, Settings, Activity, Timer, Zap, Server } from "lucide-react";
+import { Shield, LogOut, BarChart3, Settings, Activity, Timer, Server, FileDown, Loader2, History, Link2, CheckCheck, Key, Radio } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import ScanConfig from "./ScanConfig";
 import Terminal from "./Terminal";
 import MultiTurnResults from "./MultiTurnResults";
+import FindingsPanel from "./FindingsPanel";
+import RiskScoreViz from "./RiskScoreViz";
+import OnboardingOverlay from "./OnboardingOverlay";
+import type { TerminalEvent } from "./types";
+
+// ── Probe sequences per scan depth ───────────────────────────────────────────
+const PROBE_SEQS: Record<string, string[]> = {
+  free:  ["Injection", "Jailbreak", "Data Leakage"],
+  basic: ["Injection", "Jailbreak", "Data Leakage", "Policy Bypass",
+          "Encoding Attack", "Multi-vector", "Role Play", "System Override"],
+  pro:   ["Injection", "Jailbreak", "Data Leakage", "Policy Bypass",
+          "Encoding Attack", "Multi-vector", "Role Play", "System Override",
+          "Insecure Output", "Sensitive Disclosure", "Hallucination",
+          "Supply Chain", "Model DoS", "Bias Amplification", "Agentic Escape"],
+};
+
+function mkEvt(kind: TerminalEvent["kind"], text: string, extra?: Partial<TerminalEvent>): TerminalEvent {
+  return { id: Math.random().toString(36).slice(2), ts: Date.now(), kind, text, ...extra };
+}
+
+function mkFinding(f: any): TerminalEvent {
+  return {
+    id: Math.random().toString(36).slice(2),
+    ts: Date.now(),
+    kind: "finding",
+    category: f.category,
+    severity: f.severity,
+    hitRate: f.hit_rate,
+    hits: f.hits,
+    total: f.total,
+    owaspCategory: f.owasp_category,
+    owaspName: f.owasp_name,
+    adversarialPrompt: f.adversarial_prompt,
+    modelResponse: f.model_response,
+    remediation: f.remediation,
+  };
+}
 
 export default function ScannerLayout({ user }: { user: User }) {
+  const searchParams = useSearchParams();
   const [isScanning, setIsScanning] = useState(false);
-  const [logs, setLogs] = useState<string[]>([]);
+  const [events, setEvents] = useState<TerminalEvent[]>([]);
+  const probeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [findings, setFindings] = useState<any[]>([]);
   const [multiTurnConversation, setMultiTurnConversation] = useState<any[]>([]);
   const [rateLimitInfo, setRateLimitInfo] = useState<{ limit: number; remaining: number; reset: number } | null>(null);
+  const [currentScanId, setCurrentScanId] = useState<string | null>(null);
+  const [scanComplete, setScanComplete] = useState(false);
+  const [downloadingReport, setDownloadingReport] = useState(false);
+  const [sharingReport, setSharingReport] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [categoryScores, setCategoryScores] = useState<{ injection: number; jailbreak: number; leakage: number; compliance: number } | null>(null);
+  const [prevRiskScore, setPrevRiskScore] = useState<number | null>(null);
+  const [currentRiskScore, setCurrentRiskScore] = useState<number>(0);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isFirstScan, setIsFirstScan] = useState(false);
   const supabase = createClient();
 
-  const tier = (user.user_metadata?.tier || "free").toLowerCase();
-  
+  const [tier, setTier] = useState<string>(
+    (user.user_metadata?.tier || "free").toLowerCase()
+  );
+
+  const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+  // Fetch real tier from profiles table — user_metadata is stale after billing upgrades
+  useEffect(() => {
+    async function fetchTier() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const resp = await fetch(`${API}/billing/subscription`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.tier) setTier(data.tier.toLowerCase());
+        }
+      } catch {
+        // keep metadata tier as fallback
+      }
+    }
+    fetchTier();
+  }, []);
+
+  // ── Shared: load a completed scan by ID ──────────────────────────────────
+  const loadScanById = async (scanId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const resp = await fetch(`${API}/scan/${scanId}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (data.status === "complete") {
+        setCurrentScanId(scanId);
+        setScanComplete(true);
+        setFindings(data.findings || []);
+        setCurrentRiskScore(data.risk_score ?? 0);
+        setCategoryScores(data.category_scores ?? null);
+        setPrevRiskScore(data.prev_risk_score ?? null);
+        setEvents([
+          mkEvt("init",     `LOADED_SCAN: ${scanId}`),
+          mkEvt("init",     `TARGET: ${data.target_url}`),
+          ...((data.findings || []) as any[]).map(mkFinding),
+          mkEvt("complete", `RISK_SCORE: ${data.risk_score} · SCAN COMPLETE`),
+        ]);
+      }
+    } catch {
+      // silently fail
+    }
+  };
+
+  // Onboarding: show overlay for first-time users
+  useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("vulnra_ob_v1")) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  // Load past scan from ?scan_id= query param (deep-link from history page)
+  useEffect(() => {
+    const scanId = searchParams.get("scan_id");
+    if (!scanId) return;
+    loadScanById(scanId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Rate limit configuration based on tier
   const rateLimitConfig = {
     free: { limit: 1, window: 60 },
     pro: { limit: 10, window: 60 },
     enterprise: { limit: 100, window: 60 }
   };
-  
+
   const currentLimit = rateLimitConfig[tier as keyof typeof rateLimitConfig] || rateLimitConfig.free;
 
   const handleStartScan = async (config: { url: string; tier: string; attackType?: string }) => {
     setIsScanning(true);
-    setLogs(["+ INITIALIZING_STOCHASTIC_AUDIT...", `+ TARGET: ${config.url}`, `+ PROTOCOL: ${config.tier.toUpperCase()}`]);
-    
+
+    // Clear any in-flight probe simulation
+    if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
+
+    setEvents([
+      mkEvt("init", `TARGET: ${config.url}`),
+      mkEvt("init", `PROTOCOL: ${config.tier.toUpperCase()}`),
+      mkEvt("init", "INITIALIZING_STOCHASTIC_AUDIT..."),
+    ]);
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
-        setLogs(prev => [...prev, "! ERROR: UNAUTHORIZED_ACCESS"]);
+        setEvents(prev => [...prev, mkEvt("error", "UNAUTHORIZED_ACCESS")]);
+        setIsScanning(false);
         return;
       }
 
       // Determine which endpoint to use based on attackType
       const endpoint = config.attackType ? "/multi-turn-scan" : "/scan";
-      const payload = config.attackType 
+      const payload  = config.attackType
         ? { url: config.url, tier: config.tier, attack_type: config.attackType }
         : { url: config.url, tier: config.tier };
-      
+
       if (config.attackType) {
-        setLogs(prev => [...prev, `+ ATTACK_TYPE: ${config.attackType?.toUpperCase()}`, "+ INITIALIZING_MULTI_TURN_ATTACK..."]);
+        setEvents(prev => [...prev,
+          mkEvt("init", `ATTACK_TYPE: ${config.attackType?.toUpperCase()}`),
+          mkEvt("init", "INITIALIZING_MULTI_TURN_ATTACK..."),
+        ]);
       }
-      
-      setLogs(prev => [...prev, "+ CONNECTING_TO_NODES...", "+ DISPATCHING_PROBES..."]);
-      
+
+      setEvents(prev => [...prev,
+        mkEvt("init", "CONNECTING_TO_NODES..."),
+        mkEvt("init", "DISPATCHING_PROBES..."),
+      ]);
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${endpoint}`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session.access_token}`
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       // Handle rate limit response (429)
       if (response.status === 429) {
         const rateLimitData = await response.json().catch(() => ({}));
         const resetTime = response.headers.get("X-RateLimit-Reset");
-        const limit = response.headers.get("X-RateLimit-Limit");
-        
-        let errorMessage = "Rate limit exceeded. Please wait before making another request.";
-        
+
+        let msg = "RATE_LIMIT_EXCEEDED — please wait before retrying.";
         if (resetTime) {
-          const resetTimestamp = parseInt(resetTime, 10) * 1000; // Convert to milliseconds
-          const now = Date.now();
-          const waitTime = Math.ceil((resetTimestamp - now) / 1000);
-          
-          if (waitTime > 0) {
-            errorMessage = `Rate limit exceeded. Please wait ${waitTime} seconds before retrying.`;
-          }
+          const wait = Math.ceil((parseInt(resetTime, 10) * 1000 - Date.now()) / 1000);
+          if (wait > 0) msg = `RATE_LIMIT_EXCEEDED — retry in ${wait}s.`;
         }
-        
         if (rateLimitData.upgrade) {
-          errorMessage += `\nUpgrade to ${config.tier.toUpperCase()} tier for higher limits.`;
+          msg += ` Upgrade for higher limits.`;
         }
-        
-        setLogs(prev => [...prev, "! ERROR: RATE_LIMIT_EXCEEDED", `! ${errorMessage}`]);
+
+        setEvents(prev => [...prev, mkEvt("error", msg)]);
         setIsScanning(false);
         return;
       }
 
       // Handle other errors
       if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.detail || errData.error || "SCAN_INIT_FAILED");
+        const errData = await response.json();
+        throw new Error(errData.detail || errData.error || "SCAN_INIT_FAILED");
       }
 
       const result = await response.json();
       const scanId = result.scan_id;
-      setLogs(prev => [...prev, "+ PROBES_COLLECTED", `+ SCAN_ID: ${scanId || "PENDING"}`]);
-      
+      setEvents(prev => [...prev, mkEvt("init", `SCAN_ID: ${scanId || "PENDING"}`)]);
+      setCurrentScanId(scanId || null);
+      setScanComplete(false);
+
       if (!scanId) {
         setIsScanning(false);
         return;
       }
 
-      // Polling Logic with rate limit handling
+      // ── Probe simulation (regular scans only) ──────────────────────────────
+      if (!config.attackType) {
+        const probes  = PROBE_SEQS[config.tier] || PROBE_SEQS.basic;
+        const probeMs = config.tier === "free" ? 8000 : config.tier === "pro" ? 18000 : 13000;
+        let idx = 0;
+        probeIntervalRef.current = setInterval(() => {
+          if (idx < probes.length) {
+            const probe: TerminalEvent = {
+              id: `probe_${idx}`,
+              ts: Date.now(),
+              kind: "probe",
+              probeName:   probes[idx],
+              probeIndex:  idx + 1,
+              probeTotal:  probes.length,
+            };
+            setEvents(prev => [...prev, probe]);
+            idx++;
+          } else {
+            if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
+          }
+        }, probeMs);
+      }
+
+      // ── Polling ────────────────────────────────────────────────────────────
       const pollInterval = setInterval(async () => {
         try {
-          const pollRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/scan/${scanId}`, {
-            headers: { "Authorization": `Bearer ${session.access_token}` }
-          });
-          
-          // Handle rate limit on polling
+          const pollRes = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/scan/${scanId}`,
+            { headers: { "Authorization": `Bearer ${session.access_token}` } },
+          );
+
           if (pollRes.status === 429) {
             console.warn("Rate limited during polling, will retry...");
             return;
           }
-          
+
           if (pollRes.ok) {
             const pollData = await pollRes.json();
+
             if (pollData.status === "complete") {
               clearInterval(pollInterval);
+              if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
               setIsScanning(false);
-              
-              // Handle multi-turn scan results
+              setScanComplete(true);
+
+              const findingEvts = ((pollData.findings || []) as any[]).map(mkFinding);
+
               if (pollData.conversation) {
-                setLogs(prev => [...prev, "+ MULTI_TURN_COMPLETE", `+ ATTACK_TYPE: ${pollData.attack_type}`]);
-                // Add conversation to logs
-                pollData.conversation.forEach((turn: any) => {
-                  setLogs(prev => [...prev, `+ TURN_${turn.turn + 1}: ${turn.user.substring(0, 50)}...`]);
-                });
-              } else {
-                setLogs(prev => [...prev, "+ SCAN_COMPLETE. ANALYZING_VULNERABILITIES..."]);
-              }
-              
-              setLogs(prev => [...prev, `+ RISK_SCORE: ${pollData.risk_score}`]);
-              setFindings(pollData.findings || []);
-              
-              // Store multi-turn conversation if present
-              if (pollData.conversation) {
+                setEvents(prev => [...prev,
+                  mkEvt("init", `MULTI_TURN_COMPLETE · ATTACK: ${pollData.attack_type}`),
+                  ...pollData.conversation.map((turn: any) =>
+                    mkEvt("init", `TURN_${turn.turn + 1}: ${(turn.user as string).substring(0, 60)}...`)
+                  ),
+                  ...findingEvts,
+                  mkEvt("complete", `RISK_SCORE: ${pollData.risk_score} · SCAN COMPLETE`),
+                ]);
                 setMultiTurnConversation(pollData.conversation);
+              } else {
+                setEvents(prev => [...prev,
+                  ...findingEvts,
+                  mkEvt("complete", `RISK_SCORE: ${pollData.risk_score} · SCAN COMPLETE`),
+                ]);
               }
+
+              setFindings(pollData.findings || []);
+              setCurrentRiskScore(pollData.risk_score ?? 0);
+              setCategoryScores(pollData.category_scores ?? null);
+              setPrevRiskScore(pollData.prev_risk_score ?? null);
+
             } else if (pollData.status === "failed") {
               clearInterval(pollInterval);
+              if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
               setIsScanning(false);
-              setLogs(prev => [...prev, "! ERROR: SCAN_FAILED_INTERNAL_ERROR"]);
+              setEvents(prev => [...prev, mkEvt("error", "SCAN_FAILED_INTERNAL_ERROR")]);
             }
           }
-        } catch(e) {
+        } catch (e) {
           console.error("Polling error", e);
         }
       }, 3000);
 
     } catch (err: any) {
-      setLogs(prev => [...prev, "! ERROR: CONNECTION_FAILED", `! ${err.message || err}`]);
+      if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
+      setEvents(prev => [...prev, mkEvt("error", `CONNECTION_FAILED: ${err.message || err}`)]);
       setIsScanning(false);
     }
   };
 
+  const handleDemoScan = (scanId: string) => {
+    localStorage.setItem("vulnra_ob_v1", "1");
+    setShowOnboarding(false);
+    setIsFirstScan(true);
+    loadScanById(scanId);
+  };
+
+  const handleOnboardingLaunch = (url: string, depth: string) => {
+    localStorage.setItem("vulnra_ob_v1", "1");
+    setShowOnboarding(false);
+    setIsFirstScan(true);
+    handleStartScan({ url, tier: depth });
+  };
+
+  const handleDownloadReport = async () => {
+    if (!currentScanId) return;
+    setDownloadingReport(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const resp = await fetch(
+        `${API}/scan/${currentScanId}/report`,
+        { headers: { Authorization: `Bearer ${session.access_token}` } }
+      );
+
+      if (!resp.ok) {
+        setEvents(prev => [...prev, mkEvt("error", "REPORT_GENERATION_FAILED")]);
+        return;
+      }
+
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `vulnra-report-${currentScanId.slice(0, 8)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setEvents(prev => [...prev, mkEvt("error", "REPORT_DOWNLOAD_FAILED")]);
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!currentScanId) return;
+    setSharingReport(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const resp = await fetch(`${API}/scan/${currentScanId}/share`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!resp.ok) {
+        setEvents(prev => [...prev, mkEvt("error", "SHARE_LINK_FAILED")]);
+        return;
+      }
+      const { url } = await resp.json();
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 3000);
+    } catch {
+      setEvents(prev => [...prev, mkEvt("error", "SHARE_LINK_FAILED")]);
+    } finally {
+      setSharingReport(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden selection:bg-acid selection:text-black font-sans">
+    <>
+      {showOnboarding && (
+        <OnboardingOverlay
+          apiUrl={API}
+          onLaunch={handleOnboardingLaunch}
+          onDemoScan={handleDemoScan}
+          onDismiss={() => {
+            localStorage.setItem("vulnra_ob_v1", "1");
+            setShowOnboarding(false);
+          }}
+        />
+      )}
+      <div className="flex flex-col h-screen bg-background overflow-hidden selection:bg-acid selection:text-black font-sans">
       {/* Top Navigation */}
       <nav className="h-13 bg-v-bg1 border-b border-v-border2 flex items-center justify-between px-5 z-50 shrink-0">
         <div className="flex items-center gap-4">
@@ -175,7 +418,31 @@ export default function ScannerLayout({ user }: { user: User }) {
             className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
           >
             <Server className="w-3.5 h-3.5" />
-            MCP_SCANNER
+            AGENT_SECURITY
+          </a>
+          <div className="h-5 w-[1px] bg-v-border mx-2" />
+          <a
+            href="/scanner/history"
+            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
+          >
+            <History className="w-3.5 h-3.5" />
+            HISTORY
+          </a>
+          <div className="h-5 w-[1px] bg-v-border mx-2" />
+          <a
+            href="/settings/api-keys"
+            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
+          >
+            <Key className="w-3.5 h-3.5" />
+            API_KEYS
+          </a>
+          <div className="h-5 w-[1px] bg-v-border mx-2" />
+          <a
+            href="/monitor"
+            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
+          >
+            <Radio className="w-3.5 h-3.5" />
+            SENTINEL
           </a>
           <div className="h-5 w-[1px] bg-v-border mx-2" />
           <div className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider">
@@ -184,20 +451,32 @@ export default function ScannerLayout({ user }: { user: User }) {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Rate Limit Indicator */}
-          <div className="flex items-center gap-2 text-[10px] font-mono text-v-muted bg-white/5 border border-v-border px-2.5 py-1.25 rounded-sm hover:border-white/10 transition-colors cursor-pointer group" title="API Rate Limit Status">
-            <Timer className="w-3.5 h-3.5 text-acid" />
-            <span className="text-acid">{currentLimit.limit}</span>
+          {/* Tier Badge — links to billing */}
+          <a
+            href={tier === "free" ? "/billing" : "/billing/manage"}
+            title={tier === "free" ? "Upgrade plan" : "Manage subscription"}
+            className="flex items-center gap-2 text-[10px] font-mono text-v-muted bg-white/5 border border-v-border px-2.5 py-1.25 rounded-sm hover:border-white/10 transition-colors group"
+          >
+            <Timer className={cn(
+              "w-3.5 h-3.5",
+              tier === "enterprise" ? "text-[#4db8ff]" : tier === "pro" ? "text-acid" : "text-v-muted2"
+            )} />
+            <span className={cn(
+              tier === "enterprise" ? "text-[#4db8ff]" : tier === "pro" ? "text-acid" : "text-v-muted2"
+            )}>{currentLimit.limit}</span>
             <span className="text-v-muted2">/min</span>
             <div className="h-3 w-[1px] bg-v-border mx-1" />
-            <span className="text-v-muted2">TIER:</span>
             <span className={cn(
-              "text-[8px] px-1.25 py-0.25 rounded-[1px] border leading-none font-bold",
-              tier === "enterprise" ? "bg-v-amber/10 text-v-amber border-v-amber/20" : "bg-acid/10 text-acid border-acid/20"
+              "text-[8px] px-1.5 py-0.5 rounded-[2px] border leading-none font-bold tracking-wider",
+              tier === "enterprise"
+                ? "bg-[#4db8ff]/10 text-[#4db8ff] border-[#4db8ff]/25"
+                : tier === "pro"
+                ? "bg-acid/10 text-acid border-acid/25"
+                : "bg-white/5 text-v-muted2 border-v-border group-hover:border-acid/20 group-hover:text-acid transition-colors"
             )}>
-              {tier.toUpperCase()}
+              {tier === "free" ? "FREE ↑" : tier.toUpperCase()}
             </span>
-          </div>
+          </a>
           
           {/* User Info */}
           <div className="flex items-center gap-2 text-[10px] font-mono text-v-muted bg-white/5 border border-v-border px-2.5 py-1.25 rounded-sm hover:border-white/10 transition-colors cursor-pointer group">
@@ -226,99 +505,105 @@ export default function ScannerLayout({ user }: { user: User }) {
         </aside>
 
         {/* Center Panel: Terminal */}
-        <Terminal logs={logs} />
+        <Terminal events={events} isScanning={isScanning} />
 
         {/* Right Panel: Findings */}
         <aside className="bg-v-bg1 border-l border-v-border2 flex flex-col overflow-hidden">
           <div className="p-4 py-3.5 border-b border-v-border2 flex items-center justify-between shrink-0">
             <span className="text-[8.5px] font-mono tracking-widest text-v-muted2 uppercase">Scan Findings</span>
-            <BarChart3 className="w-3.5 h-3.5 text-v-muted2" />
+            <div className="flex items-center gap-2">
+              {scanComplete && findings.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  {/* Share link */}
+                  <button
+                    onClick={handleShare}
+                    disabled={sharingReport}
+                    title="Copy shareable link"
+                    className={cn(
+                      "flex items-center gap-1.5 text-[9px] font-mono tracking-wider px-2 py-1 rounded-sm border transition-all",
+                      shareCopied
+                        ? "border-acid/50 text-acid bg-acid/10"
+                        : sharingReport
+                        ? "opacity-50 cursor-not-allowed border-v-border text-v-muted2"
+                        : "border-v-border text-v-muted2 hover:border-white/15 hover:text-v-muted"
+                    )}
+                  >
+                    {sharingReport
+                      ? <><Loader2 className="w-3 h-3 animate-spin" /> SHARING...</>
+                      : shareCopied
+                      ? <><CheckCheck className="w-3 h-3" /> COPIED</>
+                      : <><Link2 className="w-3 h-3" /> SHARE</>
+                    }
+                  </button>
+                  {/* PDF download */}
+                  <button
+                    onClick={handleDownloadReport}
+                    disabled={downloadingReport}
+                    title="Download PDF report"
+                    className={cn(
+                      "flex items-center gap-1.5 text-[9px] font-mono tracking-wider px-2 py-1 rounded-sm border transition-all",
+                      downloadingReport
+                        ? "opacity-50 cursor-not-allowed border-v-border text-v-muted2"
+                        : "border-acid/30 text-acid hover:bg-acid/10 hover:border-acid/50"
+                    )}
+                  >
+                    {downloadingReport
+                      ? <><Loader2 className="w-3 h-3 animate-spin" /> GENERATING...</>
+                      : <><FileDown className="w-3 h-3" /> PDF</>
+                    }
+                  </button>
+                </div>
+              )}
+              <BarChart3 className="w-3.5 h-3.5 text-v-muted2" />
+            </div>
           </div>
           <div className="p-5 flex flex-col gap-4 overflow-y-auto flex-1 custom-scrollbar">
              {/* Multi-Turn Results */}
              {multiTurnConversation.length > 0 && (
-               <MultiTurnResults 
-                 conversation={multiTurnConversation} 
-                 findings={findings.filter(f => f.turn !== undefined)} 
+               <MultiTurnResults
+                 conversation={multiTurnConversation}
+                 findings={findings.filter((f: any) => f.turn !== undefined)}
                />
              )}
-             
-             {/* Regular Findings */}
+
+             {/* First-scan celebration */}
+             {isFirstScan && scanComplete && findings.length > 0 && (
+               <div className="flex items-start gap-2 px-3 py-2.5 bg-acid/10 border border-acid/30 rounded-sm">
+                 <span className="text-[9px] font-mono text-acid tracking-wide leading-relaxed">
+                   ⚡ FIRST SCAN COMPLETE — use the buttons above to download your PDF report or share the results.
+                 </span>
+               </div>
+             )}
+
+             {/* Empty state */}
              {findings.length === 0 && multiTurnConversation.length === 0 ? (
-                 <div className="flex flex-col items-center justify-center h-full gap-3 opacity-20">
-                    <div className="w-12 h-12 rounded-full border border-dashed border-acid flex items-center justify-center mt-[-40px]">
-                       <Activity className="w-5 h-5" />
-                    </div>
-                    <span className="text-[9px] font-mono tracking-widest uppercase italic {isScanning ? 'animate-pulse text-acid' : ''}">
-                      {isScanning ? 'Awaiting Scan Telemetry...' : 'Waiting for results...'}
-                    </span>
+               <div className="flex flex-col items-center justify-center h-full gap-3 opacity-20">
+                 <div className="w-12 h-12 rounded-full border border-dashed border-acid flex items-center justify-center mt-[-40px]">
+                   <Activity className="w-5 h-5" />
                  </div>
+                 <span className={cn(
+                   "text-[9px] font-mono tracking-widest uppercase italic",
+                   isScanning ? "animate-pulse text-acid" : ""
+                 )}>
+                   {isScanning ? "Awaiting Scan Telemetry..." : "Waiting for results..."}
+                 </span>
+               </div>
              ) : (
-                  <div className="flex flex-col gap-3 pb-8">
-                    {findings.filter(f => f.turn === undefined).map((f, i) => (
-                      <div key={i} className="p-3 border border-v-border2 bg-black/20 rounded-sm">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-mono font-bold tracking-wider">{f.category}</span>
-                            {f.owasp_category && (
-                              <span className="text-[8px] px-1.5 py-0.5 bg-blue-100/20 text-blue-300 border border-blue-300/30 rounded font-mono">
-                                {f.owasp_category}
-                              </span>
-                            )}
-                          </div>
-                          <span className={cn(
-                            "text-[9px] font-mono px-1.5 py-0.5 rounded-[2px]",
-                            f.severity === "HIGH" ? "bg-v-red/10 text-v-red border border-v-red/30" :
-                            f.severity === "MEDIUM" ? "bg-v-amber/10 text-v-amber border border-v-amber/30" :
-                            "bg-acid/10 text-acid border border-acid/30"
-                          )}>{f.severity}</span>
-                        </div>
-                        <p className="text-[10.5px] text-v-muted leading-relaxed mb-3">
-                          {f.detail}
-                        </p>
-                        {f.owasp_name && (
-                          <div className="text-[9px] text-blue-300 mb-2 italic">
-                            OWASP: {f.owasp_name}
-                          </div>
-                        )}
-                        {f.compliance?.mitre_atlas && (
-                          <div className="mt-2 space-y-1">
-                            {f.compliance.mitre_atlas.techniques && (
-                              <div className="flex items-center gap-1 flex-wrap">
-                                {f.compliance.mitre_atlas.techniques.map((tech: string) => (
-                                  <span key={tech} className="text-[8px] px-1.5 py-0.5 bg-purple-100/20 text-purple-300 border border-purple-300/30 rounded font-mono">
-                                    {tech}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                            {f.compliance.mitre_atlas.tactics && (
-                              <div className="flex items-center gap-1 flex-wrap text-[8px] text-purple-200/70">
-                                {f.compliance.mitre_atlas.tactics.map((tactic: string) => (
-                                  <span key={tactic} className="px-1 py-0.5 bg-purple-50/10 rounded">
-                                    {tactic}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                       {f.reasoning && (
-                         <div className="mt-2 text-[9px] text-v-muted2 border-t border-v-border2 pt-2 italic">
-                           "{f.reasoning}"
-                         </div>
-                       )}
-                       <div className="mt-3 flex items-center justify-between text-[9px] font-mono text-v-muted2 border-t border-v-border2/50 pt-2 pb-1">
-                         <span>HITS: {f.hits}/{f.total}</span>
-                         <span>RATE: {(f.hit_rate * 100).toFixed(1)}%</span>
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-              )}
+               <>
+                 {scanComplete && (
+                   <RiskScoreViz
+                     riskScore={currentRiskScore}
+                     categoryScores={categoryScores}
+                     prevRiskScore={prevRiskScore}
+                   />
+                 )}
+                 <FindingsPanel findings={findings} />
+               </>
+             )}
           </div>
         </aside>
       </main>
     </div>
+    </>
   );
 }

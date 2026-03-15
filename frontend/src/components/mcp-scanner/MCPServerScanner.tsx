@@ -22,6 +22,7 @@ interface ScanResult {
   risk_score: number
   overall_severity: string
   scan_duration: number
+  tier: string
   vulnerabilities: Array<{
     id: string
     name: string
@@ -29,6 +30,7 @@ interface ScanResult {
     severity: string
     cvss_score: number
     owasp_category?: string
+    agentic_category?: string
     mitre_technique?: string
     evidence: Record<string, any>
     remediation: string
@@ -88,7 +90,7 @@ export default function MCPServerScanner({ user }: MCPServerScannerProps) {
       <nav className="h-12 bg-v-bg2 border-b border-v-border2 flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-3">
           <Shield className="w-5 h-5 text-acid" />
-          <span className="text-sm font-medium">VULNRA MCP Scanner</span>
+          <span className="text-sm font-medium">VULNRA Agent Security</span>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs text-v-muted2">
@@ -108,11 +110,11 @@ export default function MCPServerScanner({ user }: MCPServerScannerProps) {
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
             <Server className="w-6 h-6 text-acid" />
-            MCP Server Scanner
+            Agent Security
           </h1>
           <p className="text-v-muted2 text-sm">
-            Scan Model Context Protocol servers for security vulnerabilities including tool poisoning, 
-            prompt injection, privilege escalation, and data exfiltration risks.
+            Scan AI agent infrastructure and MCP servers for OWASP Agentic Top 10 vulnerabilities —
+            goal hijacking, tool misuse, supply chain attacks, code execution, memory poisoning, and more.
           </p>
         </div>
 

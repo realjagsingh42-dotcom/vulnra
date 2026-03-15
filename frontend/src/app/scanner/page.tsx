@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import ScannerLayout from '@/components/scanner/ScannerLayout'
@@ -11,5 +12,9 @@ export default async function ScannerPage() {
     redirect('/login')
   }
 
-  return <ScannerLayout user={data.user} />
+  return (
+    <Suspense>
+      <ScannerLayout user={data.user} />
+    </Suspense>
+  )
 }

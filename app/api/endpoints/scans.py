@@ -231,6 +231,75 @@ async def get_scan_status(
         }
     )
 
+
+@router.get("/scan/{scan_id}/diff")
+async def get_scan_diff(
+    scan_id: str,
+    baseline: str = Query(..., description="Baseline scan ID to diff against"),
+    current_user: dict = Depends(get_current_user),
+):
+    """Compare two completed scans by finding (category, severity) composite key.
+    Returns new findings, fixed findings, unchanged findings, and a summary."""
+    from fastapi.responses import JSONResponse
+
+    uid = current_user["id"]
+
+    current = get_scan_result(scan_id)
+    base    = get_scan_result(baseline)
+
+    if not current or not base:
+        raise HTTPException(status_code=404, detail="One or both scans not found.")
+    if current.get("user_id") != uid or base.get("user_id") != uid:
+        raise HTTPException(status_code=403, detail="Not authorized.")
+    if current.get("status") != "complete" or base.get("status") != "complete":
+        raise HTTPException(status_code=409, detail="Both scans must be complete.")
+
+    def _key(f: dict) -> str:
+        return f"{f.get('category', '')}:{f.get('severity', '')}".upper()
+
+    cur_findings  = current.get("findings", [])
+    base_findings = base.get("findings",    [])
+
+    cur_map  = {_key(f): f for f in cur_findings}
+    base_map = {_key(f): f for f in base_findings}
+
+    new_findings   = [f for k, f in cur_map.items()  if k not in base_map]
+    fixed_findings = [f for k, f in base_map.items() if k not in cur_map]
+    unchanged      = [f for k, f in cur_map.items()  if k in base_map]
+
+    cur_risk  = float(current.get("risk_score") or 0)
+    base_risk = float(base.get("risk_score")    or 0)
+    risk_delta     = round(cur_risk - base_risk, 3)
+    risk_delta_pct = round((risk_delta / base_risk) * 100) if base_risk > 0 else 0
+
+    high_fixed = sum(
+        1 for f in fixed_findings
+        if f.get("severity", "").upper() in ("HIGH", "CRITICAL")
+    )
+
+    return JSONResponse(content={
+        "scan_id":      scan_id,
+        "baseline_id":  baseline,
+        "current_url":  current.get("target_url"),
+        "baseline_url": base.get("target_url"),
+        "current_risk":  cur_risk,
+        "baseline_risk": base_risk,
+        "risk_delta":     risk_delta,
+        "risk_delta_pct": risk_delta_pct,
+        "new":       new_findings,
+        "fixed":     fixed_findings,
+        "unchanged": unchanged,
+        "summary": {
+            "new_count":       len(new_findings),
+            "fixed_count":     len(fixed_findings),
+            "unchanged_count": len(unchanged),
+            "total_current":   len(cur_findings),
+            "high_fixed":      high_fixed,
+            "has_regressions": len(new_findings) > 0,
+        },
+    })
+
+
 class ScanRequest(BaseModel):
     url: HttpUrl
     tier: str = "free"
@@ -415,9 +484,9 @@ async def scan_mcp_endpoint(
         )
     
     try:
-        # Perform the MCP scan
-        scan_result = await scan_mcp_server(server_url)
-        
+        # Perform the MCP scan (tier-gated probe selection)
+        scan_result = await scan_mcp_server(server_url, tier=user_tier)
+
         # Format response
         response_data = {
             "server_url": scan_result.server_url,
@@ -426,6 +495,7 @@ async def scan_mcp_endpoint(
             "risk_score": scan_result.risk_score,
             "overall_severity": scan_result.overall_severity,
             "scan_duration": scan_result.scan_duration,
+            "tier": scan_result.tier,
             "vulnerabilities": [
                 {
                     "id": v.id,
@@ -434,6 +504,7 @@ async def scan_mcp_endpoint(
                     "severity": v.severity,
                     "cvss_score": v.cvss_score,
                     "owasp_category": v.owasp_category,
+                    "agentic_category": v.agentic_category,
                     "mitre_technique": v.mitre_technique,
                     "evidence": v.evidence,
                     "remediation": v.remediation,

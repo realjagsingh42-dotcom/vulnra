@@ -1,0 +1,62 @@
+name: "VULNRA LLM Security Scan"
+description: "Run an AI vulnerability audit against your LLM API endpoint and post results as a PR comment."
+
+branding:
+  icon: "shield"
+  color: "green"
+
+inputs:
+  api_key:
+    description: "Your VULNRA API key (vk_live_...)."
+    required: true
+
+  target_url:
+    description: "The LLM API endpoint to scan (e.g. https://api.example.com/v1/chat/completions)."
+    required: true
+
+  model:
+    description: "Model name or ID to target at the endpoint."
+    required: false
+    default: ""
+
+  scan_engine:
+    description: "Scan engine to use: garak | deepteam | combined."
+    required: false
+    default: "combined"
+
+  tier:
+    description: "Scan depth tier: free | pro | enterprise."
+    required: false
+    default: "pro"
+
+  baseline_scan_id:
+    description: "Optional: previous scan ID to diff against. If set, a regression report is included."
+    required: false
+    default: ""
+
+  fail_on_risk_score:
+    description: "Fail the workflow if risk score (0-100) meets or exceeds this threshold. Set to 0 to disable."
+    required: false
+    default: "70"
+
+  vulnra_api_url:
+    description: "Override the VULNRA API base URL (useful for self-hosted)."
+    required: false
+    default: "https://api.vulnra.com"
+
+outputs:
+  scan_id:
+    description: "The VULNRA scan ID."
+
+  risk_score:
+    description: "Risk score from 0–100."
+
+  findings_count:
+    description: "Total number of findings."
+
+  report_url:
+    description: "URL to the full PDF report."
+
+runs:
+  using: "node20"
+  main: "dist/index.js"

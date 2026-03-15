@@ -159,7 +159,7 @@ def _find_newest_report(scan_start_time: float) -> Optional[str]:
         logger.info(f"Found report: {best} (mtime: {best_mtime})")
     return best
 
-def _parse_report(report_path: str, tier: str = "free") -> List[Dict[str, Any]]:
+def _parse_report(report_path: str, tier: str = "free", target_url: str = "") -> List[Dict[str, Any]]:
     """Parse Garak JSONL report and extract findings."""
     # Using a structured dict to avoid type confusion
     # module -> {"hits": int, "total": int, "probes": Set[str], "outputs": List[str]}
@@ -196,18 +196,28 @@ def _parse_report(report_path: str, tier: str = "free") -> List[Dict[str, Any]]:
                         m_list = cast(List[Any], m_data["outputs"])
                         if len(m_list) < 3:
                             m_list.append(str(outputs[0])[:120])
-                        
+
+                        # Store first adversarial prompt + response as evidence
+                        if "adversarial_prompt" not in m_data:
+                            m_data["adversarial_prompt"] = str(rec.get("prompt", ""))[:500]
+                            m_data["model_response"] = str(outputs[0])[:500]
+
                         # AI JUDGE INTEGRATION
                         if tier in ("pro", "enterprise") and "reasoning" not in m_data:
                             prompt = rec.get("prompt", "")
                             text_output = str(outputs[0])
                             judge = get_judge()
-                            eval_res = judge.evaluate_interaction(probe, prompt, text_output, PROBE_TO_CATEGORY.get(module, "POLICY_BYPASS"))
-                            
+                            eval_res = judge.evaluate_interaction(
+                                probe, prompt, text_output,
+                                PROBE_TO_CATEGORY.get(module, "POLICY_BYPASS"),
+                                target_url=target_url,
+                            )
+
                             if eval_res.get("engine_judgement") == "ai_judge":
                                 m_data["reasoning"] = eval_res.get("reasoning")
-                                # If AI thinks it's NOT a vulnerability, we could override hits
-                                # but for now we'll just store the reasoning.
+                                m_data["remediation"] = eval_res.get("remediation")
+                                m_data["fix_effort"] = eval_res.get("fix_effort")
+                                m_data["context_explanation"] = eval_res.get("context_explanation")
                                 if not eval_res.get("is_vulnerable"):
                                     m_data["hits"] = max(0, m_data["hits"] - 1)
     except Exception as e:
@@ -236,7 +246,12 @@ def _parse_report(report_path: str, tier: str = "free") -> List[Dict[str, Any]]:
             "hits": hits,
             "total": total,
             "blurred": False,
-            "reasoning": data.get("reasoning")
+            "reasoning": data.get("reasoning"),
+            "remediation": data.get("remediation"),
+            "fix_effort": data.get("fix_effort"),
+            "context_explanation": data.get("context_explanation"),
+            "adversarial_prompt": data.get("adversarial_prompt"),
+            "model_response": data.get("model_response"),
         })
     
     findings.sort(key=lambda x: ({"HIGH": 0, "MEDIUM": 1, "LOW": 2}.get(str(x["severity"]), 3), -float(x["hit_rate"])))
@@ -357,7 +372,7 @@ def run_garak_scan(scan_id: str, url: str, tier: str = "free") -> Dict[str, Any]
             logger.error(f"Garak finished but no report found for {scan_id}")
             return _mock_fallback_scan(scan_id, url, tier)
 
-        findings = _parse_report(report_path, tier)
+        findings = _parse_report(report_path, tier, url)
         score = _calculate_score(findings)
         compliance = _build_compliance(findings)
 

@@ -1,62 +1,156 @@
 """
-Centralized compliance mapping for OWASP LLM Top 10 and regulatory frameworks.
+Centralized compliance mapping for OWASP LLM Top 10, OWASP Agentic Top 10,
+MITRE ATLAS, and regulatory frameworks (EU AI Act, DPDP, NIST AI RMF).
 """
 
-# OWASP LLM 2025 Categories
+# ─────────────────────────────────────────────────────────────────────────────
+# OWASP LLM Top 10 (2025)
+# ─────────────────────────────────────────────────────────────────────────────
+
 OWASP_LLM_CATEGORIES = {
     "LLM01": {
         "name": "Prompt Injection",
         "description": "Attacks that inject malicious prompts to manipulate model behavior",
-        "severity": "CRITICAL"
+        "severity": "CRITICAL",
     },
     "LLM02": {
         "name": "Sensitive Information Disclosure",
         "description": "Unintended exposure of sensitive data through model outputs",
-        "severity": "CRITICAL"
+        "severity": "CRITICAL",
     },
     "LLM03": {
         "name": "Supply Chain Vulnerabilities",
         "description": "Vulnerabilities in model development and deployment pipeline",
-        "severity": "HIGH"
+        "severity": "HIGH",
     },
     "LLM04": {
         "name": "Data and Model Poisoning",
         "description": "Manipulation of training data or model parameters",
-        "severity": "HIGH"
+        "severity": "HIGH",
     },
     "LLM05": {
         "name": "Improper Output Handling",
         "description": "Failure to validate or sanitize model outputs",
-        "severity": "HIGH"
+        "severity": "HIGH",
     },
     "LLM06": {
         "name": "Excessive Agency",
         "description": "Model having more capabilities than intended",
-        "severity": "MEDIUM"
+        "severity": "MEDIUM",
     },
     "LLM07": {
         "name": "System Prompt Leakage",
         "description": "Exposure of system prompts or instructions",
-        "severity": "MEDIUM"
+        "severity": "MEDIUM",
     },
     "LLM08": {
         "name": "Vector and Embedding Weaknesses",
         "description": "Vulnerabilities in RAG systems and embedding models",
-        "severity": "HIGH"
+        "severity": "HIGH",
     },
     "LLM09": {
         "name": "Misinformation",
         "description": "Generation of false or misleading information",
-        "severity": "MEDIUM"
+        "severity": "MEDIUM",
     },
     "LLM10": {
         "name": "Unbounded Consumption",
         "description": "Resource exhaustion attacks on LLM APIs",
-        "severity": "MEDIUM"
-    }
+        "severity": "MEDIUM",
+    },
 }
 
-# Internal category to OWASP mapping
+# ─────────────────────────────────────────────────────────────────────────────
+# OWASP Agentic Top 10 (2025)
+# ─────────────────────────────────────────────────────────────────────────────
+
+OWASP_AGENTIC_CATEGORIES = {
+    "AG-01": {
+        "name": "Goal Hijacking via Indirect Prompt Injection",
+        "description": (
+            "Adversarial content embedded in the agent's environment (tool responses, documents, memory) "
+            "steers the agent away from its intended goal toward attacker-controlled objectives."
+        ),
+        "severity": "CRITICAL",
+    },
+    "AG-02": {
+        "name": "Tool Misuse with Destructive Parameters",
+        "description": (
+            "Agent is manipulated into invoking exposed tools with unintended broad, dangerous, "
+            "or destructive parameter values, causing mass data deletion, exfiltration, or modification."
+        ),
+        "severity": "HIGH",
+    },
+    "AG-03": {
+        "name": "Agentic Supply Chain Vulnerabilities",
+        "description": (
+            "Compromised tools, packages, MCP server infrastructure, or third-party dependencies "
+            "in the agent's toolchain introduce malicious behavior or data exfiltration."
+        ),
+        "severity": "HIGH",
+    },
+    "AG-04": {
+        "name": "Unexpected Code Execution",
+        "description": (
+            "Agent generates code execution payloads (SQL injection, shell commands, eval, template injection) "
+            "as parameters in tool calls, causing unintended code execution on backend systems."
+        ),
+        "severity": "CRITICAL",
+    },
+    "AG-05": {
+        "name": "Memory and Context Poisoning",
+        "description": (
+            "Adversarial content written to the agent's memory store or context window "
+            "influences future agent sessions or leaks across user boundaries."
+        ),
+        "severity": "HIGH",
+    },
+    "AG-06": {
+        "name": "Insecure Inter-Agent Communication",
+        "description": (
+            "Subagents accept instructions from unverified or impersonated orchestrators without "
+            "cryptographic verification, enabling privilege escalation via orchestrator impersonation."
+        ),
+        "severity": "HIGH",
+    },
+    "AG-07": {
+        "name": "Cascading Failure via Malformed Tool Responses",
+        "description": (
+            "Malformed or adversarial tool responses propagate errors into downstream tool calls, "
+            "trigger infinite retry loops, or cause unhandled exceptions that crash the agent pipeline."
+        ),
+        "severity": "HIGH",
+    },
+    "AG-08": {
+        "name": "Resource Overuse and Denial of Service",
+        "description": (
+            "Agent enters tool call loops, makes unbounded parallel tool calls, or the MCP server "
+            "lacks per-session rate limiting — enabling DoS or unbounded cost accumulation."
+        ),
+        "severity": "MEDIUM",
+    },
+    "AG-09": {
+        "name": "Authorization Bypass (Confused Deputy)",
+        "description": (
+            "Agent uses its elevated service-account permissions to fulfill unauthorized cross-user or "
+            "cross-tenant data requests, acting as a confused deputy for attackers."
+        ),
+        "severity": "CRITICAL",
+    },
+    "AG-10": {
+        "name": "Model Identity Spoofing",
+        "description": (
+            "Agent accepts unverified model identity claims from forged inter-agent messages, "
+            "enabling privilege escalation by impersonating trusted orchestrators or peer models."
+        ),
+        "severity": "HIGH",
+    },
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Internal category → OWASP mappings
+# ─────────────────────────────────────────────────────────────────────────────
+
 CATEGORY_TO_OWASP = {
     "JAILBREAK": "LLM01",
     "PROMPT_INJECTION": "LLM01",
@@ -69,10 +163,26 @@ CATEGORY_TO_OWASP = {
     "VECTOR_WEAKNESS": "LLM08",
     "MISINFORMATION": "LLM09",
     "UNBOUNDED_CONSUMPTION": "LLM10",
-    "DATA_EXFIL": "LLM02"
+    "DATA_EXFIL": "LLM02",
 }
 
+AGENTIC_CATEGORY_TO_OWASP = {
+    "GOAL_HIJACKING": "AG-01",
+    "TOOL_MISUSE": "AG-02",
+    "AGENTIC_SUPPLY_CHAIN": "AG-03",
+    "CODE_EXECUTION": "AG-04",
+    "MEMORY_POISONING": "AG-05",
+    "INTER_AGENT_COMMS": "AG-06",
+    "CASCADING_FAILURE": "AG-07",
+    "RESOURCE_OVERUSE": "AG-08",
+    "AUTHZ_BYPASS": "AG-09",
+    "IDENTITY_SPOOFING": "AG-10",
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # MITRE ATLAS Tactics and Techniques
+# ─────────────────────────────────────────────────────────────────────────────
+
 MITRE_ATLAS_TACTICS = {
     "TA0001": {"name": "Initial Access", "description": "AI system access techniques"},
     "TA0002": {"name": "Execution", "description": "Running malicious code/queries"},
@@ -88,8 +198,8 @@ MITRE_ATLAS_TACTICS = {
     "TA0012": {"name": "Impact", "description": "Damaging AI system functionality"},
 }
 
-# MITRE ATLAS Techniques
 MITRE_ATLAS_TECHNIQUES = {
+    # LLM techniques
     "T0001.001": {"name": "Direct Prompt Injection", "tactic": "TA0001"},
     "T0001.002": {"name": "Indirect Prompt Injection", "tactic": "TA0001"},
     "T0001.003": {"name": "Model Poisoning", "tactic": "TA0001"},
@@ -97,9 +207,23 @@ MITRE_ATLAS_TECHNIQUES = {
     "T0043.001": {"name": "Adversarial Examples", "tactic": "TA0012"},
     "T0048.001": {"name": "Tool Poisoning", "tactic": "TA0004"},
     "T0012.001": {"name": "Resource Exhaustion", "tactic": "TA0012"},
+    # Agentic techniques
+    "T0001.004": {"name": "Goal Hijacking via Tool Response", "tactic": "TA0001"},
+    "T0048.002": {"name": "Tool Parameter Manipulation", "tactic": "TA0004"},
+    "T0001.005": {"name": "Agentic Supply Chain Compromise", "tactic": "TA0001"},
+    "T0043.002": {"name": "Code Injection via Agent Tool Call", "tactic": "TA0002"},
+    "T0001.006": {"name": "Memory Store Poisoning", "tactic": "TA0003"},
+    "T0011.001": {"name": "Inter-Agent Message Spoofing", "tactic": "TA0011"},
+    "T0001.007": {"name": "Malformed Tool Response Injection", "tactic": "TA0001"},
+    "T0012.002": {"name": "Agent Resource Exhaustion Loop", "tactic": "TA0012"},
+    "T0043.003": {"name": "Confused Deputy Authorization Bypass", "tactic": "TA0004"},
+    "T0043.004": {"name": "Model Identity Forgery", "tactic": "TA0004"},
 }
 
+# ─────────────────────────────────────────────────────────────────────────────
 # Regulatory compliance mappings
+# ─────────────────────────────────────────────────────────────────────────────
+
 REGULATORY_MAPPINGS = {
     "eu_ai_act": {
         "LLM01": {"articles": ["Art. 9", "Art. 13"], "fine_eur": 15_000_000},
@@ -111,7 +235,19 @@ REGULATORY_MAPPINGS = {
         "LLM07": {"articles": ["Art. 9"], "fine_eur": 10_000_000},
         "LLM08": {"articles": ["Art. 15"], "fine_eur": 10_000_000},
         "LLM09": {"articles": ["Art. 13"], "fine_eur": 15_000_000},
-        "LLM10": {"articles": ["Art. 9"], "fine_eur": 10_000_000}
+        "LLM10": {"articles": ["Art. 9"], "fine_eur": 10_000_000},
+    },
+    "agentic_eu_ai_act": {
+        "AG-01": {"articles": ["Art. 9", "Art. 15"], "fine_eur": 15_000_000},
+        "AG-02": {"articles": ["Art. 9", "Art. 13"], "fine_eur": 15_000_000},
+        "AG-03": {"articles": ["Art. 15"], "fine_eur": 10_000_000},
+        "AG-04": {"articles": ["Art. 9", "Art. 15"], "fine_eur": 20_000_000},
+        "AG-05": {"articles": ["Art. 13", "Art. 17"], "fine_eur": 20_000_000},
+        "AG-06": {"articles": ["Art. 9"], "fine_eur": 10_000_000},
+        "AG-07": {"articles": ["Art. 9"], "fine_eur": 10_000_000},
+        "AG-08": {"articles": ["Art. 9"], "fine_eur": 10_000_000},
+        "AG-09": {"articles": ["Art. 9", "Art. 13"], "fine_eur": 20_000_000},
+        "AG-10": {"articles": ["Art. 9"], "fine_eur": 10_000_000},
     },
     "dpdp": {
         "LLM01": {"sections": ["Sec. 8", "Sec. 11"], "fine_inr": 250_000_000},
@@ -123,7 +259,7 @@ REGULATORY_MAPPINGS = {
         "LLM07": {"sections": ["Sec. 8"], "fine_inr": 100_000_000},
         "LLM08": {"sections": ["Sec. 8"], "fine_inr": 100_000_000},
         "LLM09": {"sections": ["Sec. 8"], "fine_inr": 150_000_000},
-        "LLM10": {"sections": ["Sec. 8"], "fine_inr": 100_000_000}
+        "LLM10": {"sections": ["Sec. 8"], "fine_inr": 100_000_000},
     },
     "nist_ai_rmf": {
         "LLM01": {"functions": ["GOVERN 1.1", "MAP 2.1", "MEASURE 2.5"]},
@@ -135,78 +271,160 @@ REGULATORY_MAPPINGS = {
         "LLM07": {"functions": ["GOVERN 1.1"]},
         "LLM08": {"functions": ["GOVERN 1.1", "MAP 2.1"]},
         "LLM09": {"functions": ["GOVERN 1.1", "MEASURE 2.5"]},
-        "LLM10": {"functions": ["GOVERN 1.1", "MANAGE 2.2"]}
+        "LLM10": {"functions": ["GOVERN 1.1", "MANAGE 2.2"]},
+    },
+    "agentic_nist_ai_rmf": {
+        "AG-01": {"functions": ["GOVERN 1.1", "MAP 2.1", "MEASURE 2.5"]},
+        "AG-02": {"functions": ["GOVERN 1.1", "MANAGE 2.2", "MEASURE 2.5"]},
+        "AG-03": {"functions": ["GOVERN 1.1", "MANAGE 2.2"]},
+        "AG-04": {"functions": ["GOVERN 1.1", "MANAGE 2.2", "MEASURE 2.5"]},
+        "AG-05": {"functions": ["GOVERN 1.1", "MAP 2.1"]},
+        "AG-06": {"functions": ["GOVERN 1.1", "MANAGE 2.2"]},
+        "AG-07": {"functions": ["GOVERN 1.1", "MANAGE 2.2"]},
+        "AG-08": {"functions": ["GOVERN 1.1", "MANAGE 2.2"]},
+        "AG-09": {"functions": ["GOVERN 1.1", "MAP 2.1", "MEASURE 2.5"]},
+        "AG-10": {"functions": ["GOVERN 1.1", "MANAGE 2.2"]},
     },
     "mitre_atlas": {
         "LLM01": {
             "techniques": ["T0001.001", "T0001.002"],
             "tactics": ["TA0001", "TA0002"],
-            "description": "Prompt Injection attacks"
+            "description": "Prompt Injection attacks",
         },
         "LLM02": {
             "techniques": ["T0010.001"],
             "tactics": ["TA0009", "TA0010"],
-            "description": "Training Data Extraction"
+            "description": "Training Data Extraction",
         },
         "LLM03": {
             "techniques": ["T0001.003"],
             "tactics": ["TA0001"],
-            "description": "Model Poisoning"
+            "description": "Model Poisoning",
         },
         "LLM04": {
             "techniques": ["T0001.003"],
             "tactics": ["TA0001"],
-            "description": "Training Data Manipulation"
+            "description": "Training Data Manipulation",
         },
         "LLM05": {
             "techniques": ["T0043.001"],
             "tactics": ["TA0012"],
-            "description": "Adversarial Examples"
+            "description": "Adversarial Examples",
         },
         "LLM06": {
             "techniques": ["T0048.001"],
             "tactics": ["TA0004"],
-            "description": "Tool Manipulation"
+            "description": "Tool Manipulation",
         },
         "LLM07": {
             "techniques": ["T0001.002"],
             "tactics": ["TA0007"],
-            "description": "Indirect Prompt Injection"
+            "description": "Indirect Prompt Injection",
         },
         "LLM08": {
             "techniques": ["T0043.001"],
             "tactics": ["TA0001"],
-            "description": "Embedding Manipulation"
+            "description": "Embedding Manipulation",
         },
         "LLM09": {
             "techniques": ["T0043.001"],
             "tactics": ["TA0012"],
-            "description": "Adversarial Misinformation"
+            "description": "Adversarial Misinformation",
         },
         "LLM10": {
             "techniques": ["T0012.001"],
             "tactics": ["TA0012"],
-            "description": "Resource Exhaustion"
-        }
-    }
+            "description": "Resource Exhaustion",
+        },
+    },
+    "agentic_mitre_atlas": {
+        "AG-01": {
+            "techniques": ["T0001.004", "T0001.002"],
+            "tactics": ["TA0001"],
+            "description": "Goal Hijacking via Indirect Prompt Injection",
+        },
+        "AG-02": {
+            "techniques": ["T0048.002"],
+            "tactics": ["TA0004"],
+            "description": "Tool Parameter Manipulation",
+        },
+        "AG-03": {
+            "techniques": ["T0001.005"],
+            "tactics": ["TA0001"],
+            "description": "Agentic Supply Chain Compromise",
+        },
+        "AG-04": {
+            "techniques": ["T0043.002"],
+            "tactics": ["TA0002"],
+            "description": "Code Injection via Agent Tool Call",
+        },
+        "AG-05": {
+            "techniques": ["T0001.006"],
+            "tactics": ["TA0003"],
+            "description": "Memory Store Poisoning",
+        },
+        "AG-06": {
+            "techniques": ["T0011.001"],
+            "tactics": ["TA0011"],
+            "description": "Inter-Agent Message Spoofing",
+        },
+        "AG-07": {
+            "techniques": ["T0001.007"],
+            "tactics": ["TA0001"],
+            "description": "Malformed Tool Response Injection",
+        },
+        "AG-08": {
+            "techniques": ["T0012.002"],
+            "tactics": ["TA0012"],
+            "description": "Agent Resource Exhaustion Loop",
+        },
+        "AG-09": {
+            "techniques": ["T0043.003"],
+            "tactics": ["TA0004"],
+            "description": "Confused Deputy Authorization Bypass",
+        },
+        "AG-10": {
+            "techniques": ["T0043.004"],
+            "tactics": ["TA0004"],
+            "description": "Model Identity Forgery",
+        },
+    },
 }
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Helper functions
+# ─────────────────────────────────────────────────────────────────────────────
+
 def get_owasp_category(internal_category: str) -> str:
-    """Get OWASP category for internal category."""
-    return CATEGORY_TO_OWASP.get(internal_category, "LLM09")  # Default to misinformation
+    """Get OWASP LLM category for an internal category name."""
+    return CATEGORY_TO_OWASP.get(internal_category, "LLM09")
+
+
+def get_agentic_owasp_category(internal_category: str) -> str:
+    """Get OWASP Agentic category for an internal agentic category name."""
+    return AGENTIC_CATEGORY_TO_OWASP.get(internal_category, "AG-01")
+
 
 def get_compliance_mapping(owasp_category: str, framework: str) -> dict:
-    """Get compliance mapping for OWASP category and framework."""
+    """Get compliance mapping for an OWASP category and framework."""
     return REGULATORY_MAPPINGS.get(framework, {}).get(owasp_category, {})
+
 
 def get_mitre_atlas_tactics() -> dict:
     """Get all MITRE ATLAS tactics."""
     return MITRE_ATLAS_TACTICS
 
+
 def get_mitre_atlas_techniques() -> dict:
     """Get all MITRE ATLAS techniques."""
     return MITRE_ATLAS_TECHNIQUES
 
+
 def get_all_owasp_categories() -> dict:
-    """Get all OWASP LLM categories."""
+    """Get all OWASP LLM Top 10 categories."""
     return OWASP_LLM_CATEGORIES
+
+
+def get_all_agentic_categories() -> dict:
+    """Get all OWASP Agentic Top 10 categories."""
+    return OWASP_AGENTIC_CATEGORIES
