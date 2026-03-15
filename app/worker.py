@@ -15,7 +15,7 @@ ROOT = pathlib.Path(__file__).parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.main import settings
+from app.core.config import settings
 
 # ── Logging Setup ─────────────────────────────────────────────────────────────
 logger = logging.getLogger("vulnra.worker")
@@ -252,7 +252,7 @@ def _send_sentinel_alert(email: str, url: str, risk_score: float, findings: list
     """Send a Sentinel alert email via Resend API."""
     try:
         import httpx
-        from app.main import settings
+        from app.core.config import settings
         if not settings.resend_api_key:
             logger.warning("RESEND_API_KEY not set — skipping Sentinel alert email")
             return

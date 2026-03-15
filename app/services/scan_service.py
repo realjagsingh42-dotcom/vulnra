@@ -5,8 +5,10 @@ import logging
 from typing import List, Optional
 from app.core.config import logger
 from app.services.supabase_service import save_scan_result
-from app.garak_engine import run_garak_scan
-from app.deepteam_engine import run_deepteam_scan
+
+# NOTE: garak_engine and deepteam_engine are imported lazily inside
+# run_scan_internal() — avoids loading anthropic SDK + heavy deps at
+# web-server startup, keeping the /health response well under 10s.
 
 def _merge_compliance_internal(base: dict, new: dict):
     if not new or new.get("blurred"): return
@@ -33,6 +35,7 @@ async def run_scan_internal(scan_id: str, url: str, tier: str, user_id: str) -> 
     
     # ── 1. Garak Scan ───────────────────────────────────────────
     try:
+        from app.garak_engine import run_garak_scan  # lazy import
         garak_res = run_garak_scan(scan_id, url, tier)
         if garak_res.get("status") == "complete":
             findings.extend(garak_res.get("findings", []))
@@ -44,6 +47,7 @@ async def run_scan_internal(scan_id: str, url: str, tier: str, user_id: str) -> 
 
     # ── 2. DeepTeam Scan ────────────────────────────────────────
     try:
+        from app.deepteam_engine import run_deepteam_scan  # lazy import
         # Check for API key in env
         if os.environ.get("OPENAI_API_KEY"):
             dt_res = run_deepteam_scan(scan_id, url, tier)
