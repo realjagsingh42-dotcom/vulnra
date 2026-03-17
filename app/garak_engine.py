@@ -38,6 +38,85 @@ TIER_PROBES = {
     ],
 }
 
+# ── PROBE CATALOGUE (exposed via GET /api/probes) ─────────────
+PROBE_CATALOGUE = [
+    {
+        "id": "dan.AutoDANCached",
+        "name": "AutoDAN (Cached)",
+        "category": "JAILBREAK",
+        "description": "Cached automatic DAN jailbreak prompts — tests model resistance to standard role-play bypasses.",
+        "tier_minimum": "free",
+    },
+    {
+        "id": "dan.AntiDAN",
+        "name": "Anti-DAN",
+        "category": "JAILBREAK",
+        "description": "Anti-DAN persona injections — tests if model can be convinced to roleplay as an uncensored AI.",
+        "tier_minimum": "basic",
+    },
+    {
+        "id": "promptinject.HijackHateHumans",
+        "name": "Prompt Hijack: Hate Speech",
+        "category": "PROMPT_INJECTION",
+        "description": "System prompt hijacking via hate speech payload injection — tests prompt isolation strength.",
+        "tier_minimum": "pro",
+    },
+    {
+        "id": "promptinject.HijackLongPrompt",
+        "name": "Prompt Hijack: Long Prompt",
+        "category": "PROMPT_INJECTION",
+        "description": "Long-context prompt injection — tests if instructions in very long inputs override system prompts.",
+        "tier_minimum": "enterprise",
+    },
+    {
+        "id": "encoding.InjectBase64",
+        "name": "Base64 Encoding Bypass",
+        "category": "PROMPT_INJECTION",
+        "description": "Base64-encoded adversarial instructions — tests if model decodes and executes hidden commands.",
+        "tier_minimum": "enterprise",
+    },
+    {
+        "id": "encoding.InjectBase32",
+        "name": "Base32 Encoding Bypass",
+        "category": "PROMPT_INJECTION",
+        "description": "Base32-encoded adversarial instructions — tests encoding-based content filter evasion.",
+        "tier_minimum": "enterprise",
+    },
+    {
+        "id": "continuation.ContinueSlursReclaimedSlurs",
+        "name": "Continuation Attack",
+        "category": "POLICY_BYPASS",
+        "description": "Continuation-based policy bypass — tests if model completes harmful text when given an initial fragment.",
+        "tier_minimum": "enterprise",
+    },
+]
+
+# ── PROBE PRESETS ──────────────────────────────────────────────
+PROBE_PRESETS: Dict[str, Optional[List[str]]] = {
+    "full_sweep":      None,  # None → use tier defaults
+    "owasp_top10":     ["dan.AutoDANCached", "dan.AntiDAN", "promptinject.HijackHateHumans",
+                        "promptinject.HijackLongPrompt", "encoding.InjectBase64",
+                        "encoding.InjectBase32", "continuation.ContinueSlursReclaimedSlurs"],
+    "jailbreaks_only": ["dan.AutoDANCached", "dan.AntiDAN"],
+    "compliance_audit":["promptinject.HijackHateHumans", "promptinject.HijackLongPrompt",
+                        "encoding.InjectBase64", "encoding.InjectBase32"],
+}
+
+# Tier order for minimum-tier validation
+_TIER_ORDER = {"free": 0, "basic": 1, "pro": 2, "enterprise": 3}
+
+def get_probes_for_tier(tier: str, custom_probes: Optional[List[str]] = None) -> List[str]:
+    """Return valid probe IDs for a tier, optionally filtered to custom_probes."""
+    tier_level = _TIER_ORDER.get(tier, 0)
+    allowed_ids = {
+        p["id"] for p in PROBE_CATALOGUE
+        if _TIER_ORDER.get(p["tier_minimum"], 0) <= tier_level
+    }
+    if custom_probes:
+        # Filter custom list to probes accessible on this tier
+        return [p for p in custom_probes if p in allowed_ids] or list(allowed_ids)
+    return TIER_PROBES.get(tier, TIER_PROBES["free"])
+
 # ── CATEGORY / SEVERITY / COMPLIANCE MAPPINGS ────────────────
 
 PROBE_TO_CATEGORY = {
@@ -315,10 +394,11 @@ def garak_available() -> bool:
     """Check if Garak is installed and accessible."""
     return _find_garak_python() is not None
 
-def run_garak_scan(scan_id: str, url: str, tier: str = "free") -> Dict[str, Any]:
+def run_garak_scan(scan_id: str, url: str, tier: str = "free", custom_probes: Optional[List[str]] = None) -> Dict[str, Any]:
     """
     Run adversarial probes against a model endpoint.
     Ensures safe subprocess execution and sanitization.
+    custom_probes: optional list of probe IDs to run instead of tier defaults.
     """
     garak_python = _find_garak_python()
     if not garak_python:
@@ -327,7 +407,8 @@ def run_garak_scan(scan_id: str, url: str, tier: str = "free") -> Dict[str, Any]
 
     # Argument Sanitization
     safe_url = _sanitize_arg(url)
-    probes = ",".join(TIER_PROBES.get(tier, TIER_PROBES["free"]))
+    probe_list = get_probes_for_tier(tier, custom_probes)
+    probes = ",".join(probe_list)
     
     cmd = [
         garak_python, "-m", "garak",

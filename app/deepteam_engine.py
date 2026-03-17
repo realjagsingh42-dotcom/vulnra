@@ -67,6 +67,23 @@ CATEGORY_WEIGHT = {
     "SUPPLY_CHAIN":     2.0,
 }
 
+# ── DEEPTEAM VULNERABILITY CATALOGUE ─────────────────────────
+DEEPTEAM_CATALOGUE = [
+    {"id": "Jailbreak",          "name": "Jailbreak",                "category": "JAILBREAK",             "description": "Attempts to bypass model safety guidelines via role-play, persona, or override prompts.", "tier_minimum": "free"},
+    {"id": "PromptInjection",    "name": "Prompt Injection",         "category": "PROMPT_INJECTION",      "description": "Malicious instructions injected into user input to override system prompt behaviour.", "tier_minimum": "free"},
+    {"id": "DataPrivacy",        "name": "Data Privacy / PII",       "category": "PII_LEAK",              "description": "Tests whether model reveals PII, training data, or confidential user information.", "tier_minimum": "free"},
+    {"id": "Toxicity",           "name": "Toxicity",                  "category": "MALICIOUS_CONTENT",     "description": "Checks whether model can be induced to generate toxic, abusive, or hateful content.", "tier_minimum": "pro"},
+    {"id": "Bias",               "name": "Bias / Fairness",           "category": "RESPONSIBLE_AI",        "description": "Evaluates model for demographic bias and unfair treatment in outputs.", "tier_minimum": "pro"},
+    {"id": "Misinformation",     "name": "Misinformation",            "category": "MODEL_INTEGRITY",       "description": "Tests whether model generates factually incorrect or misleading content.", "tier_minimum": "pro"},
+    {"id": "IllegalRisks",       "name": "Illegal Content",           "category": "LEGAL_RISK",            "description": "Checks if model can be prompted to produce legally problematic output.", "tier_minimum": "pro"},
+    {"id": "UnauthorizedAccess", "name": "Unauthorised Access",       "category": "SECURITY_RISK",         "description": "Tests whether model can be tricked into disclosing access credentials or system data.", "tier_minimum": "pro"},
+    {"id": "PromptLeakage",      "name": "System Prompt Leakage",     "category": "SYSTEM_PROMPT_LEAKAGE", "description": "Tests if model reveals confidential system prompt content under adversarial pressure.", "tier_minimum": "pro"},
+    {"id": "ExcessiveAgency",    "name": "Excessive Agency",          "category": "EXCESSIVE_AGENCY",      "description": "Evaluates whether model takes autonomous actions beyond its authorised scope.", "tier_minimum": "enterprise"},
+    {"id": "ToolMetadataPoisoning","name": "Tool Metadata Poisoning", "category": "SUPPLY_CHAIN",          "description": "Tests whether poisoned tool descriptions can redirect model behaviour.", "tier_minimum": "enterprise"},
+    {"id": "ShellInjection",     "name": "Shell Injection",           "category": "POLICY_BYPASS",         "description": "Tests if model can be induced to generate or execute shell commands.", "tier_minimum": "enterprise"},
+    {"id": "SQLInjection",       "name": "SQL Injection",             "category": "POLICY_BYPASS",         "description": "Tests if model can be induced to generate SQL injection payloads.", "tier_minimum": "enterprise"},
+]
+
 # Use centralized compliance mapping
 def get_compliance(category: str) -> Dict[str, Any]:
     """Get compliance mapping for category using centralized module."""
@@ -99,26 +116,42 @@ def _find_dt_python() -> Optional[str]:
 
 # ── PUBLIC API ────────────────────────────────────────────────
 
-def run_deepteam_scan(scan_id: str, target_url: str, tier: str = "free") -> Dict[str, Any]:
+def run_deepteam_scan(scan_id: str, target_url: str, tier: str = "free", vulnerability_types: Optional[List[str]] = None) -> Dict[str, Any]:
     """
     Run a DeepTeam red teaming scan via subprocess for isolation.
+    vulnerability_types: optional list of DeepTeam vuln IDs to run (e.g. ["Jailbreak", "PII"]).
     """
     logger.info(f"Starting DeepTeam isolated scan {scan_id} for {target_url} [Tier: {tier}]")
-    
+
     py_path = _find_dt_python()
     if not py_path:
         logger.error("No Python environment with DeepTeam found.")
         return {"status": "failed", "error": "DeepTeam environment not found"}
 
     this_script = os.path.abspath(__file__)
-    
+
+    # Validate custom vuln types against tier-accessible set
+    tier_order = {"free": 0, "basic": 1, "pro": 2, "enterprise": 3}
+    tier_level = tier_order.get(tier, 0)
+    accessible_vulns = {
+        p["id"] for p in DEEPTEAM_CATALOGUE
+        if tier_order.get(p["tier_minimum"], 0) <= tier_level
+    }
+    if vulnerability_types:
+        filtered = [v for v in vulnerability_types if v in accessible_vulns]
+        effective_vulns = filtered if filtered else list(accessible_vulns)
+    else:
+        effective_vulns = []  # empty = let subprocess use tier defaults
+
     cmd = [
         py_path,
         this_script,
         "--scan_id", scan_id,
         "--url", target_url,
-        "--tier", tier
+        "--tier", tier,
     ]
+    if effective_vulns:
+        cmd += ["--vuln_types", ",".join(effective_vulns)]
     
     try:
         env = os.environ.copy()

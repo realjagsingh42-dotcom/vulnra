@@ -300,9 +300,40 @@ async def get_scan_diff(
     })
 
 
+@router.get("/probes")
+async def list_probes(
+    current_user: dict = Depends(get_current_user),
+):
+    """Return the probe catalogue filtered to the user's tier."""
+    from fastapi.responses import JSONResponse
+    from app.garak_engine import PROBE_CATALOGUE, PROBE_PRESETS, _TIER_ORDER
+    from app.deepteam_engine import DEEPTEAM_CATALOGUE
+
+    user_tier = current_user.get("tier", "free")
+    tier_level = _TIER_ORDER.get(user_tier, 0)
+
+    accessible_garak = [
+        p for p in PROBE_CATALOGUE
+        if _TIER_ORDER.get(p["tier_minimum"], 0) <= tier_level
+    ]
+    accessible_dt = [
+        p for p in DEEPTEAM_CATALOGUE
+        if _TIER_ORDER.get(p["tier_minimum"], 0) <= tier_level
+    ]
+
+    return JSONResponse(content={
+        "tier": user_tier,
+        "garak_probes": accessible_garak,
+        "deepteam_vulnerabilities": accessible_dt,
+        "presets": {k: v for k, v in PROBE_PRESETS.items()},
+    })
+
+
 class ScanRequest(BaseModel):
     url: HttpUrl
     tier: str = "free"
+    probes: Optional[List[str]] = None               # Garak probe IDs (e.g. ["dan.AutoDANCached"])
+    vulnerability_types: Optional[List[str]] = None  # DeepTeam vuln IDs (e.g. ["Jailbreak"])
 
     @validator("tier")
     def validate_tier(cls, v):
@@ -368,7 +399,10 @@ async def start_scan(
     scan_id = str(uuid.uuid4())
     
     # Start scan in background
-    background_tasks.add_task(run_scan_internal, scan_id, url, tier, user_id)
+    background_tasks.add_task(
+        run_scan_internal, scan_id, url, tier, user_id,
+        scan_data.probes, scan_data.vulnerability_types,
+    )
     
     # Add rate limit headers to response
     rate_limit_str = RATE_LIMITS.get(user_tier, RATE_LIMITS["free"])

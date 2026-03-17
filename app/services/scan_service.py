@@ -2,7 +2,7 @@ import os
 import time
 import json
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from app.core.config import logger
 from app.services.supabase_service import save_scan_result
 
@@ -27,7 +27,14 @@ def _merge_compliance_internal(base: dict, new: dict):
             if "fine_inr" in data:
                 base[fw]["fine_inr"] = max(base[fw].get("fine_inr", 0), data["fine_inr"])
 
-async def run_scan_internal(scan_id: str, url: str, tier: str, user_id: str) -> dict:
+async def run_scan_internal(
+    scan_id: str,
+    url: str,
+    tier: str,
+    user_id: str,
+    custom_probes: Optional[List[str]] = None,
+    vulnerability_types: Optional[List[str]] = None,
+) -> dict:
     findings = []
     compliance = {}
     scan_engines = []
@@ -36,7 +43,7 @@ async def run_scan_internal(scan_id: str, url: str, tier: str, user_id: str) -> 
     # ── 1. Garak Scan ───────────────────────────────────────────
     try:
         from app.garak_engine import run_garak_scan  # lazy import
-        garak_res = run_garak_scan(scan_id, url, tier)
+        garak_res = run_garak_scan(scan_id, url, tier, custom_probes=custom_probes)
         if garak_res.get("status") == "complete":
             findings.extend(garak_res.get("findings", []))
             _merge_compliance_internal(compliance, garak_res.get("compliance", {}))
@@ -50,7 +57,7 @@ async def run_scan_internal(scan_id: str, url: str, tier: str, user_id: str) -> 
         from app.deepteam_engine import run_deepteam_scan  # lazy import
         # Check for API key in env
         if os.environ.get("OPENAI_API_KEY"):
-            dt_res = run_deepteam_scan(scan_id, url, tier)
+            dt_res = run_deepteam_scan(scan_id, url, tier, vulnerability_types=vulnerability_types)
             if dt_res.get("status") == "complete":
                 findings.extend(dt_res.get("findings", []))
                 _merge_compliance_internal(compliance, dt_res.get("compliance", {}))

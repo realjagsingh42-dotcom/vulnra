@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   Shield, ArrowLeft, ExternalLink, FileDown, Loader2,
   ChevronLeft, ChevronRight, Clock, Zap, Building2, GitCompareArrows,
+  ScanLine, Plus,
 } from "lucide-react";
 
 interface Scan {
@@ -220,11 +221,32 @@ export default function HistoryPage() {
                 </tr>
               ) : scans.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-16">
-                    <div className="flex flex-col items-center gap-3 opacity-40">
-                      <Clock className="w-8 h-8" />
-                      <span className="font-mono text-xs tracking-widest uppercase">No scans yet</span>
-                      <span className="text-[11px] text-v-muted2">Run your first scan to see results here.</span>
+                  <td colSpan={7} className="text-center py-20">
+                    <div className="flex flex-col items-center gap-5">
+                      {/* Icon */}
+                      <div className="relative">
+                        <div className="w-16 h-16 rounded-full bg-acid/8 border border-acid/15 flex items-center justify-center">
+                          <ScanLine className="w-7 h-7 text-acid/50" />
+                        </div>
+                        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-v-bg2 border border-v-border flex items-center justify-center">
+                          <Clock className="w-2.5 h-2.5 text-v-muted2" />
+                        </div>
+                      </div>
+                      {/* Copy */}
+                      <div className="space-y-1">
+                        <p className="font-mono text-[12px] text-foreground font-semibold tracking-wider">NO SCANS YET</p>
+                        <p className="font-mono text-[10px] text-v-muted2 max-w-xs">
+                          Run your first adversarial audit to start tracking<br />vulnerability history here.
+                        </p>
+                      </div>
+                      {/* CTA */}
+                      <a
+                        href="/scanner"
+                        className="inline-flex items-center gap-1.5 text-[10px] font-mono px-4 py-2 bg-acid text-black font-bold tracking-widest uppercase rounded hover:bg-acid/90 transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                        Run First Scan
+                      </a>
                     </div>
                   </td>
                 </tr>

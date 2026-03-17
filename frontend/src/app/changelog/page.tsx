@@ -10,10 +10,40 @@ export const metadata: Metadata = {
 /* ─── Release data ──────────────────────────────────────────────────────────── */
 const RELEASES = [
   {
-    version: "v0.8.0",
+    version: "v0.9.0",
     date: "2026-03-18",
     tag: "latest",
     tagColor: "acid",
+    title: "Custom Probe Config, Keyboard Shortcuts & Mobile Dashboard",
+    desc: "Full custom probe configuration with presets and per-category checklist, Cmd+K URL focus, severity filter keyboard shortcuts, polished empty states, and a fully mobile-responsive scanner dashboard.",
+    features: [
+      { cat: "Custom Probes (S1-06)", items: [
+        "GET /api/probes — tier-filtered PROBE_CATALOGUE + DEEPTEAM_CATALOGUE",
+        "ScanRequest accepts optional probes[] and vulnerability_types[]",
+        "Advanced Config panel: Full Sweep / OWASP Top 10 / Jailbreaks Only / Compliance Audit presets",
+        "Pro: category-level probe checklist; Enterprise: per-probe granularity",
+        "DeepTeam vuln type checklist for Pro+ (13 types across all categories)",
+      ]},
+      { cat: "UX Polish", items: [
+        "Cmd/Ctrl+K → focus URL input from anywhere in the dashboard",
+        "Keys 1/2/3/4 → filter findings by HIGH / MEDIUM / LOW / ALL",
+        "FindingsPanel: full empty state with ShieldCheck for zero-vulnerability scans",
+        "History page: rich empty state with scan-line icon and CTA",
+        "Mobile auto-switch: CONFIG → TERMINAL on scan start, TERMINAL → FINDINGS on complete",
+      ]},
+      { cat: "Mobile Responsive", items: [
+        "3-column scanner grid collapses to tab switcher on mobile (CONFIG | TERMINAL | FINDINGS)",
+        "Nav links hidden on mobile to prevent overflow",
+        "User email hidden on small screens; VULNRA logo shortens to just brand name",
+        "All three panels accessible via bottom tab bar on mobile",
+      ]},
+    ],
+  },
+  {
+    version: "v0.8.0",
+    date: "2026-03-18",
+    tag: null,
+    tagColor: null,
     title: "Analytics, Compliance Explorer & Content Pages",
     desc: "Full-platform analytics dashboard with 30-day risk trend charts, compliance reference explorer (OWASP / MITRE / EU AI Act / NIST), changelog, and about page.",
     features: [

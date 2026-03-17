@@ -66,6 +66,8 @@ export default function ScannerLayout({ user }: { user: User }) {
   const [currentRiskScore, setCurrentRiskScore] = useState<number>(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isFirstScan, setIsFirstScan] = useState(false);
+  // Mobile panel switcher: "config" | "terminal" | "findings"
+  const [mobilePanel, setMobilePanel] = useState<"config" | "terminal" | "findings">("config");
   const supabase = createClient();
 
   const [tier, setTier] = useState<string>(
@@ -73,6 +75,24 @@ export default function ScannerLayout({ user }: { user: User }) {
   );
 
   const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+  // ── Keyboard shortcuts ────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const meta = e.metaKey || e.ctrlKey;
+
+      // Cmd/Ctrl+K → focus URL input
+      if (meta && e.key === "k") {
+        e.preventDefault();
+        const el = document.getElementById("scan-url-input") as HTMLInputElement | null;
+        el?.focus();
+        el?.select();
+      }
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   // Fetch real tier from profiles table — user_metadata is stale after billing upgrades
   useEffect(() => {
@@ -147,8 +167,16 @@ export default function ScannerLayout({ user }: { user: User }) {
 
   const currentLimit = rateLimitConfig[tier as keyof typeof rateLimitConfig] || rateLimitConfig.free;
 
-  const handleStartScan = async (config: { url: string; tier: string; attackType?: string }) => {
+  const handleStartScan = async (config: {
+    url: string;
+    tier: string;
+    attackType?: string;
+    probes?: string[];
+    vulnerabilityTypes?: string[];
+  }) => {
     setIsScanning(true);
+    // Switch to terminal on mobile when scan starts
+    setMobilePanel("terminal");
 
     // Clear any in-flight probe simulation
     if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
@@ -170,9 +198,16 @@ export default function ScannerLayout({ user }: { user: User }) {
 
       // Determine which endpoint to use based on attackType
       const endpoint = config.attackType ? "/multi-turn-scan" : "/scan";
-      const payload  = config.attackType
+      const basePayload = config.attackType
         ? { url: config.url, tier: config.tier, attack_type: config.attackType }
         : { url: config.url, tier: config.tier };
+
+      // Attach custom probe selection when provided
+      const payload = config.attackType ? basePayload : {
+        ...basePayload,
+        ...(config.probes          ? { probes: config.probes }                       : {}),
+        ...(config.vulnerabilityTypes ? { vulnerability_types: config.vulnerabilityTypes } : {}),
+      };
 
       if (config.attackType) {
         setEvents(prev => [...prev,
@@ -275,6 +310,8 @@ export default function ScannerLayout({ user }: { user: User }) {
               if (probeIntervalRef.current) clearInterval(probeIntervalRef.current);
               setIsScanning(false);
               setScanComplete(true);
+              // Auto-switch to findings tab on mobile when scan completes
+              setMobilePanel("findings");
 
               const findingEvts = ((pollData.findings || []) as any[]).map(mkFinding);
 
@@ -404,77 +441,52 @@ export default function ScannerLayout({ user }: { user: User }) {
       )}
       <div className="flex flex-col h-screen bg-background overflow-hidden selection:bg-acid selection:text-black font-sans">
       {/* Top Navigation */}
-      <nav className="h-13 bg-v-bg1 border-b border-v-border2 flex items-center justify-between px-5 z-50 shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 font-mono text-sm font-bold tracking-wider">
+      <nav className="h-13 bg-v-bg1 border-b border-v-border2 flex items-center justify-between px-3 md:px-5 z-50 shrink-0 gap-2">
+        <div className="flex items-center gap-2 md:gap-4 overflow-x-auto scrollbar-none shrink min-w-0">
+          <div className="flex items-center gap-2 font-mono text-sm font-bold tracking-wider shrink-0">
             <div className="w-6 h-6 rounded bg-acid flex items-center justify-center">
               <Shield className="w-3 h-3 text-black" />
             </div>
-            VULNRA <em className="text-acid not-italic tracking-tighter ml-1">PLATFORM</em>
+            <span className="hidden sm:inline">VULNRA <em className="text-acid not-italic tracking-tighter ml-1">PLATFORM</em></span>
+            <span className="sm:hidden text-acid">VULNRA</span>
           </div>
-          <div className="h-5 w-[1px] bg-v-border mx-2" />
-          <a
-            href="/mcp-scanner"
-            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
-          >
-            <Server className="w-3.5 h-3.5" />
-            AGENT_SECURITY
-          </a>
-          <div className="h-5 w-[1px] bg-v-border mx-2" />
-          <a
-            href="/rag-scanner"
-            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
-          >
-            <Database className="w-3.5 h-3.5" />
-            RAG_SECURITY
-          </a>
-          <div className="h-5 w-[1px] bg-v-border mx-2" />
-          <a
-            href="/scanner/history"
-            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
-          >
-            <History className="w-3.5 h-3.5" />
-            HISTORY
-          </a>
-          <div className="h-5 w-[1px] bg-v-border mx-2" />
-          <a
-            href="/analytics"
-            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
-          >
-            <TrendingUp className="w-3.5 h-3.5" />
-            ANALYTICS
-          </a>
-          <div className="h-5 w-[1px] bg-v-border mx-2" />
-          <a
-            href="/settings/api-keys"
-            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
-          >
-            <Key className="w-3.5 h-3.5" />
-            API_KEYS
-          </a>
-          <div className="h-5 w-[1px] bg-v-border mx-2" />
-          <a
-            href="/monitor"
-            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
-          >
-            <Radio className="w-3.5 h-3.5" />
-            SENTINEL
-          </a>
-          {tier === "enterprise" && (
-            <>
-              <div className="h-5 w-[1px] bg-v-border mx-2" />
-              <a
-                href="/org"
-                className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors"
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                ORG
-              </a>
-            </>
-          )}
-          <div className="h-5 w-[1px] bg-v-border mx-2" />
-          <div className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider">
-            SYSTEM_STATUS: <span className="text-acid animate-pulse">OPTIMAL</span>
+          <div className="hidden md:flex h-5 w-[1px] bg-v-border mx-2" />
+          <div className="hidden md:flex items-center gap-2">
+            <a href="/mcp-scanner" className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors whitespace-nowrap">
+              <Server className="w-3.5 h-3.5" />AGENT_SECURITY
+            </a>
+            <div className="h-5 w-[1px] bg-v-border mx-2" />
+            <a href="/rag-scanner" className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors whitespace-nowrap">
+              <Database className="w-3.5 h-3.5" />RAG_SECURITY
+            </a>
+            <div className="h-5 w-[1px] bg-v-border mx-2" />
+            <a href="/scanner/history" className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors whitespace-nowrap">
+              <History className="w-3.5 h-3.5" />HISTORY
+            </a>
+            <div className="h-5 w-[1px] bg-v-border mx-2" />
+            <a href="/analytics" className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors whitespace-nowrap">
+              <TrendingUp className="w-3.5 h-3.5" />ANALYTICS
+            </a>
+            <div className="h-5 w-[1px] bg-v-border mx-2" />
+            <a href="/settings/api-keys" className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors whitespace-nowrap">
+              <Key className="w-3.5 h-3.5" />API_KEYS
+            </a>
+            <div className="h-5 w-[1px] bg-v-border mx-2" />
+            <a href="/monitor" className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors whitespace-nowrap">
+              <Radio className="w-3.5 h-3.5" />SENTINEL
+            </a>
+            {tier === "enterprise" && (
+              <>
+                <div className="h-5 w-[1px] bg-v-border mx-2" />
+                <a href="/org" className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors whitespace-nowrap">
+                  <Building2 className="w-3.5 h-3.5" />ORG
+                </a>
+              </>
+            )}
+            <div className="h-5 w-[1px] bg-v-border mx-2" />
+            <div className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider whitespace-nowrap">
+              SYSTEM_STATUS: <span className="text-acid animate-pulse">OPTIMAL</span>
+            </div>
           </div>
         </div>
 
@@ -506,12 +518,12 @@ export default function ScannerLayout({ user }: { user: User }) {
             </span>
           </a>
           
-          {/* User Info */}
+          {/* User Info — hide email on mobile */}
           <div className="flex items-center gap-2 text-[10px] font-mono text-v-muted bg-white/5 border border-v-border px-2.5 py-1.25 rounded-sm hover:border-white/10 transition-colors cursor-pointer group">
-            <div className="w-4 h-4 rounded-full bg-acid flex items-center justify-center text-[8px] font-bold text-black group-hover:scale-110 transition-transform">
+            <div className="w-4 h-4 rounded-full bg-acid flex items-center justify-center text-[8px] font-bold text-black group-hover:scale-110 transition-transform shrink-0">
               {user.email?.[0].toUpperCase()}
             </div>
-            <span className="max-w-[120px] truncate">{user.email}</span>
+            <span className="hidden sm:inline max-w-[120px] truncate">{user.email}</span>
           </div>
           <button 
             onClick={() => signOut()}
@@ -522,9 +534,36 @@ export default function ScannerLayout({ user }: { user: User }) {
         </div>
       </nav>
 
-      <main className="flex-1 grid grid-cols-[280px_1fr_360px] overflow-hidden">
+      {/* Mobile Tab Bar */}
+      <div className="md:hidden flex border-b border-v-border2 bg-v-bg1 shrink-0">
+        {[
+          { key: "config",   label: "CONFIG",   icon: Settings },
+          { key: "terminal", label: "TERMINAL", icon: Activity },
+          { key: "findings", label: "FINDINGS", icon: BarChart3 },
+        ].map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => setMobilePanel(key as typeof mobilePanel)}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-2.5 font-mono text-[9px] tracking-widest border-b-2 transition-colors",
+              mobilePanel === key
+                ? "border-acid text-acid"
+                : "border-transparent text-v-muted2 hover:text-v-muted"
+            )}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <main className="flex-1 md:grid md:grid-cols-[280px_1fr_360px] overflow-hidden flex flex-col">
         {/* Left Panel: Configuration */}
-        <aside className="bg-v-bg1 border-r border-v-border2 flex flex-col overflow-hidden">
+        <aside className={cn(
+          "bg-v-bg1 border-r border-v-border2 overflow-hidden",
+          mobilePanel === "config" ? "flex flex-col" : "hidden",
+          "md:flex md:flex-col"
+        )}>
           <div className="p-4 py-3.5 border-b border-v-border2 flex items-center justify-between shrink-0">
             <span className="text-[8.5px] font-mono tracking-widest text-v-muted2 uppercase">Configuration</span>
             <Settings className="w-3.5 h-3.5 text-v-muted2" />
@@ -533,10 +572,20 @@ export default function ScannerLayout({ user }: { user: User }) {
         </aside>
 
         {/* Center Panel: Terminal */}
-        <Terminal events={events} isScanning={isScanning} />
+        <div className={cn(
+          "overflow-hidden flex-1",
+          mobilePanel === "terminal" ? "flex flex-col" : "hidden",
+          "md:flex md:flex-col"
+        )}>
+          <Terminal events={events} isScanning={isScanning} />
+        </div>
 
         {/* Right Panel: Findings */}
-        <aside className="bg-v-bg1 border-l border-v-border2 flex flex-col overflow-hidden">
+        <aside className={cn(
+          "bg-v-bg1 border-l border-v-border2 overflow-hidden",
+          mobilePanel === "findings" ? "flex flex-col" : "hidden",
+          "md:flex md:flex-col"
+        )}>
           <div className="p-4 py-3.5 border-b border-v-border2 flex items-center justify-between shrink-0">
             <span className="text-[8.5px] font-mono tracking-widest text-v-muted2 uppercase">Scan Findings</span>
             <div className="flex items-center gap-2">
@@ -625,7 +674,7 @@ export default function ScannerLayout({ user }: { user: User }) {
                      prevRiskScore={prevRiskScore}
                    />
                  )}
-                 <FindingsPanel findings={findings} />
+                 <FindingsPanel findings={findings} scanComplete={scanComplete} />
                </>
              )}
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, ChevronRight, Search, Code2, Activity } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronDown, ChevronRight, Search, Code2, Activity, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Finding {
@@ -204,12 +204,27 @@ function FindingCard({ f }: { f: Finding }) {
   );
 }
 
-export default function FindingsPanel({ findings }: { findings: Finding[] }) {
-  const [search, setSearch] = useState("");
+export default function FindingsPanel({ findings, scanComplete }: { findings: Finding[]; scanComplete?: boolean }) {
+  const [search, setSearch]     = useState("");
   const [sevFilter, setSevFilter] = useState<SevFilter>("ALL");
 
   // Only standard findings (not multi-turn turns)
   const standard = findings.filter(f => f.turn === undefined);
+
+  // Keyboard shortcuts: 1=HIGH, 2=MEDIUM, 3=LOW, 4=ALL
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Ignore when typing in an input
+      if ((e.target as HTMLElement).tagName === "INPUT" ||
+          (e.target as HTMLElement).tagName === "TEXTAREA") return;
+      if (e.key === "1") setSevFilter("HIGH");
+      if (e.key === "2") setSevFilter("MEDIUM");
+      if (e.key === "3") setSevFilter("LOW");
+      if (e.key === "4") setSevFilter("ALL");
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const filtered = standard.filter(f => {
     if (sevFilter !== "ALL" && f.severity !== sevFilter) return false;
@@ -227,6 +242,27 @@ export default function FindingsPanel({ findings }: { findings: Finding[] }) {
     return true;
   });
 
+  // Empty state: scan complete but no findings
+  if (standard.length === 0 && scanComplete) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-16 px-6">
+        <div className="w-12 h-12 rounded-full bg-acid/10 border border-acid/20 flex items-center justify-center">
+          <ShieldCheck className="w-6 h-6 text-acid" />
+        </div>
+        <div className="text-center">
+          <p className="font-mono text-[12px] text-acid font-bold tracking-wider mb-1">NO VULNERABILITIES FOUND</p>
+          <p className="font-mono text-[10px] text-v-muted2 leading-relaxed">
+            All probes passed. Your endpoint resisted every<br />adversarial technique in the configured scan set.
+          </p>
+        </div>
+        <div className="font-mono text-[9px] text-v-muted3 border border-v-border2 rounded px-3 py-1.5">
+          Try a deeper scan with Pro tier for more coverage.
+        </div>
+      </div>
+    );
+  }
+
+  // Waiting state: scan not yet complete, no findings yet
   if (standard.length === 0) return null;
 
   return (

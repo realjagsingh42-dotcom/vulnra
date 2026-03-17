@@ -50,6 +50,7 @@ const TIMELINE = [
   { date: "Mar 2026", event: "PyRIT converters, RAG Security Scanner, enterprise org" },
   { date: "Mar 2026", event: "Account settings, webhook delivery, API docs" },
   { date: "Mar 2026", event: "Analytics dashboard, compliance explorer — v0.8.0" },
+  { date: "Mar 2026", event: "Custom probe config, keyboard shortcuts, mobile-responsive dashboard — v0.9.0" },
 ];
 
 /* ─── Page ──────────────────────────────────────────────────────────────────── */
