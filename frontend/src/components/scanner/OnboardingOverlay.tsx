@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Shield, ChevronRight, ChevronLeft, X, Zap, Target, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
@@ -14,7 +14,18 @@ interface OnboardingOverlayProps {
 
 // ─── Depth options ─────────────────────────────────────────────────────────────
 
-const DEPTHS = [
+type Depth = {
+  id: string;
+  label: string;
+  tier: string;
+  time: string;
+  cats: string;
+  desc: string;
+  icon: React.ReactElement;
+  recommended?: boolean;
+};
+
+const DEPTHS: Depth[] = [
   {
     id: "free",
     label: "QUICK",
@@ -43,7 +54,7 @@ const DEPTHS = [
     desc: "All probes + Multi-turn attack chains",
     icon: <Layers className="w-4 h-4" />,
   },
-] as const;
+];
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
