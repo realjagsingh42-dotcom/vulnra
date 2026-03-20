@@ -187,7 +187,7 @@ export default function RAGScanner({ user }: { user: User }) {
       {/* Top Nav */}
       <nav className="h-13 bg-v-bg1 border-b border-v-border2 flex items-center justify-between px-5 z-50 shrink-0">
         <div className="flex items-center gap-4">
-          <VulnraLogo suffix="PLATFORM" />
+          <a href="/"><VulnraLogo suffix="PLATFORM" /></a>
           <div className="h-5 w-[1px] bg-v-border mx-2" />
           <a href="/scanner" className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 tracking-wider hover:text-acid transition-colors">
             <Shield className="w-3.5 h-3.5" />SCANNER

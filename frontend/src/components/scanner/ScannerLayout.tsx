@@ -445,7 +445,7 @@ export default function ScannerLayout({ user }: { user: User }) {
       <nav className="h-13 bg-v-bg1 border-b border-v-border2 flex items-center justify-between px-3 md:px-5 z-50 shrink-0 gap-2">
         <div className="flex items-center gap-2 md:gap-4 overflow-x-auto scrollbar-none shrink min-w-0">
           <div className="shrink-0">
-            <VulnraLogo suffix="PLATFORM" />
+            <a href="/"><VulnraLogo suffix="PLATFORM" /></a>
           </div>
           <div className="hidden md:flex h-5 w-[1px] bg-v-border mx-2" />
           <div className="hidden md:flex items-center gap-2">
