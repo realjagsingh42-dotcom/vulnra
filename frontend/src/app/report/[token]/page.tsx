@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  Shield, AlertTriangle, CheckCircle2, XCircle,
+  AlertTriangle, CheckCircle2, XCircle,
   Loader2, ExternalLink, Clock,
 } from "lucide-react";
+import VulnraLogo from "@/components/VulnraLogo";
 
 interface Finding {
   category: string;
@@ -130,12 +131,7 @@ export default function PublicReportPage() {
 
         {/* VULNRA branding */}
         <div className="flex items-center justify-between mb-12">
-          <a href="/" className="flex items-center gap-2 font-mono text-sm font-bold tracking-wider">
-            <div className="w-6 h-6 rounded bg-acid flex items-center justify-center">
-              <Shield className="w-3 h-3 text-black" />
-            </div>
-            VULNRA <em className="text-acid not-italic tracking-tighter ml-1">PLATFORM</em>
-          </a>
+          <a href="/"><VulnraLogo suffix="PLATFORM" /></a>
           <span className="text-[9px] font-mono tracking-widest text-v-muted2 uppercase border border-v-border px-2 py-1 rounded">
             Shared Report
           </span>

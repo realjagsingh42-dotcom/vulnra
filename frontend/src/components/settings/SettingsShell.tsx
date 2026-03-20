@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User } from "@supabase/supabase-js";
 import {
-  Shield,
   User as UserIcon,
   Bell,
   Webhook,
@@ -12,6 +11,7 @@ import {
   CreditCard,
   ArrowLeft,
 } from "lucide-react";
+import VulnraLogo from "@/components/VulnraLogo";
 
 const NAV_ITEMS = [
   { href: "/settings/account", label: "Account", icon: UserIcon },
@@ -35,12 +35,7 @@ export default function SettingsShell({
       {/* Top nav */}
       <nav className="h-13 bg-v-bg1 border-b border-v-border2 flex items-center justify-between px-5 z-50 sticky top-0">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 font-mono text-sm font-bold tracking-wider">
-            <div className="w-6 h-6 rounded bg-acid flex items-center justify-center">
-              <Shield className="w-3 h-3 text-black" />
-            </div>
-            VULNRA <em className="text-acid not-italic tracking-tighter ml-1">SETTINGS</em>
-          </div>
+          <VulnraLogo suffix="SETTINGS" />
         </div>
         <div className="flex items-center gap-3">
           <div className="font-mono text-[10px] text-v-muted2 truncate max-w-[180px]">

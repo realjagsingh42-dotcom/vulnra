@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield } from "lucide-react";
+import VulnraLogo from "@/components/VulnraLogo";
 import SignupForm from "@/components/auth/SignupForm";
 
 export default function SignupPage() {
@@ -10,12 +10,7 @@ export default function SignupPage() {
 
       {/* Minimal nav */}
       <div className="h-14 flex items-center justify-between px-6 md:px-10 relative z-10">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-6 h-6 rounded bg-acid flex items-center justify-center group-hover:shadow-[0_0_12px_rgba(184,255,87,0.5)] transition-all">
-            <Shield className="w-3 h-3 text-black" />
-          </div>
-          <span className="font-mono text-sm font-bold tracking-wider">VULNRA</span>
-        </Link>
+        <Link href="/"><VulnraLogo /></Link>
         <Link
           href="/login"
           className="font-mono text-[11px] tracking-widest text-v-muted hover:text-acid transition-colors"

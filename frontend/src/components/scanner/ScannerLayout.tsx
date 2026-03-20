@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { User } from "@supabase/supabase-js";
-import { Shield, LogOut, BarChart3, Settings, Activity, Timer, Server, FileDown, Loader2, History, Link2, CheckCheck, Key, Radio, Database, Building2, TrendingUp } from "lucide-react";
+import { LogOut, BarChart3, Settings, Activity, Timer, Server, FileDown, Loader2, History, Link2, CheckCheck, Key, Radio, Database, Building2, TrendingUp } from "lucide-react";
+import VulnraLogo from "@/components/VulnraLogo";
 import { signOut } from "@/app/auth/actions";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
@@ -443,12 +444,8 @@ export default function ScannerLayout({ user }: { user: User }) {
       {/* Top Navigation */}
       <nav className="h-13 bg-v-bg1 border-b border-v-border2 flex items-center justify-between px-3 md:px-5 z-50 shrink-0 gap-2">
         <div className="flex items-center gap-2 md:gap-4 overflow-x-auto scrollbar-none shrink min-w-0">
-          <div className="flex items-center gap-2 font-mono text-sm font-bold tracking-wider shrink-0">
-            <div className="w-6 h-6 rounded bg-acid flex items-center justify-center">
-              <Shield className="w-3 h-3 text-black" />
-            </div>
-            <span className="hidden sm:inline">VULNRA <em className="text-acid not-italic tracking-tighter ml-1">PLATFORM</em></span>
-            <span className="sm:hidden text-acid">VULNRA</span>
+          <div className="shrink-0">
+            <VulnraLogo suffix="PLATFORM" />
           </div>
           <div className="hidden md:flex h-5 w-[1px] bg-v-border mx-2" />
           <div className="hidden md:flex items-center gap-2">

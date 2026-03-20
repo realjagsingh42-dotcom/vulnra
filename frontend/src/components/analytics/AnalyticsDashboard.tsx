@@ -5,10 +5,11 @@ import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 import {
-  Shield, ArrowLeft, TrendingUp, TrendingDown, Minus,
+  ArrowLeft, TrendingUp, TrendingDown, Minus,
   Zap, AlertTriangle, BarChart3, Activity, RefreshCw,
   Loader2,
 } from "lucide-react";
+import VulnraLogo from "@/components/VulnraLogo";
 import { cn } from "@/lib/utils";
 
 /* ─── Types ────────────────────────────────────────────────────────────────── */
@@ -300,12 +301,7 @@ export default function AnalyticsDashboard({ user }: { user: User }) {
       {/* Top bar */}
       <nav className="h-13 bg-v-bg1 border-b border-v-border2 flex items-center justify-between px-6 z-50 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 font-mono text-sm font-bold tracking-wider">
-            <div className="w-6 h-6 rounded bg-acid flex items-center justify-center">
-              <Shield className="w-3 h-3 text-black" />
-            </div>
-            VULNRA <em className="text-acid not-italic tracking-tighter ml-1">ANALYTICS</em>
-          </div>
+          <VulnraLogo suffix="ANALYTICS" />
         </div>
         <div className="flex items-center gap-3">
           <Link

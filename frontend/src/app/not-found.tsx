@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Shield, Terminal } from "lucide-react";
+import { Terminal } from "lucide-react";
+import VulnraLogo from "@/components/VulnraLogo";
 
 export default function NotFound() {
   return (
@@ -19,12 +20,7 @@ export default function NotFound() {
 
       <div className="relative z-10 text-center max-w-lg">
         {/* Logo */}
-        <Link href="/" className="inline-flex items-center gap-2 mb-12 group">
-          <div className="w-7 h-7 rounded bg-acid flex items-center justify-center group-hover:shadow-[0_0_16px_rgba(184,255,87,0.4)] transition-all">
-            <Shield className="w-4 h-4 text-black" />
-          </div>
-          <span className="font-mono text-sm font-bold tracking-wider">VULNRA</span>
-        </Link>
+        <Link href="/" className="inline-flex mb-12"><VulnraLogo /></Link>
 
         {/* Terminal card */}
         <div className="border border-v-border2 rounded-xl overflow-hidden bg-[#0a0a0c] mb-10 text-left">
