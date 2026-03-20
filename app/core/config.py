@@ -1,7 +1,7 @@
 import os
 import logging
 from typing import List, Optional
-from pydantic import Field
+from pydantic import Field, AliasChoices
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # ── Logging Setup ─────────────────────────────────────────────────────────────
@@ -18,12 +18,15 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # Security
-    secret_key: str = Field(default="dev-secret-change-me", env="SECRET_KEY")
+    secret_key: str = Field(default="dev-secret-change-me", validation_alias=AliasChoices("SECRET_KEY", "secret_key"))
 
     # CORS — comma-separated string in env, e.g.:
     #   ALLOWED_ORIGINS=https://vulnra.ai,https://daring-art.up.railway.app
     # Falls back to safe defaults + whatever FRONTEND_URL is set to.
-    allowed_origins_env: Optional[str] = Field(default=None, env="ALLOWED_ORIGINS")
+    allowed_origins_env: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("ALLOWED_ORIGINS", "allowed_origins_env"),
+    )
 
     @property
     def allowed_origins(self) -> List[str]:
@@ -48,36 +51,63 @@ class Settings(BaseSettings):
         return base
 
     # Redis
-    redis_url: str = Field(default="redis://localhost:6379/0", env="REDIS_URL")
+    redis_url: str = Field(default="redis://localhost:6379/0", validation_alias=AliasChoices("REDIS_URL", "redis_url"))
 
     # Supabase
-    supabase_url: str = Field(default="", env="SUPABASE_URL")
-    supabase_key: str = Field(default="", env="SUPABASE_SERVICE_KEY")
+    # Field names use validation_alias so pydantic-settings v2 maps them correctly.
+    # supabase_url   → SUPABASE_URL         (field name already matches, alias for safety)
+    # supabase_key   → SUPABASE_SERVICE_KEY  (field name ≠ env var — alias required)
+    supabase_url: str = Field(
+        default="",
+        validation_alias=AliasChoices("SUPABASE_URL", "supabase_url"),
+    )
+    supabase_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("SUPABASE_SERVICE_KEY", "supabase_key"),
+    )
 
     # Rate Limiting
-    rate_limit_free: str = Field(default="1/minute", env="RATE_LIMIT_FREE")
-    rate_limit_pro: str = Field(default="10/minute", env="RATE_LIMIT_PRO")
-    rate_limit_enterprise: str = Field(default="100/minute", env="RATE_LIMIT_ENTERPRISE")
+    rate_limit_free: str = Field(default="1/minute", validation_alias=AliasChoices("RATE_LIMIT_FREE", "rate_limit_free"))
+    rate_limit_pro: str = Field(default="10/minute", validation_alias=AliasChoices("RATE_LIMIT_PRO", "rate_limit_pro"))
+    rate_limit_enterprise: str = Field(default="100/minute", validation_alias=AliasChoices("RATE_LIMIT_ENTERPRISE", "rate_limit_enterprise"))
 
     # Lemon Squeezy Billing
-    lemonsqueezy_api_key: str = Field(default="", env="LEMON_SQUEEZY_API_KEY")
-    lemonsqueezy_store_id: str = Field(default="", env="LEMON_SQUEEZY_STORE_ID")
-    lemonsqueezy_webhook_secret: str = Field(default="", env="LEMON_SQUEEZY_WEBHOOK_SECRET")
-    lemonsqueezy_pro_variant_id: int = Field(default=0, env="LEMON_SQUEEZY_PRO_VARIANT_ID")
-    lemonsqueezy_enterprise_variant_id: int = Field(default=0, env="LEMON_SQUEEZY_ENTERPRISE_VARIANT_ID")
+    lemonsqueezy_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("LEMON_SQUEEZY_API_KEY", "lemonsqueezy_api_key"),
+    )
+    lemonsqueezy_store_id: str = Field(
+        default="",
+        validation_alias=AliasChoices("LEMON_SQUEEZY_STORE_ID", "lemonsqueezy_store_id"),
+    )
+    lemonsqueezy_webhook_secret: str = Field(
+        default="",
+        validation_alias=AliasChoices("LEMON_SQUEEZY_WEBHOOK_SECRET", "lemonsqueezy_webhook_secret"),
+    )
+    lemonsqueezy_pro_variant_id: int = Field(
+        default=0,
+        validation_alias=AliasChoices("LEMON_SQUEEZY_PRO_VARIANT_ID", "lemonsqueezy_pro_variant_id"),
+    )
+    lemonsqueezy_enterprise_variant_id: int = Field(
+        default=0,
+        validation_alias=AliasChoices("LEMON_SQUEEZY_ENTERPRISE_VARIANT_ID", "lemonsqueezy_enterprise_variant_id"),
+    )
     
     # Frontend URL for redirects
-    frontend_url: str = Field(default="http://localhost:3000", env="FRONTEND_URL")
+    frontend_url: str = Field(default="http://localhost:3000", validation_alias=AliasChoices("FRONTEND_URL", "frontend_url"))
 
     # Port
-    port: int = Field(default=8000, env="PORT")
+    port: int = Field(default=8000, validation_alias=AliasChoices("PORT", "port"))
 
     # Resend — email alerts for Sentinel
-    resend_api_key: str = Field(default="", env="RESEND_API_KEY")
-    alert_from_email: str = Field(default="alerts@vulnra.ai", env="ALERT_FROM_EMAIL")
+    resend_api_key: str = Field(default="", validation_alias=AliasChoices("RESEND_API_KEY", "resend_api_key"))
+    alert_from_email: str = Field(default="alerts@vulnra.ai", validation_alias=AliasChoices("ALERT_FROM_EMAIL", "alert_from_email"))
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        populate_by_name=True,  # allow access via Python field name even when validation_alias is set
     )
 
 settings = Settings()
