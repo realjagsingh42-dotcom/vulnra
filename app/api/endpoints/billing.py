@@ -179,13 +179,13 @@ async def get_subscription(current_user: dict = Depends(get_current_user)):
         try:
             res = (
                 sb.table("profiles")
-                .select("tier, subscription_id")
+                .select("tier, lemon_sub_id")
                 .eq("id", user_id)
                 .single()
                 .execute()
             )
             if res.data:
-                subscription_id = res.data.get("subscription_id")
+                subscription_id = res.data.get("lemon_sub_id")
         except Exception as exc:
             logger.warning(f"Profile lookup failed: {exc}")
 
@@ -213,7 +213,7 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
     try:
         res = (
             sb.table("profiles")
-            .select("subscription_id, tier")
+            .select("lemon_sub_id, tier")
             .eq("id", user_id)
             .single()
             .execute()
@@ -222,10 +222,10 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
         logger.error(f"Profile lookup for cancel: {exc}")
         raise HTTPException(status_code=500, detail="Could not retrieve subscription")
 
-    if not res.data or not res.data.get("subscription_id"):
+    if not res.data or not res.data.get("lemon_sub_id"):
         raise HTTPException(status_code=404, detail="No active subscription found")
 
-    subscription_id = res.data["subscription_id"]
+    subscription_id = res.data["lemon_sub_id"]
 
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:

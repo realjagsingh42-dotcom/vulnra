@@ -470,7 +470,7 @@ def update_user_subscription(email: str, tier: str, subscription_id: Optional[st
             user_id = user_res.data[0]["id"]
             sb.table("profiles").update({
                 "tier": tier,
-                "subscription_id": subscription_id,
+                "lemon_sub_id": subscription_id,
                 "updated_at": "now()"
             }).eq("id", user_id).execute()
             logger.info(f"Updated subscription for {email} to tier {tier}")
