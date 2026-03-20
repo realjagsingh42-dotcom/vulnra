@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import {
-  LogOut, Server, Key, Radio, History, Database,
+  LogOut, Server, Key, Radio, History, Database, Shield,
   Users, Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle,
   CheckCircle2, Building2, Crown, UserCircle, Clock, Filter,
   RefreshCw, Loader2, Mail

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { User } from "@supabase/supabase-js";
 import {
-  LogOut, Server, Key, Radio, History, Database,
+  LogOut, Server, Key, Radio, History, Database, Shield,
   Plus, Trash2, Loader2, Lock, AlertTriangle
 } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
