@@ -42,10 +42,17 @@ export default function MultiTurnResults({ conversation, findings }: MultiTurnRe
         <span className="text-acid">{conversation.length} turns</span>
       </div>
       
-      {findings.length > 0 && (
+      {findings.filter(f => f.type === "jailbreak_success").length > 0 && (
         <div className="bg-v-red/10 border border-v-red/30 rounded-sm p-2">
           <div className="text-[9px] text-v-red font-mono">
-            ⚠️ {findings.length} potential jailbreak(s) detected
+            ⚠ {findings.filter(f => f.type === "jailbreak_success").length} potential jailbreak(s) detected
+          </div>
+        </div>
+      )}
+      {findings.filter(f => f.type === "endpoint_error").length > 0 && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-sm p-2">
+          <div className="text-[9px] text-amber-400 font-mono">
+            ⚠ {findings.filter(f => f.type === "endpoint_error").length} probe(s) returned endpoint errors — not counted in risk score
           </div>
         </div>
       )}
@@ -53,15 +60,19 @@ export default function MultiTurnResults({ conversation, findings }: MultiTurnRe
       <div className="flex flex-col gap-2 max-h-60 overflow-y-auto custom-scrollbar">
         {conversation.map((turn, i) => {
           const isExpanded = expandedTurns.has(turn.turn);
-          const hasFinding = findings.some(f => f.turn === turn.turn);
-          
+          const jailbreakFinding = findings.find(f => f.turn === turn.turn && f.type === "jailbreak_success");
+          const errorFinding     = findings.find(f => f.turn === turn.turn && f.type === "endpoint_error");
+          const hasFinding = !!(jailbreakFinding || errorFinding);
+
           return (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className={cn(
                 "p-2 border rounded-sm cursor-pointer transition-all",
-                hasFinding 
-                  ? "border-v-red/50 bg-v-red/5 hover:bg-v-red/10" 
+                jailbreakFinding
+                  ? "border-v-red/50 bg-v-red/5 hover:bg-v-red/10"
+                  : errorFinding
+                  ? "border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10"
                   : "border-v-border2 bg-black/20 hover:bg-black/30"
               )}
               onClick={() => toggleTurn(turn.turn)}
@@ -69,9 +80,14 @@ export default function MultiTurnResults({ conversation, findings }: MultiTurnRe
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-[9px] text-v-muted2">Turn {turn.turn + 1}</span>
-                  {hasFinding && (
+                  {jailbreakFinding && (
                     <span className="text-[8px] text-v-red bg-v-red/10 px-1.5 py-0.5 rounded">
                       JAILBREAK
+                    </span>
+                  )}
+                  {errorFinding && (
+                    <span className="text-[8px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                      ENDPOINT ERROR
                     </span>
                   )}
                 </div>

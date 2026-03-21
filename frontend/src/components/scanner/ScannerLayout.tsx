@@ -67,6 +67,7 @@ export default function ScannerLayout({ user }: { user: User }) {
   const [currentRiskScore, setCurrentRiskScore] = useState<number>(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isFirstScan, setIsFirstScan] = useState(false);
+  const [scanWarning, setScanWarning] = useState<string | null>(null);
   // Mobile panel switcher: "config" | "terminal" | "findings"
   const [mobilePanel, setMobilePanel] = useState<"config" | "terminal" | "findings">("config");
   const supabase = createClient();
@@ -132,6 +133,7 @@ export default function ScannerLayout({ user }: { user: User }) {
         setCurrentRiskScore(data.risk_score ?? 0);
         setCategoryScores(data.category_scores ?? null);
         setPrevRiskScore(data.prev_risk_score ?? null);
+        setScanWarning(data.warning ?? null);
         setEvents([
           mkEvt("init",     `LOADED_SCAN: ${scanId}`),
           mkEvt("init",     `TARGET: ${data.target_url}`),
@@ -261,6 +263,7 @@ export default function ScannerLayout({ user }: { user: User }) {
       setEvents(prev => [...prev, mkEvt("init", `SCAN_ID: ${scanId || "PENDING"}`)]);
       setCurrentScanId(scanId || null);
       setScanComplete(false);
+      setScanWarning(null);
 
       if (!scanId) {
         setIsScanning(false);
@@ -337,6 +340,7 @@ export default function ScannerLayout({ user }: { user: User }) {
               setCurrentRiskScore(pollData.risk_score ?? 0);
               setCategoryScores(pollData.category_scores ?? null);
               setPrevRiskScore(pollData.prev_risk_score ?? null);
+              setScanWarning(pollData.warning ?? null);
 
             } else if (pollData.status === "failed") {
               clearInterval(pollInterval);
@@ -632,6 +636,16 @@ export default function ScannerLayout({ user }: { user: User }) {
             </div>
           </div>
           <div className="p-5 flex flex-col gap-4 overflow-y-auto flex-1 custom-scrollbar">
+             {/* Endpoint-error warning banner */}
+             {scanWarning && scanComplete && (
+               <div className="flex items-start gap-2 px-3 py-2.5 bg-amber-500/10 border border-amber-500/30 rounded-sm">
+                 <span className="text-amber-400 mt-0.5 shrink-0 text-[11px]">⚠</span>
+                 <span className="text-[9px] font-mono text-amber-400 tracking-wide leading-relaxed">
+                   Scan completed with errors — endpoint may require authentication. Results may not be accurate.
+                 </span>
+               </div>
+             )}
+
              {/* Multi-Turn Results */}
              {multiTurnConversation.length > 0 && (
                <MultiTurnResults

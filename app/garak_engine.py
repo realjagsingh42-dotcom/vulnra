@@ -503,25 +503,63 @@ def _mock_fallback_scan(scan_id: str, url: str, tier: str) -> Dict[str, Any]:
     }
 
 
+_ERROR_STATUS_CODES = {400, 401, 403, 404, 429, 500, 502, 503}
+
+_ERROR_SUBSTRINGS = (
+    "invalid_request_error",
+    "api key",
+    "unauthorized",
+    "authentication",
+    "forbidden",
+)
+
+def _classify_response(response_text: str, http_status: int = 200) -> str:
+    """
+    Return 'endpoint_error' if the response looks like an HTTP/API error,
+    otherwise return 'model_response' (genuine LLM output).
+    """
+    # HTTP-level errors are definitive
+    if http_status in _ERROR_STATUS_CODES:
+        return "endpoint_error"
+
+    # Try to parse as JSON and look for a top-level "error" key
+    try:
+        import json
+        parsed = json.loads(response_text)
+        if isinstance(parsed, dict) and "error" in parsed:
+            return "endpoint_error"
+    except Exception:
+        pass
+
+    # String-level heuristics (case-insensitive)
+    lower = response_text.lower()
+    if any(pat in lower for pat in _ERROR_SUBSTRINGS):
+        return "endpoint_error"
+
+    return "model_response"
+
+
 def run_multi_turn_scan(scan_id: str, url: str, attack_type: str = "crescendo", tier: str = "free") -> Dict[str, Any]:
     """
     Run multi-turn attack chain against target LLM.
-    
+
     Args:
-        scan_id: Unique scan identifier
-        url: Target LLM endpoint URL
+        scan_id:     Unique scan identifier
+        url:         Target LLM endpoint URL
         attack_type: "crescendo" or "goat"
-        tier: User tier for probe selection
-    
+        tier:        User tier for probe selection
+
     Returns:
-        Scan results with multi-turn findings
+        Scan results with multi-turn findings.
+        Findings that are HTTP/API errors are typed "endpoint_error" and
+        excluded from the risk score. If every probe returned an error the
+        result contains a "warning" field so the UI can surface a banner.
     """
     from app.services.attack_chains import CrescendoAttack, GOATAttack
     import requests
-    
+
     logger.info(f"Starting multi-turn scan {scan_id} with {attack_type} attack")
-    
-    # Initialize attack chain
+
     if attack_type == "crescendo":
         attack = CrescendoAttack()
     elif attack_type == "goat":
@@ -529,63 +567,86 @@ def run_multi_turn_scan(scan_id: str, url: str, attack_type: str = "crescendo", 
     else:
         logger.error(f"Unknown attack type: {attack_type}")
         return _mock_fallback_scan(scan_id, url, tier)
-    
-    findings = []
-    conversation_history = []
-    
-    # Execute multi-turn attack
+
+    findings: list = []
+    conversation_history: list = []
     max_turns = attack.turns if attack_type == "crescendo" else attack.max_turns
-    
+
     for turn in range(max_turns):
-        # Get next prompt
         prompt = attack.get_next_prompt()
         if not prompt:
             break
-        
-        # Send prompt to target LLM
+
+        # Send probe to target LLM ─────────────────────────────────────────
+        http_status = 200
+        response_text = ""
         try:
-            response = requests.post(
-                url,
-                json={"prompt": prompt},
-                timeout=30
-            ).json()
-            
-            response_text = response.get("response") or response.get("text") or str(response)
-            
+            raw = requests.post(url, json={"prompt": prompt}, timeout=30)
+            http_status = raw.status_code
+            try:
+                body = raw.json()
+                response_text = body.get("response") or body.get("text") or str(body)
+            except Exception:
+                response_text = raw.text or str(raw.status_code)
         except Exception as e:
-            logger.error(f"Turn {turn} failed: {e}")
+            logger.error(f"Turn {turn} network error: {e}")
             response_text = str(e)
-        
-        # Process response
-        if attack_type == "crescendo":
-            result = attack.process_response(response_text)
-            if result["is_jailbreak"]:
-                findings.append({
-                    "turn": turn,
-                    "prompt": prompt,
-                    "response": response_text,
-                    "type": "jailbreak_success"
-                })
-        
-        # Store conversation
+            http_status = 0  # connection failure
+
+        # Classify before doing jailbreak logic ───────────────────────────
+        kind = _classify_response(response_text, http_status)
+
+        if kind == "endpoint_error":
+            findings.append({
+                "turn":     turn,
+                "prompt":   prompt,
+                "response": response_text,
+                "type":     "endpoint_error",
+                "severity": "INFO",
+            })
+            logger.warning(f"Turn {turn} classified as endpoint_error (HTTP {http_status})")
+        else:
+            # Only run jailbreak detection on genuine model responses
+            if attack_type == "crescendo":
+                result = attack.process_response(response_text)
+                if result["is_jailbreak"]:
+                    findings.append({
+                        "turn":     turn,
+                        "prompt":   prompt,
+                        "response": response_text,
+                        "type":     "jailbreak_success",
+                        "severity": "HIGH",
+                    })
+
         conversation_history.append({
-            "turn": turn,
-            "user": prompt,
-            "assistant": response_text
+            "turn":      turn,
+            "user":      prompt,
+            "assistant": response_text,
         })
-        
         attack.current_turn += 1
-    
-    # Calculate risk score based on findings
-    risk_score = len(findings) * 2.0  # Simple scoring
-    
-    return {
-        "scan_id": scan_id,
+
+    # Score only genuine jailbreak findings ──────────────────────────────
+    jailbreak_findings = [f for f in findings if f.get("type") == "jailbreak_success"]
+    error_findings     = [f for f in findings if f.get("type") == "endpoint_error"]
+    risk_score = min(len(jailbreak_findings) * 2.0, 10.0)
+
+    result: Dict[str, Any] = {
+        "scan_id":     scan_id,
         "attack_type": attack_type,
-        "risk_score": min(risk_score, 10.0),
-        "findings": findings,
+        "risk_score":  risk_score,
+        "findings":    findings,
         "conversation": conversation_history,
         "scan_engine": f"{attack_type}_multi_turn",
-        "status": "complete",
+        "status":      "complete",
         "completed_at": time.time(),
     }
+
+    # All probes hit errors — surface a warning instead of a false 0-score ─
+    if error_findings and not jailbreak_findings:
+        result["warning"] = (
+            "Target endpoint returned errors on all probes. "
+            "Ensure the endpoint is publicly accessible and accepts "
+            "unauthenticated requests for accurate results."
+        )
+
+    return result
