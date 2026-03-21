@@ -41,36 +41,53 @@ function OAuthButton({
   redirectTo?: string;
 }) {
   const [loading, setLoading] = useState(false);
+  const [oauthError, setOauthError] = useState<string | null>(null);
 
   const handleClick = async () => {
     setLoading(true);
-    const supabase = createClient();
-    const next = redirectTo || "/scanner";
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
-    });
+    setOauthError(null);
+    try {
+      const supabase = createClient();
+      const next = redirectTo || "/scanner";
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+      });
+      if (error) {
+        setOauthError(error.message);
+        setLoading(false);
+      }
+      // On success supabase redirects the page — loading stays true until navigation
+    } catch {
+      setOauthError("OAuth unavailable. Check NEXT_PUBLIC_SUPABASE_URL is set in Railway.");
+      setLoading(false);
+    }
   };
 
   return (
-    <button
-      type="button"
-      disabled={loading}
-      onClick={handleClick}
-      className={cn(
-        "group flex items-center justify-center gap-2.5 border rounded-sm py-2.5 text-[10px] font-mono tracking-widest transition-all duration-200",
-        provider === "github"
-          ? "bg-white/5 border-white/10 text-foreground hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_12px_rgba(255,255,255,0.08)]"
-          : "bg-white/5 border-white/10 text-foreground hover:bg-[#4285F4]/10 hover:border-[#4285F4]/30 hover:shadow-[0_0_12px_rgba(66,133,244,0.15)]",
-        loading && "opacity-60 cursor-not-allowed"
+    <div className="flex flex-col gap-1">
+      <button
+        type="button"
+        disabled={loading}
+        onClick={handleClick}
+        className={cn(
+          "group flex items-center justify-center gap-2.5 border rounded-sm py-2.5 text-[10px] font-mono tracking-widest transition-all duration-200",
+          provider === "github"
+            ? "bg-white/5 border-white/10 text-foreground hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_12px_rgba(255,255,255,0.08)]"
+            : "bg-white/5 border-white/10 text-foreground hover:bg-[#4285F4]/10 hover:border-[#4285F4]/30 hover:shadow-[0_0_12px_rgba(66,133,244,0.15)]",
+          loading && "opacity-60 cursor-not-allowed"
+        )}
+      >
+        {loading
+          ? <Loader2 className="w-4 h-4 animate-spin" />
+          : provider === "google" ? <GoogleIcon /> : <GitHubIcon />
+        }
+        <span className="group-hover:tracking-[0.15em] transition-all duration-200">{label}</span>
+      </button>
+      {oauthError && (
+        <p className="font-mono text-[9px] text-v-red text-center leading-tight">{oauthError}</p>
       )}
-    >
-      {loading
-        ? <Loader2 className="w-4 h-4 animate-spin" />
-        : provider === "google" ? <GoogleIcon /> : <GitHubIcon />
-      }
-      <span className="group-hover:tracking-[0.15em] transition-all duration-200">{label}</span>
-    </button>
+    </div>
   );
 }
 
@@ -92,19 +109,27 @@ export default function LoginForm({ message, redirectTo }: { message?: string; r
     const email    = (form.elements.namedItem("email")    as HTMLInputElement).value;
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const supabase = createClient();
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (authError) {
-      setError(authError.message);
+      if (authError) {
+        setError(authError.message);
+        setPending(false);
+        return;
+      }
+
+      // Session cookies are now written to document.cookie by @supabase/ssr.
+      // router.push sends them with the next request so the server can read them.
+      router.push(afterLoginPath);
+      router.refresh();
+    } catch {
+      setError(
+        "Authentication service unavailable. " +
+        "NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set in Railway environment variables."
+      );
       setPending(false);
-      return;
     }
-
-    // Session cookies are now written to document.cookie by @supabase/ssr.
-    // router.push sends them with the next request so the server can read them.
-    router.push(afterLoginPath);
-    router.refresh();
   };
 
   return (
