@@ -6,6 +6,7 @@ import { User } from "@supabase/supabase-js";
 import { LogOut, BarChart3, Settings, Activity, Timer, Server, FileDown, Loader2, History, Link2, CheckCheck, Key, Radio, Database, Building2, TrendingUp, ChevronDown, User as UserIcon } from "lucide-react";
 import VulnraLogo from "@/components/VulnraLogo";
 import { signOut } from "@/app/auth/actions";
+import { logger } from "@/utils/logger";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import ScanConfig from "./ScanConfig";
@@ -346,7 +347,7 @@ export default function ScannerLayout({ user }: { user: User }) {
           );
 
           if (pollRes.status === 429) {
-            console.warn("Rate limited during polling, will retry...");
+            logger.warn("Rate limited during polling, will retry…");
             return;
           }
 
@@ -405,7 +406,7 @@ export default function ScannerLayout({ user }: { user: User }) {
             }
           }
         } catch (e) {
-          console.error("Polling error", e);
+          logger.error("Polling error", e);
         }
       }, 3000);
 

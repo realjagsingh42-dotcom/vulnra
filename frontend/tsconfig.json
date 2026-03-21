@@ -4,7 +4,25 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
+
+    // ── Strict mode (baseline) ──────────────────────────────────────────────
+    // `strict: true` enables: strictNullChecks, strictFunctionTypes,
+    // strictBindCallApply, strictPropertyInitialization, noImplicitAny,
+    // noImplicitThis, alwaysStrict, useUnknownInCatchVariables
     "strict": true,
+
+    // ── Additional strictness ───────────────────────────────────────────────
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // NOTE: noUnusedLocals / noUnusedParameters / noUncheckedIndexedAccess /
+    // exactOptionalPropertyTypes are intentionally NOT enabled here — they
+    // would generate hundreds of errors across the generated .next/ output
+    // and third-party type definitions. Enable incrementally per-module once
+    // existing `any` annotations are replaced with proper types.
+
+    // ── Module resolution ───────────────────────────────────────────────────
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
