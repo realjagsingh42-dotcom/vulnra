@@ -306,9 +306,9 @@ export default function AnalyticsDashboard({ user }: { user: User }) {
         <div className="flex items-center gap-3">
           <Link
             href="/scanner"
-            className="flex items-center gap-1.5 font-mono text-[10px] text-v-muted2 hover:text-acid transition-colors tracking-wider"
+            className="flex items-center gap-1.5 font-mono text-[10px] tracking-widest text-v-muted2 hover:text-acid transition-colors border border-v-border2 hover:border-acid/30 px-3 py-1.5 rounded-sm"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Scanner
+            <ArrowLeft className="w-3.5 h-3.5" /> BACK TO SCANNER
           </Link>
           <button
             onClick={() => fetchData(true)}
