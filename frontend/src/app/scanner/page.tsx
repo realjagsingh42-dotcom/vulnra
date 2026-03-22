@@ -1,20 +1,12 @@
-import { Suspense } from 'react'
-import { redirect } from 'next/navigation'
-import { createClient } from '@/utils/supabase/server'
-import ScannerLayout from '@/components/scanner/ScannerLayout'
+import { Suspense } from "react";
+import { requireAuth } from "@/utils/supabase/auth-guard";
+import ScannerLayout from "@/components/scanner/ScannerLayout";
 
 export default async function ScannerPage() {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase.auth.getUser()
-
-  if (error || !data?.user) {
-    redirect('/login')
-  }
-
+  const user = await requireAuth();
   return (
     <Suspense>
-      <ScannerLayout user={data.user} />
+      <ScannerLayout user={user} />
     </Suspense>
-  )
+  );
 }

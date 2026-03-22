@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireAuth } from "@/utils/supabase/auth-guard";
 import SettingsShell from "@/components/settings/SettingsShell";
 
 export default async function SettingsLayout({
@@ -7,12 +6,7 @@ export default async function SettingsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error || !data?.user) {
-    redirect("/login");
-  }
-
-  return <SettingsShell user={data.user}>{children}</SettingsShell>;
+  // requireAuth() redirects to /login on any error — no uncaught throws reach error.tsx
+  const user = await requireAuth();
+  return <SettingsShell user={user}>{children}</SettingsShell>;
 }

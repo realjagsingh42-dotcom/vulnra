@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { requireAuth } from "@/utils/supabase/auth-guard";
 import AnalyticsDashboard from "@/components/analytics/AnalyticsDashboard";
 
 export const metadata = {
@@ -8,12 +7,6 @@ export const metadata = {
 };
 
 export default async function AnalyticsPage() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error || !data?.user) {
-    redirect("/login");
-  }
-
-  return <AnalyticsDashboard user={data.user} />;
+  const user = await requireAuth();
+  return <AnalyticsDashboard user={user} />;
 }
