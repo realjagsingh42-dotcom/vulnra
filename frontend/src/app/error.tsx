@@ -60,9 +60,15 @@ export default function Error({
             <div className="text-v-red">
               [ERROR] Unhandled exception in scan engine
             </div>
+            {/* Show actual error for debugging — remove in final prod */}
+            {error?.message && (
+              <div className="text-yellow-400 text-[11px] break-all mt-1">
+                [MSG] {error.message}
+              </div>
+            )}
             {error?.digest && (
               <div className="text-v-muted2 text-[11px]">
-                [DEBUG] Digest: <span className="text-yellow-400">{error.digest}</span>
+                [DIGEST] <span className="text-yellow-400">{error.digest}</span>
               </div>
             )}
             <div className="text-v-muted2">
