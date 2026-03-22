@@ -108,10 +108,14 @@ const TIER_LIMIT: Record<string, number> = { free: 1, pro: 100, enterprise: 999 
 /* ── Main component ───────────────────────────────────────────── */
 export default function ProfilePage() {
   const router = useRouter();
-  const supabase = createClient();
+  // NOTE: createClient() is NOT called here at render time — it would throw
+  // if NEXT_PUBLIC_SUPABASE_URL is missing (Railway env var not set), crashing
+  // the entire component to the error boundary. Instead we call it lazily
+  // inside each async handler that needs it, wrapped in try/catch.
 
   /* profile state */
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [email, setEmail]   = useState("");
   const [userId, setUserId] = useState("");
   const [tier, setTier]     = useState("free");
@@ -144,7 +148,16 @@ export default function ProfilePage() {
   useEffect(() => {
     (async () => {
       try {
-        const session = await getSession();
+        let session;
+        try {
+          session = await getSession();
+        } catch {
+          // createClient() threw — env vars likely missing in this deployment.
+          // Show an inline error instead of crashing the whole component.
+          setLoadError("Auth service unavailable. NEXT_PUBLIC_SUPABASE_URL may not be set in Railway.");
+          return;
+        }
+
         if (!session) { router.push("/login?redirect=/settings/profile"); return; }
 
         const u = session.user;
@@ -155,19 +168,27 @@ export default function ProfilePage() {
           new Date(u.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
         );
 
-        const resp = await fetch(`${API}/api/user/profile`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (resp.ok) {
-          const d = await resp.json();
-          setDisplayName(d.display_name ?? "");
-          setOrgName(d.org_name ?? "");
-          setTier(d.tier ?? "free");
-          setScansToday(d.scan_count_today ?? 0);
+        /* load profile data — 503 means backend not yet configured, show defaults */
+        try {
+          const resp = await fetch(`${API}/api/user/profile`, {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (resp.ok) {
+            const d = await resp.json();
+            setDisplayName(d.display_name ?? "");
+            setOrgName(d.org_name ?? "");
+            setTier(d.tier ?? "free");
+            setScansToday(d.scan_count_today ?? 0);
+          }
+          // Non-ok (404, 503, etc.) → silently keep defaults; profile still renders
+        } catch {
+          // Network error fetching profile — keep defaults, do not crash
         }
 
-        /* load keys */
+        /* load keys — non-fatal if it fails */
         loadKeys(session.access_token);
+      } catch {
+        setLoadError("Failed to load profile. Please refresh the page.");
       } finally {
         setLoading(false);
       }
@@ -266,9 +287,16 @@ export default function ProfilePage() {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       if (r.ok) {
-        await supabase.auth.signOut();
+        // Best-effort sign out — if createClient() throws (env vars missing)
+        // we still redirect the user away rather than crashing the component.
+        try {
+          const supabase = createClient();
+          await supabase.auth.signOut();
+        } catch { /* proceed to redirect regardless */ }
         router.push("/");
       }
+    } catch {
+      /* deletion failed — deleting spinner will reset via finally */
     } finally {
       setDeleting(false);
     }
@@ -284,6 +312,27 @@ export default function ProfilePage() {
     return (
       <div className="flex items-center justify-center h-48">
         <Loader2 className="w-5 h-5 text-acid animate-spin" />
+      </div>
+    );
+  }
+
+  /* Inline error — shown instead of crashing to the 500 error boundary */
+  if (loadError) {
+    return (
+      <div className="max-w-[680px]">
+        <div className="border border-v-red/30 bg-v-red/5 rounded-sm p-5 font-mono">
+          <div className="flex items-center gap-2 text-v-red text-[11px] font-bold tracking-wider mb-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            PROFILE LOAD ERROR
+          </div>
+          <p className="text-[12px] text-v-muted leading-relaxed mb-4">{loadError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="font-mono text-[10.5px] tracking-widest px-4 py-2 rounded-sm border border-v-border text-foreground hover:border-white/20 transition-all"
+          >
+            Reload page
+          </button>
+        </div>
       </div>
     );
   }
