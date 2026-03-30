@@ -45,10 +45,16 @@ celery -A app.worker worker --loglevel=info
 - ✅ Lemon Squeezy Billing
 - ✅ PDF Report Download
 - ✅ Social Share (Twitter, LinkedIn, Facebook)
+- ✅ Enterprise SSO (SAML 2.0 + OIDC)
+- ✅ Audit Logging
 
-## Planned
+## Important Files
 
-- Enterprise SSO & Audit Logs
+- `PROJECT_CONTEXT.md` - Full project documentation
+- `app/api/endpoints/scans.py` - Scan API endpoints
+- `app/services/sso_service.py` - SSO service
+- `app/api/endpoints/org.py` - Org + SSO endpoints
+- `frontend/src/components/scanner/` - Scanner UI components
 
 ## Important Files
 
@@ -60,3 +66,5 @@ celery -A app.worker worker --loglevel=info
 
 - Share links are public (anyone with link can view)
 - Social share includes: risk score, findings count, severity breakdown
+- SSO supports SAML 2.0 and OIDC providers (Okta, Azure AD, Google Workspace, OneLogin, Ping Identity, Generic)
+- SSO available on Pro and Enterprise tiers

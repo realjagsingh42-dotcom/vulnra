@@ -455,13 +455,14 @@ npm run dev    # → http://localhost:3000
 | — | Scan History | ✅ Done |
 | — | PDF Report Download | ✅ Done |
 | — | Social Share (Twitter/LinkedIn/Facebook) | ✅ Done |
-| — | Enterprise SSO & Audit Logs | 🔲 Planned |
+| — | Enterprise SSO (SAML + OIDC) | ✅ Done |
 
 ---
 
 ## Recent Git History
 
 ```
+xxxxxx   feat: add Enterprise SSO (SAML + OIDC) with audit logging
 ccfd88e  feat: add social share for scan results (Twitter, LinkedIn, Facebook)
 b03ed4a  fix: update MCP scanner tests and fix compliance module usage
 39f5e7e  fix: update MCP scanner imports to use correct compliance module functions
