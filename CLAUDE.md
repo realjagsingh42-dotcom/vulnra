@@ -49,17 +49,26 @@ celery -A app.worker worker --loglevel=info
 - ✅ Enterprise SSO (SAML 2.0 + OIDC)
 - ✅ Audit Logging
 - ✅ Scheduled Scans (one-time, recurring, cron)
+- ✅ API Key Authentication
+- ✅ Continuous Monitoring (Sentinel)
+- ✅ Webhook Notifications
+- ✅ Enterprise Team Management (org members, invites)
+- ✅ Shared Scan Quota (org members share daily pool)
 
 ## Important Files
 
 - `PROJECT_CONTEXT.md` - Full project documentation
-- `app/api/endpoints/scans.py` - Scan API endpoints (includes share endpoints)
-- `app/services/supabase_service.py` - DB ops (includes create_share_token, get_scan_by_share_token)
+- `app/api/endpoints/scans.py` - Scan API endpoints
+- `app/services/supabase_service.py` - DB ops (includes org quota functions)
 - `app/services/sso_service.py` - SSO service
 - `app/services/scheduled_scan_service.py` - Scheduled scan service
 - `app/api/endpoints/scheduled_scans.py` - Scheduled scan endpoints
-- `app/api/endpoints/org.py` - Org + SSO endpoints
+- `app/api/endpoints/org.py` - Org + SSO + quota endpoints
+- `app/api/endpoints/monitor.py` - Sentinel monitoring endpoints
+- `app/api/endpoints/webhooks.py` - Webhook endpoints
+- `app/api/endpoints/api_keys.py` - API key endpoints
 - `frontend/src/components/scanner/` - Scanner UI components
+- `frontend/src/components/org/OrgDashboard.tsx` - Org dashboard with quota widget
 
 ## Notes
 
@@ -67,3 +76,4 @@ celery -A app.worker worker --loglevel=info
 - Social share includes: risk score, findings count, severity breakdown
 - SSO supports SAML 2.0 and OIDC providers (Okta, Azure AD, Google Workspace, OneLogin, Ping Identity, Generic)
 - SSO available on Pro and Enterprise tiers
+- Org quota limits: Pro=100/day, Enterprise=500/day (shared across all members)

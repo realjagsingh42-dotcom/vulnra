@@ -298,14 +298,15 @@ This document tracks all feature work — completed, in-progress, planned, and b
 | Billing checkout | Revenue blocker | High | Medium | ✅ Done |
 | PDF reports | Promised in pricing | Medium | Low | ✅ Done |
 | Scan history | Core UX gap | High | Low | ✅ Done |
-| Scan sharing | Viral loop | Medium | Medium | **P2** |
-| Continuous monitoring | Enterprise lock-in | High | High | **P2** |
-| API key auth | Devtools adoption | Medium | Medium | **P2** |
-| Team management | Enterprise revenue | High | High | **P2** |
+| Scan sharing | Viral loop | Medium | Medium | ✅ Done |
+| Continuous monitoring | Enterprise lock-in | High | High | ✅ Done |
+| API key auth | Devtools adoption | Medium | Medium | ✅ Done |
+| Team management | Enterprise revenue | High | High | ✅ Done |
+| Shared quotas | Enterprise revenue | High | High | ✅ Done |
+| Webhook notifications | Automation/devtools | Medium | Low | ✅ Done |
+| SSO / SAML | Enterprise requirement | High | High | ✅ Done |
+| Audit logs | Enterprise compliance | High | Medium | ✅ Done |
 | Custom probes | Power user retention | Medium | Medium | **P3** |
-| Webhook notifications | Automation/devtools | Medium | Low | **P3** |
-| SSO / SAML | Enterprise requirement | High | High | **P2** (v1.0) |
-| Audit logs | Enterprise compliance | High | Medium | **P2** (v1.0) |
 
 ---
 
@@ -314,6 +315,6 @@ This document tracks all feature work — completed, in-progress, planned, and b
 | Milestone | Target Date | Key Deliverables |
 |-----------|------------|-----------------|
 | **v0.3.0** | 2026-03-30 | Billing checkout, PDF reports, scan history, scan sharing |
-| **v0.4.0** | 2026-05-01 | Continuous monitoring, API keys, webhooks, custom probes |
-| **v0.5.0** | 2026-06-01 | Team management, org dashboard, shared quotas |
-| **v1.0.0 GA** | 2026-08-01 | SSO, audit logs, custom frameworks, vuln-db, all integrations |
+| **v0.4.0** | 2026-03-31 | API keys, continuous monitoring, webhooks, team management, shared quotas, SSO |
+| **v0.5.0** | 2026-06-01 | Custom probes, custom compliance frameworks, vuln-db |
+| **v1.0.0 GA** | 2026-08-01 | All integrations, benchmark comparisons, CI/CD action |
