@@ -47,12 +47,15 @@ celery -A app.worker worker --loglevel=info
 - ✅ Social Share (Twitter, LinkedIn, Facebook)
 - ✅ Enterprise SSO (SAML 2.0 + OIDC)
 - ✅ Audit Logging
+- ✅ Scheduled Scans (one-time, recurring, cron)
 
 ## Important Files
 
 - `PROJECT_CONTEXT.md` - Full project documentation
 - `app/api/endpoints/scans.py` - Scan API endpoints
 - `app/services/sso_service.py` - SSO service
+- `app/services/scheduled_scan_service.py` - Scheduled scan service
+- `app/api/endpoints/scheduled_scans.py` - Scheduled scan endpoints
 - `app/api/endpoints/org.py` - Org + SSO endpoints
 - `frontend/src/components/scanner/` - Scanner UI components
 

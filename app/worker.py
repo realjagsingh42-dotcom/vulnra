@@ -44,6 +44,10 @@ app.conf.update(
             "task": "app.worker.check_due_sentinel_watches",
             "schedule": 900,  # every 15 minutes
         },
+        "scheduled-scan-check-every-minute": {
+            "task": "app.worker.check_due_scheduled_scans",
+            "schedule": 60,  # every minute
+        },
     },
 )
 
@@ -249,3 +253,128 @@ def _send_sentinel_alert(email: str, url: str, risk_score: float, findings: list
         logger.info(f"Sentinel alert sent to {email} for {url}")
     except Exception as e:
         logger.error(f"Failed to send sentinel alert email: {e}")
+
+
+@app.task(name="app.worker.check_due_scheduled_scans")
+def check_due_scheduled_scans():
+    """
+    Beat task: runs every minute. Dispatches scheduled_scan for each due scan.
+    """
+    try:
+        from app.services import scheduled_scan_service
+        due = scheduled_scan_service.get_due_scheduled_scans()
+        logger.info(f"Scheduled scan beat: {len(due)} scans due")
+        for scan in due:
+            run_scheduled_scan.delay(scan["id"])
+    except Exception as e:
+        logger.error(f"check_due_scheduled_scans failed: {e}")
+
+
+@app.task(name="app.worker.run_scheduled_scan")
+def run_scheduled_scan(schedule_id: str):
+    """
+    Execute a scheduled scan.
+    """
+    try:
+        from app.services import scheduled_scan_service
+        from app.services.scan_service import run_scan
+        
+        schedule = scheduled_scan_service.get_scheduled_scan(schedule_id)
+        if not schedule:
+            logger.warning(f"Scheduled scan {schedule_id} not found")
+            return
+        
+        logger.info(f"Running scheduled scan {schedule_id} for {schedule['target_url']}")
+        
+        run_record = scheduled_scan_service.create_run_record(schedule_id)
+        
+        result = run_scan(
+            target_url=schedule["target_url"],
+            tier=schedule.get("tier", "free"),
+            scan_type=schedule.get("scan_type", "standard"),
+            user_id=schedule["user_id"],
+            probes=schedule.get("probes"),
+            vulnerability_types=schedule.get("vulnerability_types"),
+            attack_type=schedule.get("attack_type"),
+        )
+        
+        scan_id = result.get("scan_id")
+        
+        if scan_id:
+            from app.services.supabase_service import get_supabase
+            sb = get_supabase()
+            scan_res = sb.table("scans").select("risk_score, findings").eq("id", scan_id).execute()
+            if scan_res.data:
+                risk_score = scan_res.data[0].get("risk_score", 0)
+                findings = scan_res.data[0].get("findings", [])
+                findings_count = len(findings) if isinstance(findings, list) else 0
+                
+                scheduled_scan_service.update_after_scan(schedule_id, risk_score, findings_count)
+                scheduled_scan_service.update_run_record(
+                    run_record["id"],
+                    "completed",
+                    risk_score=risk_score,
+                    findings_count=findings_count,
+                )
+                
+                if schedule.get("notify_on_complete") and schedule.get("notify_email"):
+                    _send_scheduled_scan_notification(
+                        schedule["notify_email"],
+                        schedule["target_url"],
+                        risk_score,
+                        findings_count,
+                    )
+        else:
+            scheduled_scan_service.update_run_record(
+                run_record["id"],
+                "failed",
+                error_message=result.get("error", "Scan failed to start"),
+            )
+        
+    except Exception as e:
+        logger.error(f"run_scheduled_scan {schedule_id} failed: {e}")
+        try:
+            scheduled_scan_service.update_run_record(
+                run_record["id"],
+                "failed",
+                error_message=str(e),
+            )
+        except:
+            pass
+
+
+def _send_scheduled_scan_notification(email: str, url: str, risk_score: float, findings_count: int):
+    """Send notification email when scheduled scan completes."""
+    try:
+        import httpx
+        from app.core.config import settings
+        
+        severity = "LOW"
+        if risk_score >= 0.7:
+            severity = "CRITICAL"
+        elif risk_score >= 0.5:
+            severity = "HIGH"
+        elif risk_score >= 0.3:
+            severity = "MEDIUM"
+        
+        body_html = f"""
+        <h2>Scheduled Scan Complete</h2>
+        <p><strong>Target:</strong> {url}</p>
+        <p><strong>Risk Score:</strong> {risk_score:.2f} ({severity})</p>
+        <p><strong>Findings:</strong> {findings_count} vulnerabilities</p>
+        <p><a href="{settings.frontend_url}/scanner?scan_id={url}">View Results</a></p>
+        """
+        
+        httpx.post(
+            f"{settings.api_url}/util/send-email",
+            json={
+                "from": settings.alert_from_email,
+                "to": [email],
+                "subject": f"[VULNRA] Scheduled scan complete: {url[:60]}",
+                "html": body_html,
+            },
+            timeout=10,
+        )
+        logger.info(f"Scheduled scan notification sent to {email}")
+    except Exception as e:
+        logger.error(f"Failed to send scheduled scan notification: {e}")
