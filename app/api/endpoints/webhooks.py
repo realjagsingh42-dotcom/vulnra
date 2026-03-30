@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.core.security import get_current_user
+from app.core.deps import require_db
 from app.services.webhook_delivery import get_webhook_limit, deliver_webhook
 
 logger = logging.getLogger(__name__)
@@ -41,16 +42,8 @@ class WebhookPatch(BaseModel):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _get_sb():
-    from app.services.supabase_service import get_supabase
-    sb = get_supabase()
-    if not sb:
-        raise HTTPException(503, "Database unavailable")
-    return sb
-
-
 def _user_webhooks(user_id: str) -> list:
-    sb = _get_sb()
+    sb = require_db()
     resp = sb.table("webhooks").select("*").eq("user_id", user_id).order("created_at").execute()
     return resp.data or []
 
@@ -87,7 +80,7 @@ async def create_webhook(
 
     secret = secrets.token_hex(32)
 
-    sb = _get_sb()
+    sb = require_db()
     resp = sb.table("webhooks").insert({
         "user_id": user_id,
         "name":    body.name.strip()[:80],
@@ -125,7 +118,7 @@ async def update_webhook(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    sb = _get_sb()
+    sb = require_db()
 
     # Ownership check
     check = sb.table("webhooks").select("id").eq("id", webhook_id).eq("user_id", user_id).execute()
@@ -156,7 +149,7 @@ async def delete_webhook(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    sb = _get_sb()
+    sb = require_db()
 
     check = sb.table("webhooks").select("id").eq("id", webhook_id).eq("user_id", user_id).execute()
     if not check.data:
@@ -171,7 +164,7 @@ async def test_webhook(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    sb = _get_sb()
+    sb = require_db()
 
     rows = sb.table("webhooks").select("*").eq("id", webhook_id).eq("user_id", user_id).execute()
     if not rows.data:

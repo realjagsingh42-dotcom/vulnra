@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 
 from app.core.security import get_current_user
+from app.core.deps import require_db
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -34,24 +35,15 @@ class NotificationsPatch(BaseModel):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _get_supabase_admin():
-    """Return Supabase client with service-role access for profile ops."""
-    from app.services.supabase_service import get_supabase
-    sb = get_supabase()
-    if not sb:
-        raise HTTPException(503, "Database unavailable")
-    return sb
-
-
 def _fetch_profile(user_id: str) -> dict:
-    sb = _get_supabase_admin()
+    sb = require_db()
     resp = sb.table("profiles").select("*").eq("id", user_id).execute()
     rows = resp.data or []
     return rows[0] if rows else {}
 
 
 def _upsert_profile(user_id: str, fields: dict) -> dict:
-    sb = _get_supabase_admin()
+    sb = require_db()
     fields["id"] = user_id
     resp = sb.table("profiles").upsert(fields, on_conflict="id").execute()
     rows = resp.data or []
