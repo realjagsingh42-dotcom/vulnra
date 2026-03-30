@@ -1,6 +1,7 @@
 # CLAUDE.md - Project Context for AI Assistant
 
 > **Last Updated:** 2026-03-31
+> **Version:** 0.4.0
 
 ## Project Overview
 

@@ -14,7 +14,7 @@ logger = logging.getLogger("vulnra")
 
 class Settings(BaseSettings):
     app_name: str = "VULNRA API"
-    version: str = "0.2.0"
+    version: str = "0.4.0"
     debug: bool = False
 
     # Security

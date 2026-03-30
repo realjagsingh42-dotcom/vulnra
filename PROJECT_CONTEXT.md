@@ -1,7 +1,7 @@
 # VULNRA — Project Context
 
 > **Last Updated:** 2026-03-31
-> **Version:** 0.3.0
+> **Version:** 0.4.0
 > **Repository:** [github.com/realjagsingh42-dotcom/vulnra](https://github.com/realjagsingh42-dotcom/vulnra)
 > **Production URL:** https://vulnra-production.up.railway.app
 
