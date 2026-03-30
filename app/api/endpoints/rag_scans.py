@@ -178,6 +178,11 @@ async def start_rag_scan(
             status_code=400,
             detail="Invalid ingestion_endpoint: private IPs blocked.",
         )
+    if body.llm_endpoint and not is_safe_url(body.llm_endpoint):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid llm_endpoint: private IPs blocked.",
+        )
 
     # Quota check
     try:
@@ -249,6 +254,6 @@ async def get_rag_scan(
                 raise HTTPException(status_code=403, detail="Access denied.")
             return JSONResponse(content=result)
     except Exception as e:
-        logger.warning(f"[{scan_id}] Supabase lookup failed: {e}")
+        logger.error(f"[{scan_id}] Supabase lookup failed: {e}")
 
     raise HTTPException(status_code=404, detail=f"RAG scan '{scan_id}' not found.")

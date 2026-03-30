@@ -48,7 +48,10 @@ function OAuthButton({
     setOauthError(null);
     try {
       const supabase = createClient();
-      const next = redirectTo || "/scanner";
+      const next =
+        redirectTo && redirectTo.startsWith('/') && !redirectTo.includes('://')
+          ? redirectTo
+          : '/scanner';
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
@@ -98,7 +101,11 @@ export default function LoginForm({ message, redirectTo }: { message?: string; r
   const [pending, setPending] = useState(false);
   const [error, setError]     = useState<string | null>(null);
 
-  const afterLoginPath = redirectTo || "/scanner";
+  // Only allow relative paths — reject absolute URLs to prevent open redirect attacks
+  const afterLoginPath =
+    redirectTo && redirectTo.startsWith('/') && !redirectTo.includes('://')
+      ? redirectTo
+      : '/scanner';
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

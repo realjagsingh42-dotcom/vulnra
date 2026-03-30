@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, validator
 
 from app.core.security import get_current_user
+from app.core.rate_limiter import limiter
 from app.services.supabase_service import (
     create_api_key, list_api_keys, revoke_api_key, _API_KEY_LIMITS
 )
@@ -24,7 +25,9 @@ class CreateKeyRequest(BaseModel):
 
 
 @router.post("/keys")
+@limiter.limit("5/minute")
 async def create_key(
+    request: Request,
     body: CreateKeyRequest,
     current_user: dict = Depends(get_current_user),
 ):

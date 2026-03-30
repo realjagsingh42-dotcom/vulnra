@@ -114,6 +114,17 @@ export default function BillingPage() {
       }
 
       if (data.checkout_url) {
+        // Validate the redirect stays within the Lemon Squeezy payment domain
+        try {
+          const checkoutHost = new URL(data.checkout_url).hostname;
+          if (!checkoutHost.endsWith('lemonsqueezy.com')) {
+            setError("Invalid checkout URL received. Please contact support.");
+            return;
+          }
+        } catch {
+          setError("Invalid checkout URL received. Please contact support.");
+          return;
+        }
         window.location.href = data.checkout_url;
       }
     } catch {

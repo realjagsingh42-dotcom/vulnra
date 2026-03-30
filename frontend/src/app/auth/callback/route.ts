@@ -6,7 +6,9 @@ export async function GET(request: Request) {
   const code       = searchParams.get('code')
   const token_hash = searchParams.get('token_hash')
   const type       = searchParams.get('type') as 'email' | 'recovery' | 'signup' | null
-  const next       = searchParams.get('next') ?? '/scanner'
+  const nextParam  = searchParams.get('next') ?? '/scanner'
+  // Only allow relative paths — reject anything containing a scheme (open redirect prevention)
+  const next       = nextParam.startsWith('/') && !nextParam.includes('://') ? nextParam : '/scanner'
 
   // Resolve the correct redirect base (Railway / Vercel use x-forwarded-host)
   const forwardedHost = (request as Request & { headers: Headers }).headers.get('x-forwarded-host')

@@ -10,7 +10,7 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 from app.core.security import get_current_user
 from app.core.deps import require_db

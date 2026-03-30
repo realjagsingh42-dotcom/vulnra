@@ -187,7 +187,7 @@ async def get_subscription(current_user: dict = Depends(get_current_user)):
             if res.data:
                 subscription_id = res.data.get("lemon_sub_id")
         except Exception as exc:
-            logger.warning(f"Profile lookup failed: {exc}")
+            logger.error(f"Profile lookup failed: {exc}")
 
     tier = get_user_tier(user_id)
 
