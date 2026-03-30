@@ -35,7 +35,7 @@ function mkEvt(kind: TerminalEvent["kind"], text: string, extra?: Partial<Termin
 const VALID_SEVERITIES = new Set(["CRITICAL", "HIGH", "MEDIUM", "LOW"]);
 
 // ── Multi-turn finding type → display category + severity ─────────────────────
-const MULTI_TURN_TYPE_MAP: Record<string, { category: string; severity: string }> = {
+const MULTI_TURN_TYPE_MAP: Record<string, { category: string; severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" }> = {
   jailbreak_success:   { category: "JAILBREAK",        severity: "HIGH"   },
   policy_violation:    { category: "POLICY_BYPASS",    severity: "HIGH"   },
   injection_success:   { category: "PROMPT_INJECTION", severity: "HIGH"   },
@@ -63,7 +63,7 @@ function mkFinding(f: any): TerminalEvent {
   // Multi-turn finding structure: { turn, type, prompt, response }
   if (f.turn !== undefined) {
     const mapped = MULTI_TURN_TYPE_MAP[f.type as string]
-      ?? { category: (f.type as string)?.toUpperCase().replace(/_/g, " ") ?? "UNKNOWN", severity: "MEDIUM" };
+      ?? { category: (f.type as string)?.toUpperCase().replace(/_/g, " ") ?? "UNKNOWN", severity: "MEDIUM" as const };
     return {
       id:               Math.random().toString(36).slice(2),
       ts:               Date.now(),
