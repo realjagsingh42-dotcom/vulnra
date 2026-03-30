@@ -511,7 +511,7 @@ export default function ScannerLayout({ user }: { user: User }) {
     setDownloadingReport(true);
     try {
       const { data: { session } } = await getSupabase().auth.getSession();
-      if (!session) return;
+      if (!session) { setDownloadingReport(false); return; }
 
       const resp = await fetch(
         `${API}/scan/${currentScanId}/report`,
@@ -528,8 +528,10 @@ export default function ScannerLayout({ user }: { user: User }) {
       const a = document.createElement("a");
       a.href = url;
       a.download = `vulnra-report-${currentScanId.slice(0, 8)}.pdf`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
     } catch {
       setEvents(prev => [...prev, mkEvt("error", "REPORT_DOWNLOAD_FAILED")]);
     } finally {
