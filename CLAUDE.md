@@ -54,6 +54,7 @@ celery -A app.worker worker --loglevel=info
 - ✅ Webhook Notifications
 - ✅ Enterprise Team Management (org members, invites)
 - ✅ Shared Scan Quota (org members share daily pool)
+- ✅ CI/CD GitHub Action (`vulnra/scan-action@v1`)
 
 ## Important Files
 

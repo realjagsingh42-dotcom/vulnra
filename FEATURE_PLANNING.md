@@ -283,11 +283,11 @@ This document tracks all feature work — completed, in-progress, planned, and b
 | Model provider SDKs (Bedrock, Cohere, Vertex AI) | Allow scanning models beyond REST endpoints |
 | Browser extension | Scan any LLM chatbot in-browser |
 | VS Code extension | Scan LLM calls inline while coding |
-| CI/CD GitHub Action | `vulnra/scan-action@v1` — scan on every PR |
 | Benchmark comparisons | Side-by-side risk scores for GPT-4 vs Claude vs Gemini |
 | Red team report templates | Pentest-style narrative reports |
 | Custom attack chain builder | Visual UI to compose multi-turn attack sequences |
 | SBOM integration | Map scan findings to model supply chain |
+| Vuln-DB | Public vulnerability database |
 
 ---
 
@@ -314,7 +314,6 @@ This document tracks all feature work — completed, in-progress, planned, and b
 
 | Milestone | Target Date | Key Deliverables |
 |-----------|------------|-----------------|
-| **v0.3.0** | 2026-03-30 | Billing checkout, PDF reports, scan history, scan sharing |
-| **v0.4.0** | 2026-03-31 | API keys, continuous monitoring, webhooks, team management, shared quotas, SSO |
-| **v0.5.0** | 2026-06-01 | Custom probes, custom compliance frameworks, vuln-db |
-| **v1.0.0 GA** | 2026-08-01 | All integrations, benchmark comparisons, CI/CD action |
+| **v0.4.0** | 2026-03-31 | All Enterprise features complete (API keys, monitoring, webhooks, SSO, team mgmt, shared quotas, GitHub Action) |
+| **v0.5.0** | 2026-06-01 | Custom probes, custom compliance frameworks, vuln-db, benchmark comparisons |
+| **v1.0.0 GA** | 2026-08-01 | All integrations, red team templates, SBOM |
