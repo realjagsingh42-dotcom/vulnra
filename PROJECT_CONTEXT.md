@@ -1,7 +1,7 @@
 # VULNRA — Project Context
 
-> **Last Updated:** 2026-03-15
-> **Version:** 0.2.0
+> **Last Updated:** 2026-03-31
+> **Version:** 0.3.0
 > **Repository:** [github.com/realjagsingh42-dotcom/vulnra](https://github.com/realjagsingh42-dotcom/vulnra)
 > **Production URL:** https://vulnra-production.up.railway.app
 
@@ -455,6 +455,7 @@ npm run dev    # → http://localhost:3000
 | — | Scan History | ✅ Done |
 | — | PDF Report Download | ✅ Done |
 | — | Social Share (Twitter/LinkedIn/Facebook) | ✅ Done |
+| — | Scan Result Sharing (public links, 30-day expiry) | ✅ Done |
 | — | Enterprise SSO (SAML + OIDC) | ✅ Done |
 | — | Scheduled Scans (one-time, recurring, cron) | ✅ Done |
 | — | Mobile Responsive Fixes | ✅ Done |
@@ -466,11 +467,11 @@ npm run dev    # → http://localhost:3000
 ## Recent Git History
 
 ```
-xxxxxx   feat: add mobile responsive fixes, performance optimizations, and new scan templates
+4de14bf  fix: correct croniter version to 4.0.0
+acb9cc0  feat: add mobile responsive fixes, performance optimizations, and new scan templates
+fe73bd6  chore: add croniter for scheduled scans
+f5dbaea  feat: add scheduled scans (one-time, recurring, cron)
+316c0ac  feat: add Enterprise SSO (SAML 2.0 + OIDC) with audit logging
+cdb4521  docs: update project context with social share feature
 ccfd88e  feat: add social share for scan results (Twitter, LinkedIn, Facebook)
-b03ed4a  fix: update MCP scanner tests and fix compliance module usage
-39f5e7e  fix: update MCP scanner imports to use correct compliance module functions
-6e48f8d  feat: add MCP Security Scanner feature
-2e8b149  test: add billing API tests
-f5f0fc0  feat: add Lemon Squeezy billing integration with checkout and webhooks
 ```

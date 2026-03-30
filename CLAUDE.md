@@ -1,6 +1,6 @@
 # CLAUDE.md - Project Context for AI Assistant
 
-> **Last Updated:** 2026-03-30
+> **Last Updated:** 2026-03-31
 
 ## Project Overview
 
@@ -45,6 +45,7 @@ celery -A app.worker worker --loglevel=info
 - ✅ Lemon Squeezy Billing
 - ✅ PDF Report Download
 - ✅ Social Share (Twitter, LinkedIn, Facebook)
+- ✅ Scan Result Sharing (public links with 30-day expiry)
 - ✅ Enterprise SSO (SAML 2.0 + OIDC)
 - ✅ Audit Logging
 - ✅ Scheduled Scans (one-time, recurring, cron)
@@ -52,17 +53,12 @@ celery -A app.worker worker --loglevel=info
 ## Important Files
 
 - `PROJECT_CONTEXT.md` - Full project documentation
-- `app/api/endpoints/scans.py` - Scan API endpoints
+- `app/api/endpoints/scans.py` - Scan API endpoints (includes share endpoints)
+- `app/services/supabase_service.py` - DB ops (includes create_share_token, get_scan_by_share_token)
 - `app/services/sso_service.py` - SSO service
 - `app/services/scheduled_scan_service.py` - Scheduled scan service
 - `app/api/endpoints/scheduled_scans.py` - Scheduled scan endpoints
 - `app/api/endpoints/org.py` - Org + SSO endpoints
-- `frontend/src/components/scanner/` - Scanner UI components
-
-## Important Files
-
-- `PROJECT_CONTEXT.md` - Full project documentation
-- `app/api/endpoints/scans.py` - Scan API endpoints
 - `frontend/src/components/scanner/` - Scanner UI components
 
 ## Notes

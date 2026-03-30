@@ -1,8 +1,8 @@
 # VULNRA — Feature Planning
 
-> **Last Updated:** 2026-03-15
-> **Current Version:** v0.2.0
-> **Next Release Target:** v0.3.0
+> **Last Updated:** 2026-03-31
+> **Current Version:** v0.3.0
+> **Next Release Target:** v0.4.0
 
 ---
 
@@ -66,68 +66,67 @@ This document tracks all feature work — completed, in-progress, planned, and b
 - ✅ `/billing/success/page.tsx` — Polls subscription endpoint every 2s (up to 30s), auto-redirects to scanner
 - ✅ `/billing/manage/page.tsx` — Current plan view, cancel flow with confirmation step
 - ✅ Variant-ID → tier mapping in `_variant_to_tier()` using settings env vars
-
-#### Still needed
-- [ ] Show current tier badge in scanner dashboard nav
+- ✅ Tier badge in scanner dashboard nav
 
 ---
 
 ### 2. PDF Report Download
 
-**Priority:** P1 — Promised on pricing page
+**Priority:** P1 — ✅ COMPLETE (2026-03-30)
 **Owner:** Backend + Frontend
 
 #### What's done
-- `pdf_report.py` exists with ReportLab
-
-#### What's remaining
-- [ ] Verify PDF generation produces valid output for current scan result shape
-- [ ] `GET /api/scan/{id}/report` — Stream PDF response with correct headers
-- [ ] Auth guard: only scan owner can download
-- [ ] Frontend: "Download Report" button in findings panel, visible after scan completes
-- [ ] PDF content: executive summary, findings table (severity, category, OWASP mapping), compliance summary, remediation recommendations
+- ✅ `pdf_report.py` with ReportLab — verified produces valid output
+- ✅ `GET /api/scan/{id}/report` — Stream PDF response with correct headers
+- ✅ Auth guard: only scan owner can download
+- ✅ Frontend: "Download Report" button in findings panel
+- ✅ PDF content: title, scan date, target URL, risk score, findings table, compliance summary, remediation recommendations
+- ✅ Free tier: watermarked PDF (top 3 findings only); Pro/Enterprise: full PDF
 
 **Acceptance Criteria:**
-- Completed scan has a downloadable PDF button
-- PDF includes: title, scan date, target URL, risk score, findings table, compliance mapping
-- Free tier: watermarked PDF only; Pro/Enterprise: full PDF
+- ✅ Completed scan has a downloadable PDF button
+- ✅ PDF includes: title, scan date, target URL, risk score, findings table, compliance mapping
+- ✅ Free tier: watermarked PDF only; Pro/Enterprise: full PDF
 
 ---
 
-## Planned — v0.3.0 Backlog
+## Completed — v0.3.0
 
 ### 3. Dashboard Scan History
 
-**Priority:** P1
-**Description:** Users currently have no way to view past scans from the UI.
+**Priority:** P1 — ✅ COMPLETE (2026-03-30)
+**Description:** Users can now view past scans from the UI.
 
-- [ ] `GET /api/scans` — paginated list of user's scans (id, url, status, risk_score, created_at)
-- [ ] Dashboard `/history` page — table of past scans with link to re-open results
-- [ ] Scan detail page at `/scanner/[id]` — re-render findings from stored JSON
-- [ ] Delete scan endpoint + UI
+#### What's done
+- ✅ `GET /api/scans` — paginated list of user's scans (id, url, status, risk_score, created_at)
+- ✅ Dashboard `/history` page — table of past scans with link to re-open results
+- ✅ Scan detail page at `/scanner/[id]` — re-render findings from stored JSON
+- ✅ Delete scan endpoint + UI
 
 **Acceptance Criteria:**
-- User can see all their past scans sorted by date
-- Each scan row shows: target URL, risk score, date, status
-- Clicking a scan loads the full findings view
+- ✅ User can see all their past scans sorted by date
+- ✅ Each scan row shows: target URL, risk score, date, status
+- ✅ Clicking a scan loads the full findings view
 
 ---
 
 ### 4. Scan Result Sharing
 
-**Priority:** P2
+**Priority:** P2 — ✅ COMPLETE (2026-03-31)
 **Description:** Allow users to share scan reports publicly (or with a team).
 
-- [ ] `POST /api/scan/{id}/share` — Generate a signed, time-limited public token
-- [ ] Public report URL: `/report/{token}` — Read-only view, no auth required
-- [ ] Expiry: 7 days default, configurable up to 30 days (Pro) / permanent (Enterprise)
-- [ ] LinkedIn/Twitter share buttons with pre-filled text + report URL
-- [ ] "Copy link" button in findings panel
+#### What's done
+- ✅ `POST /api/scan/{id}/share` — Generate a signed, time-limited public token (30-day expiry)
+- ✅ Public report URL: `/report/{token}` — Read-only view, no auth required
+- ✅ `GET /api/report/{token}` — Returns scan data for shared link
+- ✅ Copy link button in findings panel
+- ✅ Share token stored in `scans.share_token` and `scans.share_expires_at`
+- ✅ Database migration: `supabase/migrations/20260320_complete_schema.sql`
 
 **Acceptance Criteria:**
-- Pro+ users can generate a shareable link for any completed scan
-- Shared link shows full results without requiring login
-- Link expires after configured time; expired links show a 410 page
+- ✅ Pro+ users can generate a shareable link for any completed scan
+- ✅ Shared link shows full results without requiring login
+- ✅ Link expires after 30 days; expired links return 404
 
 ---
 
@@ -296,9 +295,9 @@ This document tracks all feature work — completed, in-progress, planned, and b
 
 | Feature | Business Value | User Impact | Effort | Priority |
 |---------|---------------|-------------|--------|----------|
-| Billing checkout | Revenue blocker | High | Medium | **P0** |
-| PDF reports | Promised in pricing | Medium | Low | **P1** |
-| Scan history | Core UX gap | High | Low | **P1** |
+| Billing checkout | Revenue blocker | High | Medium | ✅ Done |
+| PDF reports | Promised in pricing | Medium | Low | ✅ Done |
+| Scan history | Core UX gap | High | Low | ✅ Done |
 | Scan sharing | Viral loop | Medium | Medium | **P2** |
 | Continuous monitoring | Enterprise lock-in | High | High | **P2** |
 | API key auth | Devtools adoption | Medium | Medium | **P2** |
@@ -314,7 +313,7 @@ This document tracks all feature work — completed, in-progress, planned, and b
 
 | Milestone | Target Date | Key Deliverables |
 |-----------|------------|-----------------|
-| **v0.3.0** | 2026-04-01 | Billing checkout, PDF reports, scan history, scan sharing |
+| **v0.3.0** | 2026-03-30 | Billing checkout, PDF reports, scan history, scan sharing |
 | **v0.4.0** | 2026-05-01 | Continuous monitoring, API keys, webhooks, custom probes |
 | **v0.5.0** | 2026-06-01 | Team management, org dashboard, shared quotas |
 | **v1.0.0 GA** | 2026-08-01 | SSO, audit logs, custom frameworks, vuln-db, all integrations |
