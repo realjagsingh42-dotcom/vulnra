@@ -20,10 +20,10 @@ garak==0.14.0
 # These versions are all mutually compatible.
 grpcio>=1.75.1
 grpcio-tools>=1.75.1
-grpcio-status>=1.75.1,<2.0
+grpcio-status>=1.75.1
 protobuf>=6.31.1
-googleapis-common-protos==1.63.2
-google-api-core==2.24.2
-google-cloud-translate==3.24.0
-google-cloud-core==2.5.0
-grpc-google-iam-v1==0.14.0
+googleapis-common-protos>=1.65.0
+google-api-core>=2.24.2
+google-cloud-translate>=3.24.0
+google-cloud-core>=2.5.0
+grpc-google-iam-v1>=0.14.0
