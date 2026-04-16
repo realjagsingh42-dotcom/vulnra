@@ -82,7 +82,7 @@ def _haiku_call(system: str, user: str) -> str:
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY not set — cannot run attacker model")
-    client = anthropic.Anthropic(api_key=api_key)
+    client = anthropic.Anthropic(api_key=api_key, timeout=30.0)
     msg = client.messages.create(
         model="claude-haiku-4-5",
         max_tokens=512,

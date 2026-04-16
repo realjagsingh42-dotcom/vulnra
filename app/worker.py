@@ -7,7 +7,41 @@ import time
 import pathlib
 import sys
 import logging
+import signal
+from functools import wraps
 from celery import Celery
+
+# Scan timeout: 120 seconds max
+SCAN_TIMEOUT_SECONDS = 120
+
+
+def timeout_handler(signum, frame):
+    raise TimeoutError("Scan exceeded 120 second timeout")
+
+
+def run_with_timeout(func, timeout_secs=SCAN_TIMEOUT_SECONDS):
+    """Run a function with a timeout, raising TimeoutError if exceeded."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Only use signal-based timeout on Unix systems
+        if hasattr(signal, 'SIGALRM'):
+            old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(timeout_secs)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+                signal.signal(signal.SIGALRM, old_handler)
+            return result
+        else:
+            # On Windows or other systems without SIGALRM, use a simple time check
+            start = time.time()
+            result = func(*args, **kwargs)
+            elapsed = time.time() - start
+            if elapsed > timeout_secs:
+                raise TimeoutError(f"Scan exceeded {timeout_secs} second timeout")
+            return result
+    return wrapper
 
 # Ensure project root is on path for standalone execution
 ROOT = pathlib.Path(__file__).parent.parent
@@ -59,7 +93,28 @@ def run_scan(self, scan_id: str, url: str, tier: str = "free"):
     logger.info(f"Worker received scan task: {scan_id} -> {url} [Tier: {tier}]")
 
     from app.services.engine_runner import run_all_engines
-    findings, compliance, scan_engines, max_risk = run_all_engines(scan_id, url, tier)
+
+    def run_engine():
+        return run_all_engines(scan_id, url, tier)
+
+    try:
+        findings, compliance, scan_engines, max_risk = run_with_timeout(run_engine, SCAN_TIMEOUT_SECONDS)()
+    except TimeoutError as e:
+        logger.error(f"Scan {scan_id} timed out after {SCAN_TIMEOUT_SECONDS} seconds")
+        findings, compliance, scan_engines, max_risk = [], {}, [], 0.0
+        result = {
+            "scan_id":      scan_id,
+            "url":          url,
+            "tier":         tier,
+            "status":       "failed",
+            "risk_score":   0.0,
+            "findings":     [],
+            "compliance":   {},
+            "scan_engines": [],
+            "completed_at": time.time(),
+            "error":        f"Scan timed out after {SCAN_TIMEOUT_SECONDS} seconds",
+        }
+        return result
 
     # Free-tier blurring: hide detail for all but the first finding
     if tier == "free" and findings:

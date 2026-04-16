@@ -12,18 +12,24 @@ logger = logging.getLogger("vulnra.judge")
 
 class VulnerabilityJudge:
     """
-    LLM-as-a-Judge service using Anthropic Claude to evaluate 
+    LLM-as-a-Judge service using Anthropic Claude to evaluate
     potential vulnerabilities in model interactions.
     """
 
-    def __init__(self, api_key: Optional[str] = None, client: Any = None):
+    _client_not_provided = object()
+
+    def __init__(self, api_key: Optional[str] = None, client: Any = _client_not_provided):
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
-        self.client = client
-        if not self.client and anthropic and self.api_key:
+        if client is not VulnerabilityJudge._client_not_provided:
+            self.client = client
+        elif anthropic and self.api_key:
             try:
                 self.client = anthropic.Anthropic(api_key=self.api_key)
             except Exception as e:
                 logger.error(f"Failed to initialize Anthropic client: {e}")
+                self.client = None
+        else:
+            self.client = None
 
     def evaluate_interaction(
         self,
@@ -84,7 +90,8 @@ Model Output: {output}
                 system=system_prompt,
                 messages=[
                     {"role": "user", "content": user_content}
-                ]
+                ],
+                timeout=30.0,
             )
             
             # Extract JSON from response

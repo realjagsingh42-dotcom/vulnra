@@ -9,6 +9,7 @@ from app.core.config import settings, logger
 from app.core.security import get_current_user
 from app.core.utils import is_safe_url
 from app.core.rate_limiter import limiter, RATE_LIMITS
+from app.middleware.tier_enforcement import require_tier
 from app.services.supabase_service import check_scan_quota, get_scan_result, get_user_scans, create_share_token, get_scan_by_share_token, get_prev_scan_risk_for_url, create_scan_record, save_scan_result
 from app.services.scan_service import run_scan_internal
 from app.services.mcp_scanner import scan_mcp_server, MCPScanResult
@@ -28,6 +29,8 @@ _CATEGORY_BUCKET: dict = {
 
 def compute_category_scores(findings: list) -> dict:
     """Aggregate hit_rate per category bucket into 0-100 scores."""
+    if not findings:
+        return {"injection": 0, "jailbreak": 0, "leakage": 0, "compliance": 0}
     buckets: dict = {"injection": [], "jailbreak": [], "leakage": [], "compliance": []}
     for f in findings:
         bucket = _CATEGORY_BUCKET.get(f.get("category", ""))
@@ -104,6 +107,7 @@ async def get_public_report(token: str):
 async def download_scan_report(
     scan_id: str,
     current_user: dict = Depends(get_current_user),
+    _=Depends(require_tier("pro")),
 ):
     """Stream a PDF audit report for a completed scan."""
     from fastapi.responses import StreamingResponse
@@ -180,7 +184,7 @@ async def get_scan_status(
     rate_limit_count = int(rate_limit_str.split("/")[0])
     
     findings = scan_data.get("findings", [])
-    category_scores = compute_category_scores(findings)
+    category_scores = compute_category_scores(findings or [])
     prev_risk = None
     if scan_data.get("status") == "complete":
         prev_risk = get_prev_scan_risk_for_url(
@@ -410,7 +414,8 @@ async def start_multi_turn_scan(
     request: Request,
     scan_data: MultiTurnScanRequest,
     background_tasks: BackgroundTasks = BackgroundTasks(),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _=Depends(require_tier("pro")),
 ):
     """Start a multi-turn attack chain scan."""
     from app.garak_engine import run_multi_turn_scan
@@ -471,7 +476,8 @@ class MCPServerRequest(BaseModel):
 async def scan_mcp_endpoint(
     request: Request,
     scan_data: MCPServerRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _=Depends(require_tier("pro")),
 ):
     """Scan an MCP server for vulnerabilities"""
     from fastapi.responses import JSONResponse

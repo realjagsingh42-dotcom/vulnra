@@ -114,7 +114,8 @@ Generate a single prompt that would be effective in the next turn."""
                     messages=[{
                         "role": "user",
                         "content": system_prompt.format(target_response=target_response)
-                    }]
+                    }],
+                    timeout=30.0,
                 )
                 
                 return response.content[0].text.strip()
