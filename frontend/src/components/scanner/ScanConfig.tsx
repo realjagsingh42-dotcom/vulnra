@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Globe, Timer, AlertTriangle, ChevronDown, ChevronRight, SlidersHorizontal, CheckSquare, Square, Zap } from "lucide-react";
+import { Globe, Timer, AlertTriangle, ChevronDown, ChevronRight, SlidersHorizontal, CheckSquare, Square, Zap, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ── Probe catalogue (mirrors backend PROBE_CATALOGUE) ────────────────────────
@@ -219,22 +219,35 @@ export default function ScanConfig({ onStart, isScanning, defaultTier }: ScanCon
 
       {/* Tier Selection */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-[8.5px] font-mono tracking-widest uppercase text-v-muted2">Tier Selection</label>
+        <label className="text-[8.5px] font-mono tracking-widest uppercase text-v-muted2">
+          Tier Selection
+          {tier === "enterprise" && <span className="ml-2 text-[#4db8ff]">(Locked)</span>}
+        </label>
         <div className="flex gap-1">
-          {["free", "pro", "enterprise"].map((t) => (
-            <button
-              key={t}
-              type="button"
-              disabled={isScanning}
-              onClick={() => setTier(t)}
-              className={cn(
-                "flex-1 font-mono text-[9px] tracking-tight bg-v-bg2 border border-v-border rounded-sm py-1.75 text-center transition-all",
-                tier === t ? "border-acid text-acid bg-acid/10" : "text-v-muted2 hover:border-white/10 hover:text-v-muted"
-              )}
-            >
-              {t.toUpperCase()}
-            </button>
-          ))}
+          {["free", "pro", "enterprise"].map((t) => {
+            const isDisabled = isScanning || (tier === "enterprise" && t !== "enterprise");
+            return (
+              <button
+                key={t}
+                type="button"
+                disabled={isDisabled}
+                onClick={() => !isDisabled && setTier(t)}
+                className={cn(
+                  "flex-1 font-mono text-[9px] tracking-tight bg-v-bg2 border rounded-sm py-1.75 text-center transition-all relative",
+                  tier === t 
+                    ? "border-acid text-acid bg-acid/10" 
+                    : isDisabled
+                    ? "border-v-border/50 text-v-muted3/50 cursor-not-allowed"
+                    : "text-v-muted2 hover:border-white/10 hover:text-v-muted"
+                )}
+              >
+                {t.toUpperCase()}
+                {t === "enterprise" && tier !== "enterprise" && (
+                  <Lock className="w-2.5 h-2.5 absolute top-0.5 right-0.5 text-v-muted3" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

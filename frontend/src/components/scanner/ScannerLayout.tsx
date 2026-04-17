@@ -159,9 +159,7 @@ export default function ScannerLayout({ user }: { user: User }) {
   // wrapped in existing try-catch blocks.
   const getSupabase = () => createClient();
 
-  const [tier, setTier] = useState<string>(
-    (user.user_metadata?.tier || "free").toLowerCase()
-  );
+  const [tier, setTier] = useState<string>("free");
 
   const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -204,17 +202,26 @@ export default function ScannerLayout({ user }: { user: User }) {
   useEffect(() => {
     async function fetchTier() {
       try {
-        const { data: { session } } = await getSupabase().auth.getSession();
-        if (!session) return;
-        const resp = await fetch(`${API}/billing/subscription`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data.tier) setTier(data.tier.toLowerCase());
+        const supabase = getSupabase();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
+        
+        // Direct query to profiles table for authoritative tier
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("tier")
+          .eq("id", session.user.id)
+          .single();
+        
+        if (!error && profile?.tier) {
+          setTier(profile.tier.toLowerCase());
+        } else {
+          // Fallback to metadata tier
+          const metaTier = session.user.user_metadata?.tier;
+          setTier((metaTier || "free").toLowerCase());
         }
       } catch {
-        // keep metadata tier as fallback
+        // keep default free tier as last resort
       }
     }
     fetchTier();
