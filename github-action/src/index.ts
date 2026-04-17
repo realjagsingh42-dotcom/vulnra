@@ -405,20 +405,24 @@ async function run(): Promise<void> {
     // ------------------------------------------------------------------
     // 6. Annotate check summary
     // ------------------------------------------------------------------
-    if (process.env.GITHUB_STEP_SUMMARY) {
-      await core.summary
-        .addHeading("VULNRA LLM Security Scan", 2)
-        .addTable([
-          [
-            { data: "Metric", header: true },
-            { data: "Value", header: true },
-          ],
-          ["Risk Score", `${score}/100`],
-          ["Findings", String(scan.findings.length)],
-          ["Scan ID", scanId],
-        ])
-        .addLink("View full report", `https://app.vulnra.com/scanner?scan_id=${scanId}`)
-        .write();
+    try {
+      if (process.env.GITHUB_STEP_SUMMARY) {
+        await core.summary
+          .addHeading("VULNRA LLM Security Scan", 2)
+          .addTable([
+            [
+              { data: "Metric", header: true },
+              { data: "Value", header: true },
+            ],
+            ["Risk Score", `${score}/100`],
+            ["Findings", String(scan.findings.length)],
+            ["Scan ID", scanId],
+          ])
+          .addLink("View full report", `https://app.vulnra.com/scanner?scan_id=${scanId}`)
+          .write();
+      }
+    } catch (e) {
+      core.debug(`Summary write skipped: ${e}`);
     }
 
     // ------------------------------------------------------------------
