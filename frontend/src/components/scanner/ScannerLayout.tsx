@@ -139,6 +139,7 @@ export default function ScannerLayout({ user }: { user: User }) {
   const [currentScanId, setCurrentScanId] = useState<string | null>(null);
   const [scanComplete, setScanComplete] = useState(false);
   const [downloadingReport, setDownloadingReport] = useState(false);
+  const [pdfStatus, setPdfStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle');
   const [sharingReport, setSharingReport] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -518,10 +519,10 @@ export default function ScannerLayout({ user }: { user: User }) {
 
   const handleDownloadReport = async () => {
     if (!currentScanId) return;
-    setDownloadingReport(true);
+    setPdfStatus('generating');
     try {
       const { data: { session } } = await getSupabase().auth.getSession();
-      if (!session) { setDownloadingReport(false); return; }
+      if (!session) { setPdfStatus('error'); setTimeout(() => setPdfStatus('idle'), 3000); return; }
 
       const resp = await fetch(
         `${API}/scan/${currentScanId}/report`,
@@ -529,7 +530,8 @@ export default function ScannerLayout({ user }: { user: User }) {
       );
 
       if (!resp.ok) {
-        setEvents(prev => [...prev, mkEvt("error", "REPORT_GENERATION_FAILED")]);
+        setPdfStatus('error');
+        setTimeout(() => setPdfStatus('idle'), 3000);
         return;
       }
 
@@ -542,10 +544,11 @@ export default function ScannerLayout({ user }: { user: User }) {
       a.click();
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      setPdfStatus('success');
+      setTimeout(() => setPdfStatus('idle'), 2000);
     } catch {
-      setEvents(prev => [...prev, mkEvt("error", "REPORT_DOWNLOAD_FAILED")]);
-    } finally {
-      setDownloadingReport(false);
+      setPdfStatus('error');
+      setTimeout(() => setPdfStatus('idle'), 3000);
     }
   };
 
@@ -879,19 +882,23 @@ export default function ScannerLayout({ user }: { user: User }) {
                   {/* PDF download */}
                   <button
                     onClick={handleDownloadReport}
-                    disabled={downloadingReport}
+                    disabled={pdfStatus === 'generating'}
                     title="Download PDF report"
                     className={cn(
                       "flex items-center gap-1.5 text-[9px] font-mono tracking-wider px-2 py-1 rounded-sm border transition-all",
-                      downloadingReport
+                      pdfStatus === 'generating'
                         ? "opacity-50 cursor-not-allowed border-v-border text-v-muted2"
+                        : pdfStatus === 'success'
+                        ? "border-green-500/50 text-green-400 bg-green-500/10"
+                        : pdfStatus === 'error'
+                        ? "border-red-500/50 text-red-400 bg-red-500/10"
                         : "border-acid/30 text-acid hover:bg-acid/10 hover:border-acid/50"
                     )}
                   >
-                    {downloadingReport
-                      ? <><Loader2 className="w-3 h-3 animate-spin" /> GENERATING...</>
-                      : <><FileDown className="w-3 h-3" /> PDF</>
-                    }
+                    {pdfStatus === 'generating' && <><Loader2 className="w-3 h-3 animate-spin" /> GENERATING...</>}
+                    {pdfStatus === 'success' && <><span>✓</span> DOWNLOADED</>}
+                    {pdfStatus === 'error' && <><span>✗</span> FAILED</>}
+                    {pdfStatus === 'idle' && <><FileDown className="w-3 h-3" /> PDF</>}
                   </button>
                 </div>
               )}
