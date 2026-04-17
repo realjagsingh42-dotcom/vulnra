@@ -10,7 +10,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONFAULTHANDLER=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PATH="/root/.cargo/bin:${PATH}"
 
 WORKDIR /app
 
@@ -33,10 +34,17 @@ RUN groupadd -r vulnra && useradd -r -g vulnra vulnra \
 # This layer is only rebuilt when requirements-ml.txt changes.
 # torch CPU-only is ~800MB vs ~4GB for full torch — use it.
 COPY requirements-ml.txt .
-RUN pip install --upgrade pip && \
-    pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu && \
-    pip install -r requirements-ml.txt && \
-    pip install --no-deps deepteam==0.1.0
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    build-essential \
+    && curl https://sh.rustup.rs -sSf | sh -s -- -y \
+    && export PATH="$HOME/.cargo/bin:$PATH" \
+    && pip install --upgrade pip \
+    && pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu \
+    && pip install -r requirements-ml.txt \
+    && pip install --no-deps deepteam==0.1.0 \
+    && apt-get purge -y curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # ── LAYER 2: App dependencies (fast, changes often) ──────────
 COPY requirements.txt .
