@@ -1,93 +1,144 @@
-# VULNRA
+# VULNRA — AI Risk Scanner & Compliance Reporter
 
-VULNRA is an AI Risk Scanner & Compliance Reporter designed to automatically find jailbreaks, prompt injections, and encoding bypasses in any LLM endpoint. It maps vulnerabilities to the EU AI Act & NIST frameworks in real-time.
+VULNRA automatically finds jailbreaks, prompt injections, and encoding bypasses in any LLM endpoint. It maps vulnerabilities to OWASP LLM Top 10, MITRE ATLAS, EU AI Act, and NIST AI RMF frameworks.
 
-## Features
-
-### AI Risk Detection
-- **Prompt Injection Detection**: Identify direct and indirect chains.
-- **Jailbreak Detection**: Recognize DAN, AutoDAN, and HijackKill styles.
-- **Encoding Bypasses**: Catch Base64, ROT13, and Unicode obfuscated inputs.
-- **Multi-Turn Attack Chains**: Crescendo (5-turn escalating) and GOAT (autonomous) attacks.
-
-### Compliance & Frameworks
-- **OWASP LLM 2025**: Complete coverage of all 10 OWASP LLM Top 10 categories.
-- **MITRE ATLAS Mapping**: Tactical framework for AI security attacks (T0001-T0048).
-- **Real-time Compliance Mapping**: Map risks to EU AI Act, NIST AI RMF, and DPDP.
-
-### Platform Features
-- **Rate Limiting**: Tier-based API rate limiting with Redis backend.
-- **Multi-Engine Support**: Garak and DeepTeam scanning engines.
-- **AI Judge Evaluation**: Claude-powered vulnerability assessment.
-
----
-
-## Local Development Setup
-
-### Prerequisites
-- Python 3.11+
-- Node.js 20+
-- Redis (running on localhost:6379)
-- Docker & Docker Compose (optional)
+## Quick Start
 
 ### Option 1: Docker Compose (Recommended)
 
 ```bash
-# Start all services (backend, worker, Redis, frontend)
-./start.sh
+# Start all services with one command
+docker compose up --build
 
-# Or on Windows:
-start.bat
+# Stop all services
+docker compose down
 ```
 
-### Option 2: Manual Start
+### Option 2: Manual Setup
 
 ```bash
-# 1. Set up Python environment
+# 1. Clone and setup
+git clone https://github.com/your-org/vulnra.git
+cd vulnra
+cp .env.example .env
+
+# 2. Install dependencies
 python -m venv venv
-source venv/bin/activate      # Linux/macOS
-# venv\Scripts\activate       # Windows
+source venv/bin/activate          # Linux/macOS
 pip install -r requirements.txt
 
-# 2. Configure environment
-# Edit .env with your Supabase, Anthropic, Lemon Squeezy, and Resend credentials
+cd frontend && npm install && cd ..
 
-# 3. Start Redis (if not running)
-docker run -d -p 6379:6379 redis:7-alpine
+# 3. Configure .env
+# Edit .env with your Supabase URL/keys and other credentials
 
-# 4. Start backend (Terminal 1)
-./start-backend.sh
-# Or: source venv/bin/activate && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# 5. Start Celery worker (Terminal 2)
-./start-worker.sh
-# Or: source venv/bin/activate && celery -A app.worker worker --loglevel=info
-
-# 6. Start frontend (Terminal 3)
-cd frontend && npm install && npm run dev
+# 4. Start all services
+./start-all.sh
 ```
 
-### Services
+## Services
 
-| Service | URL |
-|---------|-----|
-| Backend API | http://localhost:8000 |
-| API Docs | http://localhost:8000/docs |
-| Frontend | http://localhost:3000 |
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Frontend** | http://localhost:3000 | Web UI |
+| **Backend API** | http://localhost:8000 | REST API |
+| **API Docs** | http://localhost:8000/docs | Swagger documentation |
+| **Demo LLM** | http://localhost:8001 | Vulnerable target for testing |
 
-### Environment Variables
+## Testing the Scanner
 
-Copy `.env.example` to `.env` and fill in your credentials. Required variables:
-- `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` — Supabase project
-- `ANTHROPIC_API_KEY` — For AI Judge (Claude 3 Haiku)
-- `SECRET_KEY` — Generate with: `python -c "import secrets; print(secrets.token_urlsafe(64))"`
+### Run a Quick Scan
 
-### Scan Engines
+```bash
+# Scan the demo vulnerable LLM target
+curl -X POST http://localhost:8000/scan/quick \
+  -H "Content-Type: application/json" \
+  -d '{"target_url": "http://localhost:8001/v1/chat/completions"}'
+```
 
-- **Garak**: Install at `garak_env/` or set `GARAK_VENV_PATH` in `.env`
-- **DeepTeam**: Included in requirements
-- **PyRIT / EasyJailbreak**: Reference implementations
+### Run a Full Scan (requires authentication)
+
+```bash
+# 1. Get a session token from Supabase
+# 2. POST a scan request
+curl -X POST http://localhost:8000/scan \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "url": "http://localhost:8001/v1/chat/completions",
+    "scan_name": "My LLM Test"
+  }'
+
+# 3. Poll for results
+curl http://localhost:8000/scan/SCAN_ID
+```
+
+### Demo Probe Test
+
+```bash
+# Run the built-in probe tests against the demo LLM
+source venv/bin/activate
+python demo/run_demo_test.py
+```
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SECRET_KEY` | Yes | Session signing key. Generate: `python -c "import secrets; print(secrets.token_urlsafe(64))"` |
+| `SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | Yes | Supabase service role key |
+| `REDIS_URL` | Yes | Redis connection string |
+| `ANTHROPIC_API_KEY` | For AI Judge | Anthropic API key for vulnerability scoring |
+| `LEMONSQUEEZY_*` | For billing | Lemon Squeezy API credentials |
+
+## Architecture
+
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│   Frontend  │────▶│  FastAPI     │────▶│   Garak     │
+│  (Next.js)  │◀────│  Backend     │◀────│  DeepTeam   │
+└─────────────┘     └──────────────┘     └─────────────┘
+                           │
+                    ┌──────┴──────┐
+                    │   Celery    │
+                    │   Worker    │
+                    └─────────────┘
+```
+
+## Features
+
+- **AI Risk Detection**: Prompt injection, jailbreak, encoding bypass detection
+- **Multi-Turn Attacks**: Crescendo and GOAT attack chains
+- **Compliance Mapping**: OWASP LLM Top 10, MITRE ATLAS, EU AI Act, NIST AI RMF
+- **AI Judge**: Claude-powered vulnerability assessment
+- **Scheduled Scans**: Automate recurring security tests
+- **Team Management**: Organization quotas and SSO
+
+## Development
+
+```bash
+# Start backend only
+./start-backend.sh
+
+# Start frontend only
+./start-frontend.sh
+
+# Start worker only
+./start-worker.sh
+
+# View logs
+tail -f logs/backend.log
+tail -f logs/worker.log
+tail -f logs/demo.log
+tail -f logs/frontend.log
+
+# Run tests
+pytest tests/
+```
 
 ## License
 
-MIT License — see the [LICENSE](LICENSE) file for details.
+MIT License

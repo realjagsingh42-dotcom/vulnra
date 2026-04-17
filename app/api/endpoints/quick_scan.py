@@ -14,6 +14,8 @@ from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
+from app.core.config import settings
+
 router = APIRouter()
 
 # ── Private / reserved IP patterns ────────────────────────────────────────────
@@ -130,7 +132,8 @@ async def quick_scan(payload: QuickScanRequest, request: Request):
     # Validate URL
     if not url.startswith(("http://", "https://")):
         raise HTTPException(status_code=422, detail="target_url must start with http:// or https://")
-    if _is_private(url):
+    # Allow localhost/private URLs in debug mode for local testing
+    if _is_private(url) and not settings.debug:
         raise HTTPException(status_code=422, detail="target_url must be a public URL")
 
     # Simple IP-based rate limiting (5/hour stored in app state)
