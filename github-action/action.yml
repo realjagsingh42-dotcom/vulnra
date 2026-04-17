@@ -9,7 +9,7 @@ inputs:
     description: 'Your VULNRA API key (vk_live_...)'
     required: true
   target_url:
-    description: 'LLM API endpoint to scan (e.g. https://your-api.com/v1/chat/completions)'
+    description: 'LLM API endpoint to scan'
     required: true
   tier:
     description: 'Scan tier: free, pro, or enterprise'
