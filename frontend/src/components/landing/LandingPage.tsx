@@ -901,7 +901,7 @@ export default function LandingPage() {
                 <span className="text-acid">{"}"}</span>
                 <span className="text-white">{"'\n\n"}</span>
                 <span className="text-[#666]">{"# Response\n"}</span>
-                <span className="text-white">{"{"}\n"}</span>
+                <span className="text-white">{"{\n"}</span>
                 <span className="text-white">  </span>
                 <span className="text-[#888]">"scan_id"</span>
                 <span className="text-white">: </span>
@@ -911,11 +911,11 @@ export default function LandingPage() {
                 <span className="text-[#888]">"status"</span>
                 <span className="text-white">: </span>
                 <span className="text-acid">"running"</span>
-                <span className="text-white">\n{"}\n\n"}</span>
+                <span className="text-white">{"\n}\n\n"}</span>
                 <span className="text-[#666]">{"# Poll for results\n"}</span>
-                <span className="text-white">curl https://api.vulnra.ai/scan/sc_a3f8b2e1\n"}</span>
+                <span className="text-white">{"curl https://api.vulnra.ai/scan/sc_a3f8b2e1\n"}</span>
                 <span className="text-[#666]">{"# When complete:\n"}</span>
-                <span className="text-white">{"{"}\n"}</span>
+                <span className="text-white">{"{\n"}</span>
                 <span className="text-white">  </span>
                 <span className="text-[#888]">"status"</span>
                 <span className="text-white">: </span>
@@ -926,7 +926,7 @@ export default function LandingPage() {
                 <span className="text-white">: 7.4,</span>
                 <span className="text-white">\n  </span>
                 <span className="text-[#888]">"findings"</span>
-                <span className="text-white">: [...],\n"}</span>
+                <span className="text-white">: </span><span className="text-white">{"[...]"}{"},\n"}</span>
                 <span className="text-[#888]">  </span>
                 <span className="text-[#888]">"owasp"</span>
                 <span className="text-white">: [</span>
@@ -934,7 +934,7 @@ export default function LandingPage() {
                 <span className="text-white">, </span>
                 <span className="text-acid">"LLM02"</span>
                 <span className="text-white">]</span>
-                <span className="text-white">\n{"}"}</span>
+                <span className="text-white">{"\n}"}</span>
               </code>
             </pre>
           </div>
