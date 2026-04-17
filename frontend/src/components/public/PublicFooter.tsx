@@ -7,12 +7,9 @@ const COLUMNS: Array<{ title: string; links: Array<[string, string]> }> = [
     title: "Product",
     links: [
       ["Quick Scan",  "/quick-scan"],
-      ["Features",    "/#features"],
       ["Pricing",     "/pricing"],
       ["Enterprise",  "/enterprise"],
-      ["Use Cases",   "/use-cases"],
       ["Changelog",   "/changelog"],
-      ["Roadmap",     "/roadmap"],
     ],
   },
   {
@@ -20,43 +17,25 @@ const COLUMNS: Array<{ title: string; links: Array<[string, string]> }> = [
     links: [
       ["Dashboard",     "/scanner"],
       ["Docs",          "/docs"],
-      ["API Reference", "/docs"],
-      ["Integrations",  "/integrations"],
+      ["API Reference", "/docs/api"],
       ["Status",        "/status"],
-      ["Compare",       "/compare"],
     ],
   },
   {
     title: "Security",
     links: [
-      ["OWASP LLM Top 10", "/owasp-llm"],
-      ["Vulnerability DB",  "/vuln-db"],
-      ["Compliance",        "/compliance"],
-      ["EU AI Act Guide",   "/eu-ai-act"],
-      ["DPDP Guide",        "/dpdp"],
+      ["OWASP LLM Top 10", "/security/owasp"],
+      ["Compliance",        "/security/compliance"],
       ["Security",          "/security"],
-    ],
-  },
-  {
-    title: "Resources",
-    links: [
-      ["Blog",         "/blog"],
-      ["FAQ",          "/faq"],
-      ["Case Studies", "/case-studies"],
-      ["Open Source",  "/open-source"],
-      ["Affiliates",   "/affiliates"],
-      ["Research",     "/research"],
     ],
   },
   {
     title: "Company",
     links: [
-      ["About",      "/about"],
-      ["Enterprise", "/enterprise"],
-      ["Investors",  "/investors"],
-      ["Contact",    "/contact"],
-      ["Sign In",    "/login"],
-      ["Sign Up",    "/signup"],
+      ["About",   "/about"],
+      ["Contact", "/contact"],
+      ["Sign In", "/login"],
+      ["Sign Up", "/signup"],
     ],
   },
 ];
@@ -117,6 +96,9 @@ export default function PublicFooter() {
         }
         @media (max-width: 1024px) {
           .vf-grid { grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+        }
+        @media (max-width: 900px) {
+          .vf-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
         }
         @media (max-width: 768px) {
           .vf-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
