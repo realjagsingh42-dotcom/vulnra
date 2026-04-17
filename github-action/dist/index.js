@@ -100,7 +100,7 @@ async function pollScan(apiUrl, apiKey, scanId, maxWaitMs = 15 * 60 * 1000 // 15
 // Build PR comment markdown
 // ---------------------------------------------------------------------------
 function buildComment(scan, diff, reportUrl, failOnScore) {
-    const score = Math.round((scan.risk_score ?? 0) * 100);
+    const score = Math.round((scan.risk_score ?? 0) * 10);
     const icon = riskColor(score);
     const failed = failOnScore > 0 && score >= failOnScore;
     const lines = [];
@@ -289,7 +289,7 @@ async function run() {
         if (scan.status === "failed") {
             throw new Error(`Scan failed: ${scan.error ?? "unknown error"}`);
         }
-        const score = Math.round((scan.risk_score ?? 0) * 100);
+        const score = Math.round((scan.risk_score ?? 0) * 10);
         core.setOutput("risk_score", String(score));
         core.setOutput("findings_count", String(scan.findings.length));
         core.info(`✅ Scan complete — risk score: ${score}/100, findings: ${scan.findings.length}`);
